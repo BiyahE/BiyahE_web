@@ -1,0 +1,1216 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>BIYAHE - Load Balance</title>
+
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
+    <style>
+        :root {
+            --primary: #3b82f6;
+            --primary-dark: #242553;
+            --primary-light: #60a5fa;
+            --success: #10b981;
+            --warning: #f59e0b;
+            --danger: #ef4444;
+            --bg: #f8fafc;
+            --surface: #ffffff;
+            --text: #0f172a;
+            --text-secondary: #64748b;
+            --text-muted: #94a3b8;
+            --border: #e2e8f0;
+            --radius: 0.75rem;
+            --shadow: 0 2px 4px rgba(0, 0, 0, 0.08);
+            --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        html,
+        body {
+            height: 100vh;
+            overflow: hidden;
+            font-family: 'Inter', sans-serif;
+            background: linear-gradient(135deg, #f0f9ff 0%, #e0f2fe 50%, #fef3c7 100%);
+            color: var(--text);
+            font-size: 14px;
+        }
+
+        .app-container {
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+            padding: 0.75rem;
+            gap: 0.75rem;
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+
+        /* Compact Header */
+        .app-header {
+            flex-shrink: 0;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            background: var(--surface);
+            padding: 0.625rem 1rem;
+            border-radius: var(--radius);
+            box-shadow: var(--shadow);
+            border: 1px solid var(--border);
+        }
+
+        .brand {
+            display: flex;
+            align-items: center;
+            gap: 0.625rem;
+        }
+
+        .brand-icon {
+            width: 36px;
+            height: 36px;
+            background: linear-gradient(135deg, var(--primary-dark) 0%, var(--primary) 100%);
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 1rem;
+            box-shadow: 0 4px 12px rgba(36, 37, 83, 0.25);
+        }
+
+        .brand-text h1 {
+            font-size: 1.05rem;
+            font-weight: 700;
+            color: var(--text);
+            letter-spacing: -0.02em;
+        }
+
+        .brand-text p {
+            font-size: 0.75rem;
+            color: var(--text-secondary);
+        }
+
+        .header-actions {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .user-pill {
+            display: flex;
+            align-items: center;
+            gap: 0.375rem;
+            padding: 0.375rem 0.75rem;
+            background: rgba(59, 130, 246, 0.1);
+            color: var(--primary);
+            border-radius: 9999px;
+            font-size: 0.75rem;
+            font-weight: 600;
+        }
+
+        /* Main Grid */
+        .main-grid {
+            flex: 1;
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 0.75rem;
+            min-height: 0;
+            overflow: hidden;
+        }
+
+        .card {
+            background: var(--surface);
+            border-radius: var(--radius);
+            box-shadow: var(--shadow);
+            border: 1px solid var(--border);
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+            min-height: 0;
+        }
+
+        .card-header {
+            padding: 0.75rem 1rem;
+            border-bottom: 1px solid var(--border);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            background: linear-gradient(to right, var(--bg), transparent);
+            flex-shrink: 0;
+        }
+
+        .card-title {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            font-size: 0.95rem;
+            font-weight: 700;
+            color: var(--text);
+        }
+
+        .card-title i {
+            color: var(--primary);
+            font-size: 1rem;
+        }
+
+        .card-body {
+            flex: 1;
+            padding: 0.875rem;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+            min-height: 0;
+        }
+
+        /* Scanner Section */
+        .scanner-content {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            gap: 0.75rem;
+            min-height: 0;
+        }
+
+        .scan-visual {
+            flex: 1;
+            min-height: 160px;
+            max-height: 200px;
+            border: 2px dashed var(--border);
+            border-radius: var(--radius);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            background: linear-gradient(135deg, #f0fdf4 0%, #ecfdf5 100%);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .scanner-frame {
+            width: 120px;
+            height: 120px;
+            position: relative;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .signal-waves {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 100%;
+            height: 100%;
+        }
+
+        .wave {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            border: 2px solid var(--success);
+            border-radius: 50%;
+            opacity: 0;
+            animation: wave 2s ease-out infinite;
+        }
+
+        .wave:nth-child(1) {
+            animation-delay: 0s;
+        }
+
+        .wave:nth-child(2) {
+            animation-delay: 0.4s;
+        }
+
+        .wave:nth-child(3) {
+            animation-delay: 0.8s;
+        }
+
+        @keyframes wave {
+            0% {
+                width: 30px;
+                height: 30px;
+                opacity: 0.8;
+            }
+
+            100% {
+                width: 140px;
+                height: 140px;
+                opacity: 0;
+            }
+        }
+
+        .scan-ring {
+            position: absolute;
+            width: 150px;
+            height: 150px;
+            border: 2px dashed rgba(16, 185, 129, 0.3);
+            border-radius: 50%;
+            animation: rotate 20s linear infinite;
+        }
+
+        @keyframes rotate {
+            from {
+                transform: rotate(0deg);
+            }
+
+            to {
+                transform: rotate(360deg);
+            }
+        }
+
+        .rfid-card {
+            width: 60px;
+            height: 40px;
+            background: linear-gradient(135deg, var(--primary-dark) 0%, var(--primary) 100%);
+            border-radius: 6px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 1rem;
+            box-shadow: 0 4px 12px rgba(36, 37, 83, 0.3);
+            animation: float 3s ease-in-out infinite;
+            position: relative;
+            z-index: 2;
+        }
+
+        .rfid-card::before {
+            content: '';
+            position: absolute;
+            left: 6px;
+            width: 8px;
+            height: 6px;
+            background: linear-gradient(135deg, #ffd700 0%, #ffed4e 100%);
+            border-radius: 1px;
+        }
+
+        @keyframes float {
+
+            0%,
+            100% {
+                transform: translateY(0);
+            }
+
+            50% {
+                transform: translateY(-5px);
+            }
+        }
+
+        .scan-status {
+            margin-top: 0.75rem;
+            text-align: center;
+        }
+
+        .status-text {
+            font-size: 0.85rem;
+            font-weight: 600;
+            color: var(--text);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.375rem;
+        }
+
+        .status-text i {
+            color: var(--success);
+            font-size: 0.5rem;
+        }
+
+        .status-hint {
+            font-size: 0.75rem;
+            color: var(--text-muted);
+            margin-top: 0.25rem;
+        }
+
+        /* Input Section */
+        .input-section {
+            display: flex;
+            flex-direction: column;
+            gap: 0.625rem;
+            flex-shrink: 0;
+        }
+
+        .input-group {
+            position: relative;
+        }
+
+        .input-group i {
+            position: absolute;
+            left: 0.75rem;
+            top: 50%;
+            transform: translateY(-50%);
+            color: var(--text-muted);
+            font-size: 0.9rem;
+        }
+
+        .input-field {
+            width: 100%;
+            padding: 0.625rem 0.75rem 0.625rem 2.25rem;
+            border: 1.5px solid var(--border);
+            border-radius: 8px;
+            font-family: 'Inter', sans-serif;
+            font-size: 0.95rem;
+            font-weight: 600;
+            color: var(--text);
+            background: var(--bg);
+            transition: all 0.2s;
+        }
+
+        .input-field:focus {
+            outline: none;
+            border-color: var(--primary);
+            background: var(--surface);
+            box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+        }
+
+        .btn-primary {
+            padding: 0.625rem 1rem;
+            background: var(--primary);
+            border: none;
+            border-radius: 8px;
+            font-family: 'Inter', sans-serif;
+            font-size: 0.85rem;
+            font-weight: 600;
+            color: white;
+            cursor: pointer;
+            transition: all 0.2s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.375rem;
+            box-shadow: 0 3px 10px rgba(59, 130, 246, 0.25);
+        }
+
+        .btn-primary:hover:not(:disabled) {
+            background: var(--primary-dark);
+            transform: translateY(-1px);
+            box-shadow: 0 4px 14px rgba(36, 37, 83, 0.35);
+        }
+
+        /* Passenger Panel - COMPACT LAYOUT */
+        .passenger-panel {
+            display: flex;
+            flex-direction: column;
+            gap: 0.625rem;
+            height: 100%;
+            min-height: 0;
+            overflow: hidden;
+        }
+
+        /* Profile Card - COMPACT */
+        .passenger-profile {
+            background: linear-gradient(135deg, var(--primary-dark) 0%, var(--primary) 100%);
+            border-radius: var(--radius);
+            padding: 0.875rem;
+            color: white;
+            position: relative;
+            overflow: hidden;
+            flex-shrink: 0;
+        }
+
+        .passenger-profile::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            right: -50%;
+            width: 100%;
+            height: 100%;
+            background: radial-gradient(circle, rgba(255, 255, 255, 0.1) 0%, transparent 70%);
+        }
+
+        .profile-header {
+            display: flex;
+            align-items: center;
+            gap: 0.625rem;
+            margin-bottom: 0.625rem;
+            position: relative;
+            z-index: 1;
+        }
+
+        .profile-avatar {
+            width: 40px;
+            height: 40px;
+            background: rgba(255, 255, 255, 0.2);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.2rem;
+            border: 2px solid rgba(255, 255, 255, 0.3);
+            flex-shrink: 0;
+        }
+
+        .profile-name {
+            font-size: 0.95rem;
+            font-weight: 700;
+            line-height: 1.2;
+        }
+
+        .profile-id {
+            font-size: 0.7rem;
+            opacity: 0.9;
+            font-family: monospace;
+        }
+
+        /* BALANCE BOX - KEY FIX */
+        .balance-box {
+            background: rgba(255, 255, 255, 0.15);
+            border-radius: 8px;
+            padding: 0.625rem;
+            text-align: center;
+            backdrop-filter: blur(10px);
+            position: relative;
+            z-index: 1;
+        }
+
+        .balance-label {
+            font-size: 0.65rem;
+            opacity: 0.9;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            margin-bottom: 0.25rem;
+        }
+
+        .balance-value {
+            font-size: 1.35rem;
+            font-weight: 700;
+            line-height: 1.2;
+        }
+
+        .balance-currency {
+            font-size: 0.95rem;
+            opacity: 0.9;
+        }
+
+        /* Done Button - Hidden by default */
+        .btn-done {
+            display: none !important;
+        }
+
+        /* Load Section - COMPACT */
+        .load-section {
+            display: flex;
+            flex-direction: column;
+            gap: 0.5rem;
+            flex-shrink: 0;
+        }
+
+        .section-label {
+            font-size: 0.7rem;
+            font-weight: 600;
+            color: var(--text-secondary);
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+
+        .amount-input-wrap {
+            position: relative;
+        }
+
+        .amount-input-wrap .currency {
+            position: absolute;
+            left: 0.75rem;
+            top: 50%;
+            transform: translateY(-50%);
+            font-size: 1.1rem;
+            font-weight: 700;
+            color: var(--text-secondary);
+        }
+
+        .amount-input {
+            width: 100%;
+            padding: 0.625rem 0.75rem 0.625rem 2rem;
+            border: 1.5px solid var(--border);
+            border-radius: 8px;
+            font-family: 'Inter', sans-serif;
+            font-size: 1.1rem;
+            font-weight: 700;
+            color: var(--text);
+            background: var(--bg);
+            transition: all 0.2s;
+        }
+
+        .amount-input:focus {
+            outline: none;
+            border-color: var(--success);
+            background: var(--surface);
+            box-shadow: 0 0 0 3px rgba(16, 185, 129, 0.1);
+        }
+
+        .quick-amounts {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 0.5rem;
+        }
+
+        .quick-btn {
+            padding: 0.5rem;
+            border: 1.5px solid var(--border);
+            background: var(--surface);
+            border-radius: 6px;
+            font-family: 'Inter', sans-serif;
+            font-size: 0.8rem;
+            font-weight: 600;
+            color: var(--text);
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .quick-btn:hover {
+            border-color: var(--primary);
+            color: var(--primary);
+            background: rgba(59, 130, 246, 0.05);
+        }
+
+        .btn-success {
+            padding: 0.625rem;
+            background: var(--success);
+            border: none;
+            border-radius: 8px;
+            font-family: 'Inter', sans-serif;
+            font-size: 0.9rem;
+            font-weight: 700;
+            color: white;
+            cursor: pointer;
+            transition: all 0.2s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.375rem;
+            box-shadow: 0 3px 10px rgba(16, 185, 129, 0.25);
+            margin-top: 0.125rem;
+        }
+
+        .btn-success:hover:not(:disabled) {
+            background: #059669;
+            transform: translateY(-1px);
+            box-shadow: 0 4px 14px rgba(16, 185, 129, 0.35);
+        }
+
+        .btn-success:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            background: var(--text-muted);
+        }
+
+        /* Transactions - COMPACT */
+        .transactions-area {
+            margin-top: auto;
+            padding-top: 0.5rem;
+            flex-shrink: 1;
+            min-height: 0;
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .tx-list {
+            display: flex;
+            flex-direction: column;
+            gap: 0.375rem;
+            max-height: 90px;
+            overflow-y: auto;
+        }
+
+        .tx-item {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0.5rem 0.75rem;
+            background: var(--bg);
+            border-radius: 6px;
+            border: 1px solid var(--border);
+            transition: all 0.2s;
+            flex-shrink: 0;
+        }
+
+        .tx-info {
+            display: flex;
+            align-items: center;
+            gap: 0.625rem;
+        }
+
+        .tx-icon {
+            width: 28px;
+            height: 28px;
+            background: rgba(16, 185, 129, 0.1);
+            color: var(--success);
+            border-radius: 6px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.75rem;
+        }
+
+        .tx-meta {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .tx-id {
+            font-size: 0.75rem;
+            font-weight: 600;
+            color: var(--text);
+            font-family: monospace;
+        }
+
+        .tx-time {
+            font-size: 0.65rem;
+            color: var(--text-muted);
+        }
+
+        .tx-amount {
+            font-size: 0.85rem;
+            font-weight: 700;
+            color: var(--success);
+        }
+
+        /* Toast */
+        .toast {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            padding: 0.75rem 1rem;
+            background: var(--text);
+            color: white;
+            border-radius: 8px;
+            box-shadow: var(--shadow-lg);
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            font-size: 0.85rem;
+            font-weight: 500;
+            z-index: 9999;
+            opacity: 0;
+            transform: translateY(15px);
+            transition: all 0.3s ease;
+        }
+
+        .toast.show {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        .toast.success {
+            background: var(--success);
+        }
+
+        .toast.error {
+            background: var(--danger);
+        }
+
+        .toast.warning {
+            background: var(--warning);
+        }
+
+        .hidden {
+            display: none !important;
+        }
+
+        /* Responsive */
+        @media (max-width: 1024px) {
+            .main-grid {
+                grid-template-columns: 1fr;
+                grid-template-rows: auto auto;
+                overflow-y: auto;
+            }
+
+            .app-container {
+                padding: 0.625rem;
+            }
+        }
+    </style>
+    <base target="_blank">
+</head>
+
+<body>
+    <div class="app-container">
+        <!-- Header -->
+        <header class="app-header">
+            <div class="brand">
+                <div class="brand-icon">
+                    <i class="fas fa-wallet"></i>
+                </div>
+                <div class="brand-text">
+                    <h1>Load Balance</h1>
+                    <p>Scan QR or Tap RFID to add balance</p>
+                </div>
+            </div>
+            <div class="header-actions">
+                <div class="user-pill">
+                    <i class="fas fa-user-cog"></i>
+                    <span id="staffName">Staff Operator</span>
+                </div>
+            </div>
+        </header>
+
+        <!-- Main Grid -->
+        <main class="main-grid">
+            <!-- Scanner Card -->
+            <div class="card">
+                <div class="card-header">
+                    <div class="card-title">
+                        <i class="fas fa-qrcode"></i>
+                        Scanner
+                    </div>
+                </div>
+                <div class="card-body">
+                    <div class="scanner-content">
+                        <!-- RFID Panel -->
+                        <div id="rfidPanel" class="scan-visual">
+                            <div class="scanner-frame">
+                                <div class="signal-waves">
+                                    <div class="wave"></div>
+                                    <div class="wave"></div>
+                                    <div class="wave"></div>
+                                </div>
+                                <div class="scan-ring"></div>
+                                <div class="rfid-card">
+                                    <i class="fas fa-wifi"></i>
+                                </div>
+                            </div>
+                            <div class="scan-status">
+                                <div class="status-text">
+                                    <i class="fas fa-circle"></i>
+                                    <span>Ready to scan...</span>
+                                </div>
+                                <div class="status-hint">Enter RFID or scan QR code below</div>
+                            </div>
+                        </div>
+
+                        <!-- Input -->
+                        <div class="input-section">
+                            <div class="input-group">
+                                <i class="fas fa-keyboard"></i>
+                                <input type="text" id="rfidInput" class="input-field"
+                                    placeholder="Enter RFID or QR code" maxlength="50" autocomplete="off">
+                            </div>
+                            <button class="btn-primary" onclick="window.lookupPassenger()">
+                                <i class="fas fa-search"></i> Look Up Passenger
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Passenger Info Card -->
+            <div class="card">
+                <div class="card-header">
+                    <div class="card-title">
+                        <i class="fas fa-user"></i>
+                        Passenger Details
+                    </div>
+                </div>
+                <div class="card-body" id="infoBody">
+                    <div id="passengerInfo" class="passenger-panel">
+                        <div class="passenger-profile">
+                            <div class="profile-header">
+                                <div class="profile-avatar">
+                                    <i class="fas fa-user"></i>
+                                </div>
+                                <div>
+                                    <div class="profile-name" id="pName">Ready to Scan</div>
+                                    <div class="profile-id" id="pRFID">Enter RFID or QR code</div>
+                                </div>
+                            </div>
+                            <div class="balance-box">
+                                <div class="balance-label">Current Balance</div>
+                                <div class="balance-value">
+                                    <span class="balance-currency">₱</span>
+                                    <span id="pBalance">0.00</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="load-section">
+                            <label class="section-label">Amount to Load</label>
+                            <div class="amount-input-wrap">
+                                <span class="currency">₱</span>
+                                <input type="number" id="loadAmount" class="amount-input" placeholder="0.00" min="1"
+                                    step="1" onkeypress="handleEnter(event)">
+                            </div>
+                            <div class="quick-amounts">
+                                <button class="quick-btn" onclick="setAmount(50)">₱50</button>
+                                <button class="quick-btn" onclick="setAmount(100)">₱100</button>
+                                <button class="quick-btn" onclick="setAmount(200)">₱200</button>
+                                <button class="quick-btn" onclick="setAmount(500)">₱500</button>
+                            </div>
+                            <button class="btn-success" id="loadBtn" onclick="processLoad()">
+                                <i class="fas fa-plus-circle"></i> Add Balance
+                            </button>
+                        </div>
+
+                        <div class="transactions-area">
+                            <label class="section-label">Recent Top-ups</label>
+                            <div class="tx-list" id="txList"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <!-- Toast -->
+    <div class="toast" id="toast">
+        <i class="fas fa-check-circle"></i>
+        <span id="toastMsg">Success</span>
+    </div>
+
+    <script src="js/auth.js"></script>
+    <script>
+        // ==========================================
+        // CONFIGURATION
+        // ==========================================
+        let currentPassenger = null;
+        let recentLoads = [];
+
+        // ==========================================
+        // INITIALIZATION
+        // ==========================================
+        document.addEventListener('DOMContentLoaded', async () => {
+            try {
+                await waitForAuth();
+                loadRecent();
+                document.getElementById('rfidInput').focus();
+            } catch (e) {
+                showToast('Init failed: ' + e.message, 'error');
+            }
+        });
+
+        async function waitForAuth(max = 100) {
+            return new Promise((resolve, reject) => {
+                let attempts = 0;
+                const check = setInterval(() => {
+                    attempts++;
+                    if (window.supabaseClient && window.Auth) {
+                        clearInterval(check);
+                        resolve();
+                    } else if (attempts >= max) {
+                        clearInterval(check);
+                        reject(new Error('Auth timeout'));
+                    }
+                }, 100);
+            });
+        }
+
+        // ==========================================
+        // MAIN FUNCTION: SEARCH BY RFID OR QR CODE
+        // ==========================================
+        window.lookupPassenger = async function (code = null) {
+            const searchCode = (code || document.getElementById('rfidInput').value).trim().toUpperCase();
+            if (!searchCode) {
+                showToast('Please enter RFID/QR code', 'warning');
+                return;
+            }
+
+            try {
+                const client = await window.Auth.ensureSupabase();
+
+                // STEP 1: Try searching by RFID first
+                let { data, error } = await client
+                    .from('registration')
+                    .select('RFID, fullname, email, phone, balance, QR_code')
+                    .eq('RFID', searchCode)
+                    .maybeSingle();
+
+                // STEP 2: If not found by RFID, try searching by QR_code
+                if (!data) {
+                    console.log('RFID not found, trying QR_code...');
+                    const qrResult = await client
+                        .from('registration')
+                        .select('RFID, fullname, email, phone, balance, QR_code')
+                        .eq('QR_code', searchCode)
+                        .maybeSingle();
+
+                    data = qrResult.data;
+                    error = qrResult.error;
+                }
+
+                // STEP 3: If still not found, show error
+                if (!data) {
+                    showToast('Passenger not found', 'error');
+                    return;
+                }
+
+                // STEP 4: Display passenger data
+                currentPassenger = data;
+                displayPassenger(data);
+                showToast(`Found: ${data.fullname}`, 'success');
+                document.getElementById('rfidInput').value = '';
+                setTimeout(() => document.getElementById('loadAmount').focus(), 100);
+
+            } catch (e) {
+                showToast('Lookup error: ' + e.message, 'error');
+                console.error('Lookup error:', e);
+            }
+        };
+
+        function displayPassenger(p) {
+            document.getElementById('pName').textContent = p.fullname || 'Unknown';
+            document.getElementById('pRFID').textContent = `RFID: ${p.RFID}`;
+            document.getElementById('pBalance').textContent = parseFloat(p.balance || 0).toFixed(2);
+            document.getElementById('loadAmount').value = '';
+            setTimeout(() => document.getElementById('loadAmount').focus(), 100);
+        }
+
+        function clearPassenger() {
+            currentPassenger = null;
+            document.getElementById('pName').textContent = 'Ready to Scan';
+            document.getElementById('pRFID').textContent = 'Enter RFID or QR code';
+            document.getElementById('pBalance').textContent = '0.00';
+            document.getElementById('loadAmount').value = '';
+            document.getElementById('rfidInput').value = '';
+            document.getElementById('rfidInput').focus();
+        }
+
+        function setAmount(amt) {
+            document.getElementById('loadAmount').value = amt;
+            document.getElementById('loadAmount').focus();
+        }
+
+        function handleEnter(e) {
+            if (e.key === 'Enter') processLoad();
+        }
+
+        async function processLoad() {
+            if (!currentPassenger) {
+                showToast('No passenger selected', 'error');
+                return;
+            }
+
+            const amt = parseFloat(document.getElementById('loadAmount').value);
+            if (!amt || amt <= 0) {
+                showToast('Enter valid amount', 'warning');
+                return;
+            }
+
+            try {
+                const client = await window.Auth.ensureSupabase();
+                const newBalance = parseFloat(currentPassenger.balance || 0) + amt;
+
+                // Get current staff info from your auth system
+                const staffEmail = await getCurrentStaffEmail();
+
+                const ts = new Date().toISOString().replace(/[-:T.Z]/g, '').slice(0, 14);
+                const rand = Math.random().toString(36).substring(2, 8).toUpperCase();
+                const qr = `QR-${currentPassenger.RFID}-${ts}-${rand}`;
+
+                // 1. Insert passenger record
+                const { data: txData, error: txErr } = await client
+                    .from('passenger')
+                    .insert([{
+                        RFID: currentPassenger.RFID,
+                        total_amount: amt,
+                        status: 'Top-up',
+                        point_a: null,
+                        point_b: null,
+                        QR_code: qr,
+                        QR_code_reg: currentPassenger.QR_code
+                    }])
+                    .select();
+
+                if (txErr) throw txErr;
+
+                // 2. Update balance
+                const { error: updErr } = await client
+                    .from('registration')
+                    .update({ balance: newBalance, updated_at: new Date().toISOString() })
+                    .eq('RFID', currentPassenger.RFID);
+
+                if (updErr) throw updErr;
+
+                // 3. INSERT NOTIFICATION
+                const { error: notifErr } = await client
+                    .from('notif')
+                    .insert([{
+                        date: new Date().toISOString().split('T')[0],
+                        time: new Date().toTimeString().split(' ')[0],
+                        notifications: 'Top-Up Successful via counter',
+                        description: `Your account has been topped up with ₱${amt.toFixed(2)} via counter.`,
+                        created_by: staffEmail || 'Unknown Staff',
+                        receive_by: currentPassenger.email,
+                        status: 'unread',
+                        type_notif: 'user'
+                    }]);
+
+                if (notifErr) {
+                    console.error('Notification insert failed:', notifErr);
+                }
+
+                // 4. Add to recent transactions
+                addTransaction({
+                    rfid: currentPassenger.RFID,
+                    name: currentPassenger.fullname,
+                    amount: amt,
+                    time: new Date()
+                });
+
+                // Show success message
+                showToast(`Loaded ₱${amt.toFixed(2)} to ${currentPassenger.fullname}`, 'success', 3000);
+                playSuccess();
+
+                // ✅ CLEAR EVERYTHING AFTER TOAST DISAPPEARS
+                setTimeout(() => {
+                    clearPassenger();
+
+                    // Also clear amount input
+                    const loadInput = document.getElementById('loadAmount');
+                    loadInput.value = '';
+                    loadInput.setAttribute('autocomplete', 'off');
+
+                    // Focus back to RFID input for next scan
+                    document.getElementById('rfidInput').focus();
+                }, 3000);
+
+            } catch (e) {
+                showToast('Load failed: ' + e.message, 'error');
+                console.error('Load error:', e);
+            }
+        }
+
+        // Helper function to get current staff email
+        async function getCurrentStaffEmail() {
+            // Option 1: If stored in Auth object
+            if (window.Auth && window.Auth.currentUser) {
+                return window.Auth.currentUser.email;
+            }
+
+            // Option 2: If stored in sessionStorage/localStorage
+            return sessionStorage.getItem('staffEmail') || localStorage.getItem('staffEmail');
+        }
+
+        function addTransaction(tx) {
+            recentLoads.unshift(tx);
+            if (recentLoads.length > 5) recentLoads.pop();
+            renderTransactions();
+        }
+
+        function renderTransactions() {
+            const container = document.getElementById('txList');
+            if (recentLoads.length === 0) {
+                container.innerHTML = '<p style="color: var(--text-muted); text-align: center; padding: 0.5rem; font-size: 0.75rem; margin: 0;">No recent transactions</p>';
+                return;
+            }
+
+            container.innerHTML = recentLoads.map(t => `
+                <div class="tx-item">
+                    <div class="tx-info">
+                        <div class="tx-icon"><i class="fas fa-arrow-up"></i></div>
+                        <div class="tx-meta">
+                            <div class="tx-id">${t.rfid}</div>
+                            <div class="tx-time">${formatTime(t.time)}</div>
+                        </div>
+                    </div>
+                    <div class="tx-amount">+₱${t.amount.toFixed(2)}</div>
+                </div>
+            `).join('');
+        }
+
+        async function loadRecent() {
+            try {
+                const client = await window.Auth.ensureSupabase();
+                const { data } = await client
+                    .from('passenger')
+                    .select('RFID, total_amount, created_at')
+                    .eq('status', 'Top-up')
+                    .order('created_at', { ascending: false })
+                    .limit(5);
+
+                if (data) {
+                    const enriched = await Promise.all(data.map(async t => {
+                        const { data: reg } = await client
+                            .from('registration')
+                            .select('fullname')
+                            .eq('RFID', t.RFID)
+                            .maybeSingle();
+                        return {
+                            rfid: t.RFID,
+                            name: reg?.fullname || 'Unknown',
+                            amount: t.total_amount,
+                            time: new Date(t.created_at)
+                        };
+                    }));
+                    recentLoads = enriched;
+                    renderTransactions();
+                }
+            } catch (e) {
+                console.error('Load recent error:', e);
+            }
+        }
+
+        function formatTime(d) {
+            const diff = Math.floor((Date.now() - d) / 1000);
+            if (diff < 60) return 'Just now';
+            if (diff < 3600) return `${Math.floor(diff / 60)}m ago`;
+            if (diff < 86400) return `${Math.floor(diff / 3600)}h ago`;
+            return d.toLocaleDateString();
+        }
+
+        function showToast(msg, type = 'success', duration = 3000) {
+            const toast = document.getElementById('toast');
+            const msgEl = document.getElementById('toastMsg');
+            const icon = toast.querySelector('i');
+
+            msgEl.textContent = msg;
+            toast.className = `toast ${type} show`;
+
+            if (type === 'error') icon.className = 'fas fa-exclamation-circle';
+            else if (type === 'warning') icon.className = 'fas fa-exclamation-triangle';
+            else icon.className = 'fas fa-check-circle';
+
+            setTimeout(() => toast.classList.remove('show'), duration);
+        }
+
+        function playSuccess() {
+            const audio = new Audio('data:audio/wav;base64,UklGRnoGAABXQVZFZm10IBAAAAABAAEAQB8AAEAfAAABAAgAZGF0YQoGAACBhYqFbF1fdJivrJBhNjVgodDbq2EcBjiR1/LDciUFLIHO8tiJNwgZaLvt559NEAxQp+PwtmMcBjiR1/LMeSwFJHfH8N2QQAoUXrTp66hVFApGn+DyvmwhBSuBzvLZiTYIG2m98OScTgwOUarm7blmFgU7k9n1unEiBC13yO/eizEIHWq+8+OWT');
+            audio.volume = 0.3;
+            audio.play().catch(() => { });
+        }
+
+        // Keyboard shortcuts
+        document.addEventListener('keydown', e => {
+            if (e.key === 'Enter' && document.activeElement === document.getElementById('rfidInput')) {
+                lookupPassenger();
+            }
+        });
+
+        (function notifyParent() {
+            const filename = window.location.pathname.split('/').pop();
+            const pageMap = {
+                'child_dashboard.html': 'dashboard',
+                'child_tracking.html': 'live-tracking',
+                'child_analytics.html': 'analytics',
+                'child_feedback.html': 'feedback',
+                'child_bus_information.html': 'bus-info',
+                'child_bus_schedule.html': 'schedule',
+                'child_load.html': 'load',
+                'child_top_up_reference.html': 'top-up-reference',
+                'child_account_management.html': 'accounts',
+                'child_finance.html': 'finance',
+                'child_settings.html': 'settings',
+                'child_developer_logs.html': 'developer-logs'
+            };
+
+            const pageName = pageMap[filename];
+            if (pageName && window.parent !== window) {
+                window.parent.postMessage({
+                    type: 'pageLoaded',
+                    page: pageName
+                }, '*');
+            }
+        })();
+    </script>
+</body>
+
+</html>

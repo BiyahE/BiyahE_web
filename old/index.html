@@ -1,0 +1,2960 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>BIYAHE - Dashboard</title>
+    <!-- FontAwesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Google Fonts: Inter -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <!-- Leaflet CSS -->
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
+    
+    <style>
+        :root {
+            --primary-color: #3b82f6;
+            --primary-hover: #242553;
+            --primary-dark: #1e40af;
+            --bg-light: #f8fafc;
+            --bg-gradient-start: #f1f5f9;
+            --bg-gradient-end: #e2e8f0;
+            --text-primary: #0f172a;
+            --text-secondary: #64748b;
+            --text-muted: #94a3b8;
+            --border-color: #e2e8f0;
+            --white: #ffffff;
+            --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+            --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+            --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+            --radius-sm: 0.5rem;
+            --radius-md: 1rem;
+            --radius-lg: 1.5rem;
+            --radius-xl: 2rem;
+            --radius-full: 9999px;
+            --sidebar-width: 80px;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        html, body {
+            height: 100vh;
+            overflow: hidden;
+            font-family: 'Inter', sans-serif;
+            background: linear-gradient(135deg, #e5e7eb 0%, #fef3c7 100%);
+            color: var(--text-primary);
+        }
+
+        /* App Wrapper */
+        .app-wrapper {
+            display: flex;
+            height: 100vh;
+            overflow: hidden;
+        }
+
+        .sidebar {
+            width: var(--sidebar-width);
+            display: flex;
+            flex-direction: column;
+            position: fixed;
+            height: auto;
+            z-index: 99;
+            transition: all 0.3s ease;
+            left: 0;
+            top: 0;
+            border-right: 1px solid var(--border-color);
+            margin: 10px;
+            border-radius: 20px;
+            overflow: visible;
+            gap: 10px;
+        }
+
+        .sidebar-header {
+            border-radius: 50px;
+            padding: 10px 1rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+        }
+
+        .sidebar-logo {
+            width: 64px;
+            height: 64px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .sidebar-logo img {
+            width: 56px;
+            height: 56px;
+            object-fit: contain;
+        }
+
+        .sidebar-toggle {
+            display: none;
+        }
+
+        .sidebar-nav {
+            flex: 1;
+            padding: 1.5rem 5px;
+            margin: 10px;
+            background: white;
+            display: flex;
+            flex-direction: column;
+            gap: 0.5rem;
+            overflow: visible; 
+            border-radius: 50px;
+        }
+
+        .nav-section {
+            margin-bottom: 0;
+        }
+
+        .nav-section-title {
+            display: none;
+        }
+
+        .nav-menu {
+            list-style: none;
+            display: flex;
+            flex-direction: column;
+            gap: 0.5rem;
+        }
+
+        .nav-item {
+            margin-bottom: 0;
+        }
+
+        .nav-link {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 0.875rem;
+            color: #64748ba8;
+            text-decoration: none;
+            border-radius: var(--radius-md);
+            font-weight: 500;
+            font-size: 1.25rem;
+            transition: all 0.2s;
+            position: relative;
+            width: 100%;
+            aspect-ratio: 1;
+        }
+
+        .nav-link:hover {
+            background: var(--bg-light);
+            color: var(--primary-color);
+        }
+
+        .nav-link.active {
+            background: #FDE68A;
+            color: #000000;
+            box-shadow: var(--shadow-md);
+        }
+
+        .nav-link i {
+            width: 24px;
+            text-align: center;
+            font-size: 1.25rem;
+        }
+
+        .nav-link span {
+            display: none;
+        }
+
+        .nav-link::after {
+            content: attr(data-title);
+            position: fixed;
+            left: 90px;
+            top: auto;
+            transform: translateY(-50%);
+            background: var(--text-primary);
+            color: var(--white);
+            padding: 0.5rem 0.875rem;
+            border-radius: var(--radius-sm);
+            font-size: 0.8125rem;
+            font-weight: 500;
+            white-space: nowrap;
+            opacity: 0;
+            visibility: hidden;
+            transition: all 0.2s;
+            z-index: 99999;
+            pointer-events: none;
+            box-shadow: var(--shadow-lg);
+            margin-top: 20px;
+        }
+
+        .nav-link::before {
+            content: '';
+            position: fixed;
+            left: 84px;
+            top: auto;
+            transform: translateY(-50%);
+            border: 6px solid transparent;
+            border-right-color: var(--text-primary);
+            opacity: 0;
+            visibility: hidden;
+            transition: all 0.2s;
+            pointer-events: none;
+            z-index: 999999;
+            margin-top: 20px;
+        }
+
+        .nav-link:hover::after,
+        .nav-link:hover::before {
+            opacity: 1;
+            visibility: visible;
+        }
+
+        .main-content {
+            flex: 1;
+            margin-left: var(--sidebar-width);
+            display: flex;
+            flex-direction: column;
+            height: 100vh;
+            overflow: hidden;
+            transition: margin-left 0.3s ease;
+            position: relative;
+            background: transparent;
+            z-index: 1;
+        }
+
+        /* Header with Greeting Frame */
+        .header {
+            padding: 0.75rem 1.5rem;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            position: relative;
+            z-index: 50;
+            background: transparent;
+            flex-shrink: 0;
+        }
+
+        .greeting-frame {
+            flex: 1;
+            background: linear-gradient(135deg, #242553 0%, #1a1a3e 100%);
+            border-radius: var(--radius-lg);
+            padding: 0.875rem 1.25rem;
+            color: white;
+            box-shadow: 0 10px 40px rgba(36, 37, 83, 0.3);
+            position: relative;
+            overflow: hidden;
+            animation: greetingSlideIn 0.6s ease-out;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 1rem;
+        }
+
+        @keyframes greetingSlideIn {
+            from {
+                opacity: 0;
+                transform: translateY(-20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .greeting-frame::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            right: -10%;
+            width: 200px;
+            height: 200px;
+            background: rgba(59, 130, 246, 0.15);
+            border-radius: 50%;
+            animation: float 6s ease-in-out infinite;
+        }
+
+        .greeting-frame::after {
+            content: '';
+            position: absolute;
+            bottom: -30%;
+            left: -5%;
+            width: 150px;
+            height: 150px;
+            background: rgba(139, 92, 246, 0.1);
+            border-radius: 50%;
+            animation: float 8s ease-in-out infinite reverse;
+        }
+
+        @keyframes float {
+            0%, 100% { transform: translate(0, 0) scale(1); }
+            50% { transform: translate(30px, -30px) scale(1.1); }
+        }
+
+        .greeting-content {
+            display: flex;
+            align-items: center;
+            gap: 0.875rem;
+            position: relative;
+            z-index: 1;
+        }
+
+        .greeting-icon {
+            width: 44px;
+            height: 44px;
+            background: rgba(255, 255, 255, 0.15);
+            border-radius: var(--radius-md);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.125rem;
+            animation: iconPulse 2s ease-in-out infinite;
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            flex-shrink: 0;
+        }
+
+        @keyframes iconPulse {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.1); }
+        }
+
+        .greeting-text h2 {
+            font-size: 1.125rem;
+            font-weight: 700;
+            margin-bottom: 0.125rem;
+            text-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+            color: #ffffff;
+        }
+
+        .greeting-text p {
+            font-size: 0.8125rem;
+            opacity: 0.85;
+            font-weight: 400;
+            color: rgba(255, 255, 255, 0.9);
+        }
+
+        .greeting-center-stats {
+            display: flex;
+            align-items: center;
+            gap: 1.5rem;
+            position: relative;
+            z-index: 1;
+        }
+
+        .greeting-stat {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            font-size: 0.875rem;
+            font-weight: 500;
+            color: rgba(255, 255, 255, 0.9);
+        }
+
+        .greeting-stat i {
+            font-size: 1rem;
+            opacity: 0.9;
+            color: #fde68a;
+        }
+
+        .greeting-divider {
+            width: 1px;
+            height: 24px;
+            background: rgba(255, 255, 255, 0.2);
+        }
+
+        .greeting-time {
+            text-align: right;
+            display: flex;
+            flex-direction: column;
+            gap: 0.125rem;
+            position: relative;
+            z-index: 1;
+        }
+
+        .greeting-time span:first-child {
+            font-size: 1.25rem;
+            font-weight: 700;
+            font-variant-numeric: tabular-nums;
+            letter-spacing: -0.02em;
+            color: #fde68a;
+            text-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+        }
+
+        .greeting-time span:last-child {
+            font-size: 0.75rem;
+            opacity: 0.8;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            color: rgba(255, 255, 255, 0.7);
+        }
+
+        /* Header Actions - Notification & Profile */
+        .header-actions {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            position: relative;
+            z-index: 1;
+        }
+
+        .notification-btn {
+            position: relative;
+            background: rgba(255, 255, 255, 0.15);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            width: 44px;
+            height: 44px;
+            border-radius: var(--radius-full);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            cursor: pointer;
+            transition: all 0.2s;
+            font-size: 1.125rem;
+            backdrop-filter: blur(10px);
+        }
+
+        .notification-btn:hover {
+            background: rgba(255, 255, 255, 0.25);
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+        }
+
+        .notification-btn .badge {
+            position: absolute;
+            top: -2px;
+            right: -2px;
+            background: #ef4444;
+            color: white;
+            font-size: 0.6875rem;
+            font-weight: 700;
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border: 2px solid #242553;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+        }
+
+        /* Notification Dropdown Styles */
+        .notification-dropdown {
+            position: fixed;
+            top: 80px;
+            right: 70px; /* Positioned to the left of profile dropdown */
+            width: 380px;
+            background: var(--white);
+            border-radius: var(--radius-lg);
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.2);
+            border: 1px solid var(--border-color);
+            opacity: 0;
+            visibility: hidden;
+            transform: translateY(-10px) scale(0.95);
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            z-index: 9999;
+            overflow: hidden;
+        }
+
+        .notification-dropdown.active {
+            opacity: 1;
+            visibility: visible;
+            transform: translateY(0) scale(1);
+        }
+
+        .notification-dropdown-header {
+            padding: 1.25rem;
+            background: linear-gradient(135deg, #242553 0%, #1a1a3e 100%);
+            color: white;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .notification-dropdown-header::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            right: -20%;
+            width: 150px;
+            height: 150px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 50%;
+        }
+
+        .notification-header-content {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            position: relative;
+            z-index: 1;
+            margin-bottom: 1rem;
+        }
+
+        .notification-icon-large {
+            width: 48px;
+            height: 48px;
+            background: rgba(253, 230, 138, 0.2);
+            border-radius: var(--radius-md);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.25rem;
+            color: #fde68a;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            backdrop-filter: blur(10px);
+        }
+
+        .notification-header-text h4 {
+            font-size: 1.125rem;
+            font-weight: 700;
+            margin-bottom: 0.25rem;
+            color: white;
+        }
+
+        .notification-header-text p {
+            font-size: 0.875rem;
+            color: rgba(255, 255, 255, 0.8);
+            margin: 0;
+        }
+
+        .notification-header-text p span {
+            color: #fde68a;
+            font-weight: 600;
+        }
+
+        .mark-all-read {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            background: rgba(255, 255, 255, 0.15);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            color: white;
+            padding: 0.5rem 0.875rem;
+            border-radius: var(--radius-full);
+            font-size: 0.8125rem;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s;
+            backdrop-filter: blur(10px);
+            position: relative;
+            z-index: 1;
+        }
+
+        .mark-all-read:hover {
+            background: rgba(255, 255, 255, 0.25);
+            transform: translateY(-1px);
+        }
+
+        .mark-all-read i {
+            font-size: 0.75rem;
+        }
+
+        .notification-dropdown-body {
+            max-height: 320px;
+            overflow-y: auto;
+            background: var(--bg-light);
+        }
+
+        .notification-dropdown-body::-webkit-scrollbar {
+            width: 6px;
+        }
+
+        .notification-dropdown-body::-webkit-scrollbar-track {
+            background: transparent;
+        }
+
+        .notification-dropdown-body::-webkit-scrollbar-thumb {
+            background: var(--border-color);
+            border-radius: 3px;
+        }
+
+        .notification-dropdown-body::-webkit-scrollbar-thumb:hover {
+            background: var(--text-muted);
+        }
+
+        .notification-list {
+            padding: 0.5rem;
+        }
+
+        .notification-item {
+            display: flex;
+            align-items: flex-start;
+            gap: 0.875rem;
+            padding: 0.875rem;
+            border-radius: var(--radius-md);
+            cursor: pointer;
+            transition: all 0.2s;
+            background: var(--white);
+            margin-bottom: 0.5rem;
+            border: 1px solid transparent;
+            position: relative;
+        }
+
+        .notification-item:last-child {
+            margin-bottom: 0;
+        }
+
+        .notification-item:hover {
+            background: var(--white);
+            border-color: rgba(36, 37, 83, 0.1);
+            transform: translateX(4px);
+            box-shadow: var(--shadow-sm);
+        }
+
+        .notification-item.unread {
+            background: linear-gradient(135deg, rgba(59, 130, 246, 0.05) 0%, rgba(36, 37, 83, 0.02) 100%);
+            border-left: 3px solid #3b82f6;
+        }
+
+        .notification-item.unread:hover {
+            background: var(--white);
+            border-left-color: #242553;
+        }
+
+        .notification-avatar {
+            position: relative;
+            flex-shrink: 0;
+        }
+
+        .notification-avatar img {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            object-fit: cover;
+            border: 2px solid var(--border-color);
+        }
+
+        .notification-avatar.system {
+            width: 40px;
+            height: 40px;
+            background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 1rem;
+        }
+
+        .notification-avatar.feedback {
+            width: 40px;
+            height: 40px;
+            background: linear-gradient(135deg, #8b5cf6 0%, #7c3aed 100%);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 1rem;
+        }
+
+        .notification-dot {
+            position: absolute;
+            bottom: 2px;
+            right: 2px;
+            width: 12px;
+            height: 12px;
+            background: #3b82f6;
+            border-radius: 50%;
+            border: 2px solid var(--white);
+            animation: pulse 2s infinite;
+        }
+
+        .notification-content {
+            flex: 1;
+            min-width: 0;
+        }
+
+        .notification-text {
+            font-size: 0.875rem;
+            color: var(--text-primary);
+            line-height: 1.4;
+            margin-bottom: 0.25rem;
+        }
+
+        .notification-text strong {
+            color: #242553;
+            font-weight: 600;
+        }
+
+        .route-tag {
+            display: inline-flex;
+            align-items: center;
+            padding: 0.125rem 0.5rem;
+            background: rgba(36, 37, 83, 0.1);
+            color: #242553;
+            border-radius: var(--radius-full);
+            font-size: 0.75rem;
+            font-weight: 600;
+        }
+
+        .notification-meta {
+            display: flex;
+            align-items: center;
+            gap: 0.375rem;
+            font-size: 0.75rem;
+            color: var(--text-muted);
+        }
+
+        .notification-meta.urgent {
+            color: #dc2626;
+            font-weight: 500;
+        }
+
+        .notification-meta i {
+            font-size: 0.625rem;
+        }
+
+        .notification-delete {
+            width: 28px;
+            height: 28px;
+            border: none;
+            background: transparent;
+            color: var(--text-muted);
+            border-radius: var(--radius-full);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: all 0.2s;
+            opacity: 0;
+        }
+
+        .notification-item:hover .notification-delete {
+            opacity: 1;
+        }
+
+        .notification-delete:hover {
+            background: rgba(239, 68, 68, 0.1);
+            color: #dc2626;
+        }
+
+        .notification-dropdown-footer {
+            padding: 0.875rem 1rem;
+            background: var(--white);
+            border-top: 1px solid var(--border-color);
+            text-align: center;
+        }
+
+        .view-all-link {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            color: #242553;
+            font-size: 0.875rem;
+            font-weight: 600;
+            text-decoration: none;
+            transition: all 0.2s;
+        }
+
+        .view-all-link:hover {
+            color: var(--primary-color);
+            gap: 0.75rem;
+        }
+
+        .view-all-link i {
+            font-size: 0.75rem;
+            transition: transform 0.2s;
+        }
+
+        .view-all-link:hover i {
+            transform: translateX(4px);
+        }
+
+        /* Empty state */
+        .notification-empty {
+            padding: 2rem;
+            text-align: center;
+            color: var(--text-muted);
+        }
+
+        .notification-empty i {
+            font-size: 3rem;
+            margin-bottom: 1rem;
+            opacity: 0.5;
+        }
+
+        .notification-empty p {
+            font-size: 0.875rem;
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .notification-dropdown {
+                right: 16px;
+                left: 16px;
+                width: auto;
+                top: 70px;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .notification-dropdown {
+                right: 8px;
+                left: 8px;
+                width: auto;
+            }
+        }
+
+        .user-profile-btn {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            background: rgba(255, 255, 255, 0.15);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            padding: 0.375rem 0.875rem 0.375rem 0.375rem;
+            border-radius: var(--radius-full);
+            cursor: pointer;
+            transition: all 0.2s;
+            backdrop-filter: blur(10px);
+            color: white;
+        }
+
+        .user-profile-btn:hover {
+            background: rgba(255, 255, 255, 0.25);
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+        }
+
+        .user-avatar-img {
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            object-fit: cover;
+            border: 2px solid rgba(255, 255, 255, 0.3);
+            transition: all 0.2s;
+        }
+
+        .user-profile-btn:hover .user-avatar-img {
+            border-color: rgba(255, 255, 255, 0.5);
+            transform: scale(1.05);
+        }
+
+        .user-info {
+            display: flex;
+            flex-direction: column;
+            align-items: flex-start;
+            gap: 0.125rem;
+        }
+
+        .user-name {
+            font-size: 0.875rem;
+            font-weight: 600;
+            color: white;
+            line-height: 1;
+        }
+
+        .user-role {
+            font-size: 0.75rem;
+            color: rgba(255, 255, 255, 0.7);
+            line-height: 1;
+        }
+
+        .user-profile-btn i {
+            font-size: 0.75rem;
+            color: rgba(255, 255, 255, 0.7);
+            margin-left: 0.25rem;
+        }
+/* Profile Dropdown Styles - Fixed Position (Outside Dashboard) */
+.profile-dropdown {
+    position: fixed; /* Changed from absolute to fixed */
+    top: 80px;       /* Fixed distance from top of viewport */
+    right: 24px;     /* Fixed distance from right of viewport */
+    width: 280px;
+    background: var(--white);
+    border-radius: var(--radius-lg);
+    box-shadow: 0 20px 40px rgba(0, 0, 0, 0.2);
+    border: 1px solid var(--border-color);
+    opacity: 0;
+    visibility: hidden;
+    transform: translateY(-10px) scale(0.95);
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    z-index: 9999;   /* Increased z-index to ensure it's above everything */
+    overflow: hidden;
+}
+
+.profile-dropdown.active {
+    opacity: 1;
+    visibility: visible;
+    transform: translateY(0) scale(1);
+}
+
+/* Remove the arrow pointer since dropdown is no longer relative to button */
+.profile-dropdown::before {
+    display: none; /* Remove pseudo-element arrow */
+}
+
+.profile-dropdown-header {
+    padding: 1.5rem;
+    background: linear-gradient(135deg, #242553 0%, #1a1a3e 100%);
+    color: white;
+    position: relative;
+    overflow: hidden;
+}
+
+.profile-dropdown-header::before {
+    content: '';
+    position: absolute;
+    top: -50%;
+    right: -20%;
+    width: 150px;
+    height: 150px;
+    background: rgba(255, 255, 255, 0.1);
+    border-radius: 50%;
+}
+
+.profile-info {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    position: relative;
+    z-index: 1;
+}
+
+.profile-avatar-large {
+    width: 60px;
+    height: 60px;
+    border-radius: 50%;
+    object-fit: cover;
+    border: 3px solid rgba(255, 255, 255, 0.3);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+}
+
+.profile-details h4 {
+    font-size: 1.125rem;
+    font-weight: 700;
+    margin-bottom: 0.25rem;
+    color: white;
+}
+
+.profile-details p {
+    font-size: 0.875rem;
+    color: rgba(255, 255, 255, 0.8);
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.profile-details p i {
+    font-size: 0.75rem;
+    color: #fde68a;
+}
+
+.profile-dropdown-body {
+    padding: 0.75rem;
+}
+
+.profile-menu-item {
+    display: flex;
+    align-items: center;
+    gap: 0.875rem;
+    padding: 0.875rem 1rem;
+    border-radius: var(--radius-md);
+    cursor: pointer;
+    transition: all 0.2s;
+    color: var(--text-primary);
+    text-decoration: none;
+    font-size: 0.9375rem;
+    font-weight: 500;
+}
+
+.profile-menu-item:hover {
+    background: var(--bg-light);
+    color: #242553;
+    transform: translateX(4px);
+}
+
+.profile-menu-item i {
+    width: 20px;
+    text-align: center;
+    color: var(--text-secondary);
+    transition: all 0.2s;
+}
+
+.profile-menu-item:hover i {
+    color: #242553;
+}
+
+.profile-menu-divider {
+    height: 1px;
+    background: var(--border-color);
+    margin: 0.5rem 0.75rem;
+}
+
+.profile-menu-item.logout {
+    color: #ef4444;
+}
+
+.profile-menu-item.logout:hover {
+    background: rgba(239, 68, 68, 0.1);
+    color: #dc2626;
+}
+
+.profile-menu-item.logout i {
+    color: #ef4444;
+}
+
+.profile-menu-item.logout:hover i {
+    color: #dc2626;
+}
+
+/* Responsive adjustment for mobile */
+@media (max-width: 768px) {
+    .profile-dropdown {
+        right: 16px;
+        left: 16px;
+        width: auto;
+        top: 70px;
+    }
+}
+
+        /* Time-based accent colors for greeting frame */
+        .greeting-frame.morning {
+            background: linear-gradient(135deg, #242553 0%, #7a793d 100%);
+            box-shadow: 0 10px 40px rgba(36, 37, 83, 0.4);
+        }
+
+        .greeting-frame.morning .greeting-icon {
+            background: rgba(253, 230, 138, 0.2);
+            color: #fde68a;
+        }
+
+        .greeting-frame.afternoon {
+            background: linear-gradient(135deg, #242553 0%, #1e3a8a 100%);
+            box-shadow: 0 10px 40px rgba(36, 37, 83, 0.4);
+        }
+
+        .greeting-frame.afternoon .greeting-icon {
+            background: rgba(59, 130, 246, 0.2);
+            color: #d6ae0f;
+        }
+
+        .greeting-frame.evening {
+            background: linear-gradient(135deg, #242553 0%, #312e81 100%);
+            box-shadow: 0 10px 40px rgba(36, 37, 83, 0.5);
+        }
+
+        .greeting-frame.evening .greeting-icon {
+            background: rgba(139, 92, 246, 0.2);
+            color: #a78bfa;
+        }
+
+        .greeting-frame.night {
+            background: linear-gradient(135deg, #1a1a3e 0%, #0f0f23 100%);
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.5);
+        }
+
+        .greeting-frame.night .greeting-icon {
+            background: rgba(99, 102, 241, 0.2);
+            color: #818cf8;
+        }
+
+        /* Content Area - No scroll */
+        .content {
+            flex: 1;
+            padding: 0.75rem 1.5rem 1.5rem 1.5rem;
+            overflow: hidden;
+            position: relative;
+            z-index: 5;
+            background: transparent;
+            display: flex;
+            flex-direction: column;
+            min-height: 0;
+        }
+
+        /* Compact Stats Grid */
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 1rem;
+            margin-bottom: 1rem;
+            flex-shrink: 0;
+        }
+
+        .stat-card {
+            background: var(--white);
+            border-radius: var(--radius-lg);
+            padding: 1rem;
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            box-shadow: var(--shadow-sm);
+            border: 1px solid var(--border-color);
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .stat-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 4px;
+            height: 100%;
+            background: var(--primary-color);
+            opacity: 0;
+            transition: opacity 0.3s ease;
+        }
+
+        .stat-card:hover::before {
+            opacity: 1;
+        }
+
+        .stat-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 16px rgba(36, 37, 83, 0.12);
+            border-color: rgba(36, 37, 83, 0.2);
+        }
+
+        .stat-icon {
+            width: 44px;
+            height: 44px;
+            border-radius: var(--radius-md);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.25rem;
+            transition: all 0.3s ease;
+            flex-shrink: 0;
+        }
+
+        .stat-icon.blue {
+            background: rgba(59, 130, 246, 0.1);
+            color: var(--primary-color);
+        }
+
+        .stat-icon.green {
+            background: rgba(16, 185, 129, 0.1);
+            color: #10b981;
+        }
+
+        .stat-icon.purple {
+            background: rgba(139, 92, 246, 0.1);
+            color: #8b5cf6;
+        }
+
+        .stat-icon.orange {
+            background: rgba(249, 115, 22, 0.1);
+            color: #f97316;
+        }
+
+        .stat-content h3 {
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: var(--text-primary);
+            margin: 0;
+            transition: all 0.3s ease;
+            line-height: 1;
+        }
+
+        .stat-card:hover h3 {
+            color: #242553;
+            transform: scale(1.05);
+        }
+
+        .stat-content p {
+            font-size: 0.8125rem;
+            color: var(--text-secondary);
+            font-weight: 500;
+            margin: 0;
+        }
+
+        .stat-trend {
+            display: flex;
+            align-items: center;
+            gap: 0.25rem;
+            font-size: 0.6875rem;
+            margin-top: 0.25rem;
+            font-weight: 600;
+        }
+
+        .stat-trend.up {
+            color: #10b981;
+        }
+
+        .stat-progress {
+            margin-top: 0.375rem;
+            width: 100%;
+        }
+
+        .progress-bar {
+            width: 100%;
+            height: 4px;
+            background: rgba(36, 37, 83, 0.1);
+            border-radius: 2px;
+            overflow: hidden;
+            margin-bottom: 0.25rem;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #242553 0%, #3b82f6 100%);
+            border-radius: 2px;
+            transition: width 1s ease-out;
+            position: relative;
+        }
+
+        .progress-fill::after {
+            content: '';
+            position: absolute;
+            top: 0;
+            right: 0;
+            bottom: 0;
+            width: 20px;
+            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.3));
+            animation: shimmer 2s infinite;
+        }
+
+        @keyframes shimmer {
+            0% { transform: translateX(-20px); }
+            100% { transform: translateX(20px); }
+        }
+
+        .progress-fill.green {
+            background: linear-gradient(90deg, #242553 0%, #10b981 100%);
+        }
+
+        .progress-fill.orange {
+            background: linear-gradient(90deg, #242553 0%, #f97316 100%);
+        }
+
+        .progress-fill.purple {
+            background: linear-gradient(90deg, #242553 0%, #8b5cf6 100%);
+        }
+
+        .progress-text {
+            font-size: 0.6875rem;
+            color: var(--text-muted);
+            font-weight: 500;
+        }
+
+        /* Dashboard Bottom Layout - Fleet Activity Wider */
+        .dashboard-bottom {
+            display: grid;
+            grid-template-columns: 1.5fr 1fr;
+            gap: 1rem;
+            flex: 1;
+            height:450px;
+            min-height: 0;
+            overflow: hidden;
+            margin-bottom: 1rem; /* Add margin at bottom */
+        }
+
+        /* Cards - Compact */
+        .card {
+            background: var(--white);
+            border-radius: var(--radius-lg);
+            border: 1px solid var(--border-color);
+            box-shadow: var(--shadow-sm);
+            overflow: hidden;
+            transition: all 0.3s ease;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .card:hover {
+            box-shadow: var(--shadow-md);
+        }
+
+        .card-header {
+            padding: 1rem;
+            border-bottom: 1px solid var(--border-color);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            flex-shrink: 0;
+        }
+
+        .card-title {
+            font-size: 1rem;
+            font-weight: 700;
+            color: var(--text-primary);
+            margin-bottom: 0.125rem;
+        }
+
+        .card-subtitle {
+            font-size: 0.8125rem;
+            color: var(--text-secondary);
+        }
+
+        .card-body {
+            padding: 1rem;
+            flex: 1;
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+        }
+
+        /* Map Container - Compact */
+        .map-container {
+            flex: 1;
+            border-radius: var(--radius-md);
+            overflow: hidden;
+            background: var(--bg-light);
+            transition: all 0.3s ease;
+            border: 2px solid transparent;
+            min-height: 0;
+        }
+
+        .map-container:hover {
+            border-color: rgba(36, 37, 83, 0.2);
+        }
+
+        /* Table - Compact */
+        .data-table {
+            width: 100%;
+            border-collapse: separate;
+            border-spacing: 0;
+            font-size: 0.8125rem;
+        }
+
+        .data-table th {
+            background: var(--bg-light);
+            padding: 0.625rem 0.75rem;
+            font-size: 0.6875rem;
+            font-weight: 600;
+            color: var(--text-secondary);
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            border-bottom: 2px solid var(--border-color);
+            cursor: pointer;
+            user-select: none;
+            transition: all 0.2s;
+            text-align: left;
+        }
+
+        .data-table th:hover {
+            background: rgba(36, 37, 83, 0.05);
+            color: #242553;
+        }
+
+        .data-table td {
+            padding: 0.625rem 0.75rem;
+            font-size: 0.8125rem;
+            color: var(--text-primary);
+            border-bottom: 1px solid var(--border-color);
+            transition: all 0.2s;
+        }
+
+        .data-table tbody tr {
+            transition: all 0.2s;
+        }
+
+        .data-table tbody tr:hover {
+            background: rgba(36, 37, 83, 0.02);
+        }
+
+        .data-table tbody tr:hover td {
+            color: #242553;
+        }
+
+        /* Buttons */
+        .btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.375rem;
+            padding: 0.5rem 1rem;
+            border-radius: var(--radius-full);
+            font-weight: 600;
+            font-size: 0.8125rem;
+            cursor: pointer;
+            transition: all 0.2s;
+            border: none;
+            font-family: inherit;
+            text-decoration: none;
+        }
+
+        .btn-primary {
+            background: var(--primary-color);
+            color: var(--white);
+            box-shadow: 0 4px 6px rgba(59, 130, 246, 0.2);
+        }
+
+        .btn-primary:hover {
+            background: var(--primary-hover);
+            transform: translateY(-1px);
+            box-shadow: 0 6px 12px rgba(59, 130, 246, 0.3);
+        }
+
+        .btn-secondary {
+            background: var(--bg-light);
+            color: var(--text-secondary);
+            border: 1px solid var(--border-color);
+        }
+
+        .btn-secondary:hover {
+            background: var(--border-color);
+            color: var(--text-primary);
+        }
+
+        .btn-sm {
+            padding: 0.375rem 0.75rem;
+            font-size: 0.75rem;
+        }
+
+        /* Status Badges */
+        .status-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.25rem;
+            padding: 0.25rem 0.625rem;
+            border-radius: var(--radius-full);
+            font-size: 0.6875rem;
+            font-weight: 600;
+        }
+
+        .status-badge.active {
+            background: rgba(16, 185, 129, 0.1);
+            color: #059669;
+            border: 1px solid rgba(16, 185, 129, 0.2);
+        }
+
+        .status-badge.maintenance {
+            background: rgba(245, 158, 11, 0.1);
+            color: #d97706;
+            border: 1px solid rgba(245, 158, 11, 0.2);
+        }
+
+        .status-badge.idle {
+            background: rgba(107, 114, 128, 0.1);
+            color: #4b5563;
+            border: 1px solid rgba(107, 114, 128, 0.2);
+        }
+
+        /* Mobile Overlay */
+        .sidebar-overlay {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.5);
+            z-index: 99;
+            opacity: 0;
+            transition: opacity 0.3s;
+        }
+
+        .sidebar-overlay.active {
+            display: block;
+            opacity: 1;
+        }
+
+        /* Table wrapper */
+        .table-wrapper {
+            overflow-y: auto;
+            flex: 1;
+            -webkit-overflow-scrolling: touch;
+        }
+
+        /* Custom scrollbar for table */
+        .table-wrapper::-webkit-scrollbar {
+            width: 6px;
+        }
+
+        .table-wrapper::-webkit-scrollbar-track {
+            background: transparent;
+        }
+
+        .table-wrapper::-webkit-scrollbar-thumb {
+            background: var(--border-color);
+            border-radius: 3px;
+        }
+
+        .table-wrapper::-webkit-scrollbar-thumb:hover {
+            background: var(--text-muted);
+        }
+
+        /* Custom scrollbar for sidebar */
+        .sidebar-nav::-webkit-scrollbar {
+            width: 4px;
+        }
+
+        .sidebar-nav::-webkit-scrollbar-track {
+            background: transparent;
+        }
+
+        .sidebar-nav::-webkit-scrollbar-thumb {
+            background: var(--border-color);
+            border-radius: 2px;
+        }
+
+        .sidebar-nav::-webkit-scrollbar-thumb:hover {
+            background: var(--text-muted);
+        }
+
+        /* Loading Animation */
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
+
+        .loading {
+            animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+        }
+
+        /* Card Header Left */
+        .card-header-left {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+        }
+
+        .header-icon {
+            width: 40px;
+            height: 40px;
+            background: linear-gradient(135deg, #242553 0%, #3b82f6 100%);
+            border-radius: var(--radius-md);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 1rem;
+            box-shadow: 0 4px 12px rgba(36, 37, 83, 0.3);
+            flex-shrink: 0;
+        }
+
+        .card-actions {
+            display: flex;
+            gap: 0.5rem;
+        }
+
+        .table-filters {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 0.75rem;
+            gap: 0.75rem;
+            flex-wrap: wrap;
+            flex-shrink: 0;
+        }
+
+        .filter-group {
+            display: flex;
+            gap: 0.25rem;
+            background: var(--bg-light);
+            padding: 0.25rem;
+            border-radius: var(--radius-full);
+        }
+
+        .filter-btn {
+            padding: 0.375rem 0.75rem;
+            border: none;
+            background: transparent;
+            color: var(--text-secondary);
+            font-size: 0.8125rem;
+            font-weight: 500;
+            border-radius: var(--radius-full);
+            cursor: pointer;
+            transition: all 0.2s;
+            display: flex;
+            align-items: center;
+            gap: 0.375rem;
+        }
+
+        .filter-btn:hover {
+            background: var(--white);
+            color: var(--text-primary);
+        }
+
+        .filter-btn.active {
+            background: var(--white);
+            color: #242553;
+            box-shadow: var(--shadow-sm);
+            font-weight: 600;
+        }
+
+        .filter-dot {
+            width: 6px;
+            height: 6px;
+            border-radius: 50%;
+            display: inline-block;
+        }
+
+        .filter-dot.active { background: #10b981; }
+        .filter-dot.maintenance { background: #f59e0b; }
+        .filter-dot.idle { background: #6b7280; }
+
+        .search-box {
+            position: relative;
+            display: flex;
+            align-items: center;
+        }
+
+        .search-box i {
+            position: absolute;
+            left: 0.75rem;
+            color: var(--text-muted);
+            font-size: 0.875rem;
+        }
+
+        .search-box input {
+            padding: 0.5rem 0.75rem 0.5rem 2rem;
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius-full);
+            font-size: 0.8125rem;
+            width: 180px;
+            transition: all 0.2s;
+            background: var(--white);
+        }
+
+        .search-box input:focus {
+            outline: none;
+            border-color: #242553;
+            box-shadow: 0 0 0 3px rgba(36, 37, 83, 0.1);
+            width: 200px;
+        }
+
+        .th-content {
+            display: flex;
+            align-items: center;
+            gap: 0.375rem;
+        }
+
+        .bus-id-cell {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .bus-icon {
+            width: 28px;
+            height: 28px;
+            background: linear-gradient(135deg, #242553 0%, #3b82f6 100%);
+            border-radius: var(--radius-sm);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 0.75rem;
+            flex-shrink: 0;
+        }
+
+        .driver-cell {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .driver-avatar {
+            width: 28px;
+            height: 28px;
+            border-radius: 50%;
+            object-fit: cover;
+            border: 2px solid var(--border-color);
+        }
+
+        .route-cell {
+            display: flex;
+            align-items: center;
+            gap: 0.375rem;
+            color: var(--text-secondary);
+        }
+
+        .route-cell i {
+            color: #242553;
+            font-size: 0.75rem;
+        }
+
+        .time-cell {
+            color: var(--text-muted);
+            font-size: 0.75rem;
+        }
+
+        .table-footer {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-top: 0.75rem;
+            padding-top: 0.75rem;
+            border-top: 1px solid var(--border-color);
+            flex-shrink: 0;
+        }
+
+        .pagination {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .page-btn {
+            width: 32px;
+            height: 32px;
+            border: 1px solid var(--border-color);
+            background: var(--white);
+            border-radius: var(--radius-md);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: all 0.2s;
+            color: var(--text-secondary);
+        }
+
+        .page-btn:hover {
+            background: #242553;
+            color: white;
+            border-color: #242553;
+        }
+
+        .page-numbers {
+            font-size: 0.8125rem;
+            color: var(--text-secondary);
+            font-weight: 500;
+        }
+
+        /* Map Card Enhancements */
+        .map-card {
+            border-radius: var(--radius-lg);
+            overflow: hidden;
+        }
+
+        .map-legend {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+
+        .legend-item {
+            display: flex;
+            align-items: center;
+            gap: 0.375rem;
+            font-size: 0.8125rem;
+            color: var(--text-secondary);
+        }
+
+        .legend-dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            display: inline-block;
+        }
+
+        .legend-dot.active {
+            background: #10b981;
+            box-shadow: 0 0 0 3px rgba(16, 185, 129, 0.3);
+            animation: pulse 2s infinite;
+        }
+
+        .legend-dot.maintenance {
+            background: #f59e0b;
+            box-shadow: 0 0 0 3px rgba(245, 158, 11, 0.3);
+        }
+
+        .map-stats-bar {
+            display: flex;
+            gap: 1.5rem;
+            padding: 0.75rem 1rem;
+            background: linear-gradient(135deg, #242553 0%, #1a1a3e 100%);
+            color: white;
+            font-size: 0.8125rem;
+            flex-shrink: 0;
+        }
+
+        .map-stat {
+            display: flex;
+            align-items: center;
+            gap: 0.375rem;
+            font-weight: 500;
+        }
+
+        .map-stat i {
+            color: #fde68a;
+        }
+
+        .map-stat span {
+            font-weight: 700;
+            color: #fde68a;
+        }
+
+        /* Custom Bus Marker Styles */
+        .custom-bus-marker {
+            position: relative;
+            width: 40px;
+            height: 40px;
+        }
+
+        .bus-marker-inner {
+            width: 36px;
+            height: 36px;
+            background: linear-gradient(135deg, #242553 0%, #3b82f6 100%);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 14px;
+            border: 3px solid white;
+            box-shadow: 0 4px 12px rgba(36, 37, 83, 0.4);
+            position: relative;
+            z-index: 2;
+            transition: all 0.3s ease;
+        }
+
+        .bus-marker-pulse {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 40px;
+            height: 40px;
+            background: rgba(36, 37, 83, 0.3);
+            border-radius: 50%;
+            animation: markerPulse 2s ease-out infinite;
+            z-index: 1;
+        }
+
+        .bus-marker-pulse:nth-child(2) {
+            animation-delay: 0.5s;
+        }
+
+        .bus-marker-pulse:nth-child(3) {
+            animation-delay: 1s;
+        }
+
+        @keyframes markerPulse {
+            0% {
+                transform: translate(-50%, -50%) scale(1);
+                opacity: 0.6;
+            }
+            100% {
+                transform: translate(-50%, -50%) scale(2.5);
+                opacity: 0;
+            }
+        }
+
+        .bus-marker-inner.maintenance {
+            background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
+        }
+
+        .bus-marker-inner.idle {
+            background: linear-gradient(135deg, #6b7280 0%, #4b5563 100%);
+        }
+
+        .bus-marker-inner:hover {
+            transform: scale(1.1);
+            box-shadow: 0 6px 20px rgba(36, 37, 83, 0.5);
+        }
+
+        /* Leaflet Popup Customization */
+        .leaflet-popup-content-wrapper {
+            border-radius: var(--radius-lg);
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);
+            padding: 0;
+            overflow: hidden;
+        }
+
+        .leaflet-popup-content {
+            margin: 0;
+            padding: 1rem;
+            font-family: 'Inter', sans-serif;
+        }
+
+        .bus-popup-header {
+            background: linear-gradient(135deg, #242553 0%, #3b82f6 100%);
+            color: white;
+            padding: 0.75rem 1rem;
+            margin: -1rem -1rem 1rem -1rem;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .bus-popup-info {
+            display: grid;
+            gap: 0.5rem;
+        }
+
+        .bus-popup-row {
+            display: flex;
+            justify-content: space-between;
+            font-size: 0.875rem;
+        }
+
+        .bus-popup-label {
+            color: var(--text-muted);
+        }
+
+        .bus-popup-value {
+            font-weight: 600;
+            color: var(--text-primary);
+        }
+
+        .leaflet-container {
+            font-family: 'Inter', sans-serif;
+        }
+
+        /* Responsive */
+        @media (max-width: 1200px) {
+            .stats-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+            
+            .dashboard-bottom {
+                grid-template-columns: 1fr; /* Stack on smaller screens */
+            }
+
+            .greeting-center-stats {
+                display: none;
+            }
+        }
+
+        @media (max-width: 968px) {
+            .greeting-time {
+                display: none;
+            }
+        }
+
+        @media (max-width: 768px) {
+            .sidebar {
+                transform: translateX(-100%);
+                width: 80px;
+            }
+
+            .sidebar.active {
+                transform: translateX(0);
+            }
+
+            .main-content {
+                margin-left: 0;
+            }
+
+            .stats-grid {
+                grid-template-columns: 1fr;
+                gap: 0.75rem;
+            }
+
+            .header {
+                padding: 0.5rem 1rem;
+            }
+
+            .greeting-frame {
+                padding: 0.75rem 1rem;
+            }
+
+            .greeting-text h2 {
+                font-size: 1rem;
+            }
+
+            .greeting-text p {
+                display: none;
+            }
+
+            .greeting-icon {
+                width: 36px;
+                height: 36px;
+                font-size: 1rem;
+            }
+
+            .content {
+                padding: 0.5rem 1rem 1rem 1rem;
+            }
+
+            .stat-card {
+                padding: 0.75rem;
+            }
+
+            .card-header,
+            .card-body {
+                padding: 0.75rem;
+            }
+
+            .map-container {
+                min-height: 200px;
+            }
+
+            .greeting-center-stats {
+                display: none;
+            }
+
+            .greeting-time {
+                display: none;
+            }
+
+            .user-info {
+                display: none;
+            }
+
+            .user-profile-btn {
+                padding: 0.25rem;
+            }
+
+            .header-actions {
+                gap: 0.5rem;
+            }
+        }
+
+        /* Animation for Stats */
+        @keyframes countUp {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .stat-number-animate {
+            animation: countUp 0.6s ease-out;
+        }
+
+        /* Mobile menu button - hidden by default */
+        .mobile-menu-btn {
+            display: none;
+        }
+
+        /* Logout Modal Styles */
+.logout-modal {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    z-index: 10000;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    opacity: 0;
+    visibility: hidden;
+    transition: all 0.15s ease;
+}
+
+.logout-modal.active {
+    opacity: 1;
+    visibility: visible;
+}
+
+.logout-modal-overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0, 0, 0, 0.5);
+    backdrop-filter: blur(4px);
+}
+
+.logout-modal-content {
+    background: var(--white);
+    border-radius: var(--radius-lg);
+    box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+    width: 90%;
+    max-width: 400px;
+    position: relative;
+    z-index: 1;
+    transform: scale(0.9) translateY(20px);
+    transition: all 0.15s cubic-bezier(0.4, 0, 0.2, 1); /* Was 0.3s */
+    overflow: hidden;
+}
+
+.logout-modal.active .logout-modal-content {
+    transform: scale(1) translateY(0);
+}
+
+.logout-modal-header {
+    padding: 2rem 1.5rem 1.5rem;
+    text-align: center;
+}
+
+.logout-icon {
+    width: 64px;
+    height: 64px;
+    background: linear-gradient(135deg, #fee2e2 0%, #fecaca 100%);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 0 auto 1rem;
+    color: #dc2626;
+    font-size: 1.5rem;
+    animation: logoutPulse 2s ease-in-out infinite;
+}
+
+@keyframes logoutPulse {
+    0%, 100% { transform: scale(1); box-shadow: 0 0 0 0 rgba(220, 38, 38, 0.4); }
+    50% { transform: scale(1.05); box-shadow: 0 0 0 10px rgba(220, 38, 38, 0); }
+}
+
+.logout-modal-header h3 {
+    font-size: 1.25rem;
+    font-weight: 700;
+    color: var(--text-primary);
+    margin-bottom: 0.5rem;
+}
+
+.logout-modal-header p {
+    font-size: 0.9375rem;
+    color: var(--text-secondary);
+    line-height: 1.5;
+}
+
+.logout-modal-actions {
+    display: flex;
+    gap: 0.75rem;
+    padding: 0 1.5rem 1.5rem;
+}
+
+.logout-modal-actions .btn {
+    flex: 1;
+    justify-content: center;
+    padding: 0.75rem 1rem;
+    font-size: 0.9375rem;
+}
+
+.btn-danger {
+    background: linear-gradient(135deg, #dc2626 0%, #b91c1c 100%);
+    color: white;
+    border: none;
+    box-shadow: 0 4px 6px rgba(220, 38, 38, 0.2);
+}
+
+.btn-danger:hover {
+    background: linear-gradient(135deg, #b91c1c 0%, #991b1b 100%);
+    transform: translateY(-1px);
+    box-shadow: 0 6px 12px rgba(220, 38, 38, 0.3);
+}
+
+/* Prevent body scroll when modal is open */
+body.modal-open {
+    overflow: hidden;
+}
+    </style>
+</head>
+<body>
+    <div class="app-wrapper">
+        <!-- Sidebar - Icon Only -->
+        <aside class="sidebar" id="sidebar">
+            <div class="sidebar-header">
+                <div class="sidebar-logo">
+                    <img src="images/bus-logo.png" alt="Logo">
+                </div>
+            </div>
+
+<nav class="sidebar-nav">
+    <div class="nav-section">
+        <ul class="nav-menu">
+            <li class="nav-item">
+                <a class="nav-link active" data-page="dashboard" data-title="Dashboard" data-src="dashboard-content.html">
+                    <i class="fas fa-th-large"></i>
+                    <span>Dashboard</span>
+                </a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link" data-page="live-tracking" data-title="Live Tracking" data-src="live-tracking.html">
+                    <i class="fas fa-map-marker-alt"></i>
+                    <span>Live Tracking</span>
+                </a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link" data-page="feedback" data-title="Customer Feedback" data-src="feedback.html">
+                    <i class="fas fa-comments"></i>
+                    <span>Customer Feedback</span>
+                </a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link" data-page="bus-info" data-title="Bus Information" data-src="bus-info.html">
+                    <i class="fas fa-bus"></i>
+                    <span>Bus Information</span>
+                </a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link" data-page="schedule" data-title="Bus Schedule" data-src="schedule.html">
+                    <i class="fas fa-calendar-alt"></i>
+                    <span>Bus Schedule</span>
+                </a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link" data-page="accounts" data-title="Account Management" data-src="accounts.html">
+                    <i class="fas fa-users-cog"></i>
+                    <span>Account Management</span>
+                </a>
+            </li>
+        </ul>
+    </div>
+</nav>
+        </aside>
+
+        <!-- Mobile Sidebar Overlay -->
+        <div class="sidebar-overlay" id="sidebarOverlay"></div>
+
+        <!-- Main Content -->
+        <main class="main-content">
+            <!-- Header with Greeting Frame -->
+            <header class="header">
+                <div class="greeting-frame" id="greetingFrame">
+                    <!-- Left: Greeting Content -->
+                    <div class="greeting-content">
+                        <div class="greeting-icon">
+                            <i class="fas fa-sun" id="greetingIcon"></i>
+                        </div>
+                        <div class="greeting-text">
+                            <h2 id="greetingMessage">Good Morning, John!</h2>
+                            <p id="greetingSubtext">Here's what's happening with your fleet today</p>
+                        </div>
+                    </div>
+
+                    <!-- Center: Stats -->
+                    <div class="greeting-center-stats">
+                        <div class="greeting-stat">
+                            <i class="fas fa-cloud-sun"></i>
+                            <span id="weatherTemp">24°C</span>
+                            <span id="weatherDesc">Sunny</span>
+                        </div>
+                        <div class="greeting-divider"></div>
+                        <div class="greeting-stat">
+                            <i class="fas fa-calendar-check"></i>
+                            <span id="dayStatus">Weekday</span>
+                        </div>
+                        <div class="greeting-divider"></div>
+                        <div class="greeting-stat">
+                            <i class="fas fa-clock"></i>
+                            <span id="shiftStatus">Morning Shift</span>
+                        </div>
+                    </div>
+
+                    <!-- Right: Time & Actions -->
+                    <div style="display: flex; align-items: center; gap: 1.5rem; position: relative; z-index: 1;">
+                        <div class="greeting-time">
+                            <span id="currentTime">--:--</span>
+                            <span id="currentDate">Loading...</span>
+                        </div>
+                        
+                        <!-- Header Actions: Notification & Profile -->
+                        <div class="header-actions">
+                            <button class="notification-btn" id="notificationBtn">
+                                <i class="fas fa-bell"></i>
+                                <span class="badge" id="notificationCount">3</span>
+                            </button>
+                            <!-- Notification Dropdown -->
+                            <div class="notification-dropdown" id="notificationDropdown">
+                                <div class="notification-dropdown-header">
+                                    <div class="notification-header-content">
+                                        <div class="notification-icon-large">
+                                            <i class="fas fa-bell"></i>
+                                        </div>
+                                        <div class="notification-header-text">
+                                            <h4>Notifications</h4>
+                                            <p>You have <span id="notificationBadgeCount">3</span> new messages</p>
+                                        </div>
+                                    </div>
+                                    <button class="mark-all-read" id="markAllRead">
+                                        <i class="fas fa-check-double"></i>
+                                        Mark all read
+                                    </button>
+                                </div>
+                                
+                                <div class="notification-dropdown-body">
+                                    <div class="notification-list" id="notificationList">
+                                        <!-- Notification Item 1 -->
+                                        <div class="notification-item unread" data-id="1">
+                                            <div class="notification-avatar">
+                                                <img src="https://i.pravatar.cc/150?img=12" alt="User">
+                                                <span class="notification-dot"></span>
+                                            </div>
+                                            <div class="notification-content">
+                                                <div class="notification-text">
+                                                    <strong>Mike Torres</strong> completed route <span class="route-tag">Route A</span>
+                                                </div>
+                                                <div class="notification-meta">
+                                                    <i class="fas fa-clock"></i> 2 minutes ago
+                                                </div>
+                                            </div>
+                                            <button class="notification-delete" data-id="1">
+                                                <i class="fas fa-times"></i>
+                                            </button>
+                                        </div>
+
+                                        <!-- Notification Item 2 -->
+                                        <div class="notification-item unread" data-id="2">
+                                            <div class="notification-avatar system">
+                                                <i class="fas fa-exclamation-triangle"></i>
+                                            </div>
+                                            <div class="notification-content">
+                                                <div class="notification-text">
+                                                    Bus <strong>BUS-003</strong> requires maintenance check
+                                                </div>
+                                                <div class="notification-meta urgent">
+                                                    <i class="fas fa-exclamation-circle"></i> Urgent • 15 minutes ago
+                                                </div>
+                                            </div>
+                                            <button class="notification-delete" data-id="2">
+                                                <i class="fas fa-times"></i>
+                                            </button>
+                                        </div>
+
+                                        <!-- Notification Item 3 -->
+                                        <div class="notification-item unread" data-id="3">
+                                            <div class="notification-avatar feedback">
+                                                <i class="fas fa-comment-dots"></i>
+                                            </div>
+                                            <div class="notification-content">
+                                                <div class="notification-text">
+                                                    New customer feedback received for <strong>Route B</strong>
+                                                </div>
+                                                <div class="notification-meta">
+                                                    <i class="fas fa-clock"></i> 1 hour ago
+                                                </div>
+                                            </div>
+                                            <button class="notification-delete" data-id="3">
+                                                <i class="fas fa-times"></i>
+                                            </button>
+                                        </div>
+
+                                        <!-- Read Notification Example -->
+                                        <div class="notification-item" data-id="4">
+                                            <div class="notification-avatar">
+                                                <img src="https://i.pravatar.cc/150?img=5" alt="User">
+                                            </div>
+                                            <div class="notification-content">
+                                                <div class="notification-text">
+                                                    <strong>Sarah Johnson</strong> started shift
+                                                </div>
+                                                <div class="notification-meta">
+                                                    <i class="fas fa-check"></i> Read • 3 hours ago
+                                                </div>
+                                            </div>
+                                            <button class="notification-delete" data-id="4">
+                                                <i class="fas fa-times"></i>
+                                            </button>
+                                        </div>
+                                    </div>
+                                </div>
+                                
+                                <div class="notification-dropdown-footer">
+                                    <a href="#all-notifications" class="view-all-link">
+                                        View all notifications
+                                        <i class="fas fa-arrow-right"></i>
+                                    </a>
+                                </div>
+                            </div>
+
+                            <button class="user-profile-btn" id="userProfileBtn">
+                                <img src="https://i.pravatar.cc/150?img=11" alt="User" class="user-avatar-img" id="userAvatarImg">
+                                <div class="user-info">
+                                    <span class="user-name" id="userName">John Staff</span>
+                                    <span class="user-role">Admin</span>
+                                </div>
+                                <i class="fas fa-chevron-down"></i>
+                                
+                            </button>
+                                                            <!-- Profile Dropdown Menu -->
+                                <div class="profile-dropdown" id="profileDropdown">
+                                    <div class="profile-dropdown-header">
+                                        <div class="profile-info">
+                                            <img src="https://i.pravatar.cc/150?img=11" alt="User" class="profile-avatar-large">
+                                            <div class="profile-details">
+                                                <h4>John Staff</h4>
+                                                <p><i class="fas fa-envelope"></i> john.staff@biyahe.com</p>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="profile-dropdown-body">
+                                        <a href="#profile" class="profile-menu-item">
+                                            <i class="fas fa-user"></i>
+                                            <span>My Profile</span>
+                                        </a>
+                                        <a href="#account" class="profile-menu-item">
+                                            <i class="fas fa-cog"></i>
+                                            <span>Account Settings</span>
+                                        </a>
+                                        <div class="profile-menu-divider"></div>
+                                        <a href="#logout" class="profile-menu-item logout" id="logoutBtn">
+                                            <i class="fas fa-sign-out-alt"></i>
+                                            <span>Logout</span>
+                                        </a>
+                                    </div>
+                                </div>
+                        </div>
+                    </div>
+                </div>
+            </header>
+            <!-- New -->
+            <div class="iframe-container">
+                <iframe id="contentFrame" class="content-iframe" src="dashboard-content.html"></iframe>
+            </div>
+        </main>
+    </div>
+
+    <!-- Logout Confirmation Modal -->
+<div class="logout-modal" id="logoutModal">
+    <div class="logout-modal-overlay"></div>
+    <div class="logout-modal-content">
+        <div class="logout-modal-header">
+            <div class="logout-icon">
+                <i class="fas fa-sign-out-alt"></i>
+            </div>
+            <h3>Confirm Logout</h3>
+            <p>Are you sure you want to log out of your account?</p>
+        </div>
+        <div class="logout-modal-actions">
+            <button class="btn btn-secondary" id="cancelLogout">Cancel</button>
+            <button class="btn btn-danger" id="confirmLogout">
+                <i class="fas fa-sign-out-alt"></i>
+                Logout
+            </button>
+        </div>
+    </div>
+</div>
+
+    <!-- Leaflet JS -->
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    
+  
+    <script>
+// Mobile Menu Toggle
+const mobileMenuBtn = document.getElementById('mobileMenuBtn');
+const sidebar = document.getElementById('sidebar');
+const sidebarOverlay = document.getElementById('sidebarOverlay');
+let mapInstance = null;
+
+if (mobileMenuBtn) {
+    mobileMenuBtn.addEventListener('click', () => {
+        sidebar.classList.toggle('active');
+        sidebarOverlay.classList.toggle('active');
+    });
+}
+
+sidebarOverlay.addEventListener('click', () => {
+    sidebar.classList.remove('active');
+    sidebarOverlay.classList.remove('active');
+});
+
+// Initialize Map
+document.addEventListener('DOMContentLoaded', function() {
+    // Initialize Leaflet Map - centered on Tagbilaran City, Bohol
+    mapInstance = L.map('dashboardMap').setView([9.6500, 123.8600], 14);
+    
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+        attribution: '© OpenStreetMap contributors'
+    }).addTo(mapInstance);
+
+    // Define route stops in Tagbilaran City
+    const routeStops = [
+        { id: 'STOP-001', name: 'Bohol Provincial Capitol', lat: 9.6592, lng: 123.8597, type: 'capitol' },
+        { id: 'STOP-002', name: 'Island City Mall (ICM)', lat: 9.6553, lng: 123.8695, type: 'mall' },
+        { id: 'STOP-003', name: 'Holy Name University', lat: 9.6424, lng: 123.8585, type: 'school' },
+        { id: 'STOP-004', name: 'National Museum Bohol', lat: 9.6402, lng: 123.8565, type: 'museum' },
+        { id: 'STOP-005', name: 'BQ Mall', lat: 9.6427, lng: 123.8553, type: 'mall' },
+        { id: 'STOP-006', name: 'Bohol Provincial Capitol', lat: 9.6592, lng: 123.8597, type: 'capitol' }
+    ];
+
+    // Define bus positions along the route
+    const buses = [
+        { id: 'BUS-001', lat: 9.6570, lng: 123.8640, driver: 'Mike Torres', route: 'Capitol - ICM', nextStop: 'Island City Mall' },
+        { id: 'BUS-002', lat: 9.6480, lng: 123.8640, driver: 'Sarah Johnson', route: 'ICM - HNU', nextStop: 'Holy Name University' },
+        { id: 'BUS-003', lat: 9.6415, lng: 123.8575, driver: 'Carlos Mendez', route: 'HNU - Museum', nextStop: 'National Museum' },
+        { id: 'BUS-004', lat: 9.6410, lng: 123.8555, driver: 'Emma Wilson', route: 'Museum - BQ Mall', nextStop: 'BQ Mall' }
+    ];
+
+    // Custom icons for different stop types
+    const stopIcons = {
+        capitol: L.divIcon({
+            className: 'custom-stop-icon',
+            html: '<div style="background: #dc2626; width: 32px; height: 32px; border-radius: 50%; display: flex; align-items: center; justify-content: center; border: 3px solid white; box-shadow: 0 4px 12px rgba(220,38,38,0.4);"><i class="fas fa-landmark" style="color: white; font-size: 12px;"></i></div>',
+            iconSize: [32, 32],
+            iconAnchor: [16, 16]
+        }),
+        mall: L.divIcon({
+            className: 'custom-stop-icon',
+            html: '<div style="background: #7c3aed; width: 32px; height: 32px; border-radius: 50%; display: flex; align-items: center; justify-content: center; border: 3px solid white; box-shadow: 0 4px 12px rgba(124,58,237,0.4);"><i class="fas fa-shopping-bag" style="color: white; font-size: 12px;"></i></div>',
+            iconSize: [32, 32],
+            iconAnchor: [16, 16]
+        }),
+        school: L.divIcon({
+            className: 'custom-stop-icon',
+            html: '<div style="background: #059669; width: 32px; height: 32px; border-radius: 50%; display: flex; align-items: center; justify-content: center; border: 3px solid white; box-shadow: 0 4px 12px rgba(5,150,105,0.4);"><i class="fas fa-graduation-cap" style="color: white; font-size: 12px;"></i></div>',
+            iconSize: [32, 32],
+            iconAnchor: [16, 16]
+        }),
+        museum: L.divIcon({
+            className: 'custom-stop-icon',
+            html: '<div style="background: #d97706; width: 32px; height: 32px; border-radius: 50%; display: flex; align-items: center; justify-content: center; border: 3px solid white; box-shadow: 0 4px 12px rgba(217,119,6,0.4);"><i class="fas fa-university" style="color: white; font-size: 12px;"></i></div>',
+            iconSize: [32, 32],
+            iconAnchor: [16, 16]
+        })
+    };
+
+    const busIcon = L.divIcon({
+        className: 'custom-bus-icon',
+        html: '<div style="background: linear-gradient(135deg, #242553 0%, #3b82f6 100%); width: 40px; height: 40px; border-radius: 50%; display: flex; align-items: center; justify-content: center; border: 3px solid white; box-shadow: 0 4px 12px rgba(36,37,83,0.4); animation: pulse 2s infinite;"><i class="fas fa-bus" style="color: white; font-size: 16px;"></i></div>',
+        iconSize: [40, 40],
+        iconAnchor: [20, 20]
+    });
+
+   
+    // Add stop markers
+    routeStops.forEach((stop, index) => {
+        const isLast = index === routeStops.length - 1;
+        const label = isLast ? 'End' : `Stop ${index + 1}`;
+        
+        L.marker([stop.lat, stop.lng], { icon: stopIcons[stop.type] })
+            .addTo(mapInstance)
+            .bindPopup(`
+                <div style="font-family: Inter, sans-serif; min-width: 200px;">
+                    <div style="background: linear-gradient(135deg, #242553 0%, #3b82f6 100%); color: white; padding: 10px; margin: -13px -13px 10px -13px; border-radius: 8px 8px 0 0; font-weight: 600;">
+                        <i class="fas fa-map-marker-alt"></i> ${label}
+                    </div>
+                    <div style="font-size: 14px; font-weight: 600; color: #1f2937; margin-bottom: 5px;">${stop.name}</div>
+                    <div style="font-size: 12px; color: #6b7280; text-transform: capitalize;">
+                        <i class="fas fa-${stop.type === 'capitol' ? 'landmark' : stop.type === 'mall' ? 'shopping-bag' : stop.type === 'school' ? 'graduation-cap' : 'university'}"></i> 
+                        ${stop.type}
+                    </div>
+                </div>
+            `);
+    });
+
+    // Add bus markers
+    buses.forEach(bus => {
+        L.marker([bus.lat, bus.lng], { icon: busIcon })
+            .addTo(mapInstance)
+            .bindPopup(`
+                <div style="font-family: Inter, sans-serif; min-width: 220px;">
+                    <div style="background: linear-gradient(135deg, #242553 0%, #3b82f6 100%); color: white; padding: 10px; margin: -13px -13px 10px -13px; border-radius: 8px 8px 0 0; font-weight: 600;">
+                        <i class="fas fa-bus"></i> ${bus.id}
+                    </div>
+                    <div style="font-size: 13px; margin-bottom: 8px;">
+                        <div style="color: #6b7280; margin-bottom: 2px;">Driver</div>
+                        <div style="font-weight: 600; color: #1f2937;">${bus.driver}</div>
+                    </div>
+                    <div style="font-size: 13px; margin-bottom: 8px;">
+                        <div style="color: #6b7280; margin-bottom: 2px;">Route</div>
+                        <div style="font-weight: 600; color: #1f2937;">${bus.route}</div>
+                    </div>
+                    <div style="font-size: 13px; background: #fef3c7; padding: 8px; border-radius: 6px; border-left: 3px solid #f59e0b;">
+                        <div style="color: #92400e; font-size: 11px; margin-bottom: 2px;">Next Stop</div>
+                        <div style="font-weight: 600; color: #78350f;"><i class="fas fa-arrow-right"></i> ${bus.nextStop}</div>
+                    </div>
+                </div>
+            `);
+    });
+});
+
+// Dynamic Greeting Frame Functionality
+function updateGreeting() {
+    const now = new Date();
+    const hour = now.getHours();
+    const greetingFrame = document.getElementById('greetingFrame');
+    const greetingMessage = document.getElementById('greetingMessage');
+    const greetingIcon = document.getElementById('greetingIcon');
+    const greetingSubtext = document.getElementById('greetingSubtext');
+    const currentTime = document.getElementById('currentTime');
+    const currentDate = document.getElementById('currentDate');
+    const shiftStatus = document.getElementById('shiftStatus');
+    const dayStatus = document.getElementById('dayStatus');
+
+    // Remove all time-based classes
+    greetingFrame.classList.remove('morning', 'afternoon', 'evening', 'night');
+
+    // Determine greeting based on time
+    let greeting = '';
+    let icon = '';
+    let subtext = '';
+    let shift = '';
+    let timeClass = '';
+
+    if (hour >= 5 && hour < 12) {
+        greeting = 'Good Morning, John!';
+        icon = 'fa-sun';
+        subtext = 'Start your day with a smile. Here\'s your fleet overview.';
+        shift = 'Morning Shift';
+        timeClass = 'morning';
+    } else if (hour >= 12 && hour < 17) {
+        greeting = 'Good Afternoon, John!';
+        icon = 'fa-sun';
+        subtext = 'Hope you\'re having a productive day!';
+        shift = 'Afternoon Shift';
+        timeClass = 'afternoon';
+    } else if (hour >= 17 && hour < 21) {
+        greeting = 'Good Evening, John!';
+        icon = 'fa-moon';
+        subtext = 'Wind down and review today\'s performance.';
+        shift = 'Evening Shift';
+        timeClass = 'evening';
+    } else {
+        greeting = 'Good Night, John!';
+        icon = 'fa-moon';
+        subtext = 'Rest well. Your fleet is in good hands.';
+        shift = 'Night Shift';
+        timeClass = 'night';
+    }
+
+    // Add time-based class
+    greetingFrame.classList.add(timeClass);
+
+    // Update greeting elements
+    greetingMessage.textContent = greeting;
+    greetingIcon.className = `fas ${icon}`;
+    greetingSubtext.textContent = subtext;
+    shiftStatus.textContent = shift;
+
+    // Update time
+    const timeString = now.toLocaleTimeString('en-US', { 
+        hour: '2-digit', 
+        minute: '2-digit',
+        hour12: true 
+    });
+    currentTime.textContent = timeString;
+
+    // Update date
+    const dateString = now.toLocaleDateString('en-US', { 
+        weekday: 'short', 
+        month: 'short', 
+        day: 'numeric' 
+    });
+    currentDate.textContent = dateString;
+
+    // Update day status
+    const day = now.getDay();
+    if (day === 0 || day === 6) {
+        dayStatus.textContent = 'Weekend';
+    } else {
+        dayStatus.textContent = 'Weekday';
+    }
+}
+
+// Initialize greeting on load
+document.addEventListener('DOMContentLoaded', function() {
+    updateGreeting();
+    // Update every minute
+    setInterval(updateGreeting, 60000);
+});
+
+// Navigation Active State
+const navLinks = document.querySelectorAll('.nav-link');
+navLinks.forEach(link => {
+    link.addEventListener('click', (e) => {
+        e.preventDefault();
+        navLinks.forEach(l => l.classList.remove('active'));
+        link.classList.add('active');
+        
+        // Close mobile menu if open
+        sidebar.classList.remove('active');
+        sidebarOverlay.classList.remove('active');
+    });
+});
+
+// Table Filter Functionality
+const filterBtns = document.querySelectorAll('.filter-btn');
+filterBtns.forEach(btn => {
+    btn.addEventListener('click', () => {
+        filterBtns.forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+    });
+});
+
+// Profile Dropdown Functionality
+const userProfileBtn = document.getElementById('userProfileBtn');
+const profileDropdown = document.getElementById('profileDropdown');
+
+userProfileBtn.addEventListener('click', (e) => {
+    e.stopPropagation();
+    profileDropdown.classList.toggle('active');
+});
+
+// Close dropdown when clicking outside
+document.addEventListener('click', (e) => {
+    if (!userProfileBtn.contains(e.target) && !profileDropdown.contains(e.target)) {
+        profileDropdown.classList.remove('active');
+    }
+});
+
+// Profile menu items click handlers (EXCEPT logout)
+const profileMenuItems = document.querySelectorAll('.profile-menu-item:not(.logout)');
+profileMenuItems.forEach(item => {
+    item.addEventListener('click', (e) => {
+        e.preventDefault();
+        const href = item.getAttribute('href');
+        
+        if (href === '#profile') {
+            console.log('Opening profile...');
+            // Add your profile navigation logic here
+        } else if (href === '#account') {
+            console.log('Opening account settings...');
+            // Add your account settings navigation logic here
+        }
+        
+        // Close dropdown after action
+        profileDropdown.classList.remove('active');
+    });
+});
+
+// Logout Modal Functionality
+const logoutModal = document.getElementById('logoutModal');
+const logoutBtn = document.getElementById('logoutBtn');
+const cancelLogout = document.getElementById('cancelLogout');
+const confirmLogout = document.getElementById('confirmLogout');
+
+// Open logout modal
+logoutBtn.addEventListener('click', (e) => {
+    e.preventDefault();
+    logoutModal.classList.add('active');
+    document.body.classList.add('modal-open');
+    profileDropdown.classList.remove('active');
+});
+
+// Close modal functions
+function closeLogoutModal() {
+    logoutModal.classList.remove('active');
+    document.body.classList.remove('modal-open');
+}
+
+// Cancel button
+cancelLogout.addEventListener('click', closeLogoutModal);
+
+// Close on overlay click
+logoutModal.querySelector('.logout-modal-overlay').addEventListener('click', closeLogoutModal);
+
+// Close on Escape key
+document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape' && logoutModal.classList.contains('active')) {
+        closeLogoutModal();
+    }
+});
+
+// Confirm logout
+confirmLogout.addEventListener('click', () => {
+    // Call Auth.logout() to properly clear session and redirect
+    if (typeof Auth !== 'undefined' && Auth.logout) {
+        Auth.logout();
+    } else {
+        // Fallback if Auth object isn't loaded
+        localStorage.removeItem('currentUser');
+        localStorage.removeItem('rememberedEmail');
+        localStorage.removeItem('rememberedPassword');
+        localStorage.removeItem('rememberMe');
+        window.location.href = 'login.html';
+    }
+});
+
+// Notification Button Click
+document.getElementById('notificationBtn').addEventListener('click', () => {
+    // Toggle notification dropdown or modal
+    console.log('Notifications clicked');
+});
+
+// Refresh Table Button
+document.getElementById('refreshTable').addEventListener('click', function() {
+    const icon = this.querySelector('i');
+    icon.classList.add('fa-spin');
+    
+    // Simulate refresh
+    setTimeout(() => {
+        icon.classList.remove('fa-spin');
+        console.log('Table refreshed');
+    }, 1000);
+});
+
+// Search Buses Functionality
+document.getElementById('searchBuses').addEventListener('input', function(e) {
+    const searchTerm = e.target.value.toLowerCase();
+    const tableRows = document.querySelectorAll('#recentActivityTable tr');
+    
+    tableRows.forEach(row => {
+        const busId = row.querySelector('.bus-id-cell span')?.textContent.toLowerCase() || '';
+        const driverName = row.querySelector('.driver-cell span')?.textContent.toLowerCase() || '';
+        const route = row.querySelector('.route-cell span')?.textContent.toLowerCase() || '';
+        
+        if (busId.includes(searchTerm) || driverName.includes(searchTerm) || route.includes(searchTerm)) {
+            row.style.display = '';
+        } else {
+            row.style.display = 'none';
+        }
+    });
+});
+
+// Pagination Functionality
+let currentPage = 1;
+const totalPages = 5;
+
+document.getElementById('prevPage').addEventListener('click', () => {
+    if (currentPage > 1) {
+        currentPage--;
+        updatePagination();
+    }
+});
+
+document.getElementById('nextPage').addEventListener('click', () => {
+    if (currentPage < totalPages) {
+        currentPage++;
+        updatePagination();
+    }
+});
+
+function updatePagination() {
+    document.getElementById('pageNumbers').textContent = `${currentPage} of ${totalPages}`;
+    document.getElementById('showingText').textContent = `Showing ${currentPage * 5 - 4}-${Math.min(currentPage * 5, 24)} of 24 buses`;
+    
+    // Update button states
+    document.getElementById('prevPage').disabled = currentPage === 1;
+    document.getElementById('nextPage').disabled = currentPage === totalPages;
+    
+    // Update button styles based on state
+    document.getElementById('prevPage').style.opacity = currentPage === 1 ? '0.5' : '1';
+    document.getElementById('nextPage').style.opacity = currentPage === totalPages ? '0.5' : '1';
+}
+
+// Initialize pagination
+updatePagination();
+
+// Expand Map Button
+document.getElementById('expandMap').addEventListener('click', () => {
+    console.log('Expanding map...');
+    // Add your full-screen map logic here
+});
+
+// Animate stats on load
+document.addEventListener('DOMContentLoaded', () => {
+    const statNumbers = document.querySelectorAll('.stat-content h3');
+    statNumbers.forEach((stat, index) => {
+        stat.classList.add('stat-number-animate');
+        stat.style.animationDelay = `${index * 0.1}s`;
+    });
+});
+
+// Notification Dropdown Functionality
+const notificationBtn = document.getElementById('notificationBtn');
+const notificationDropdown = document.getElementById('notificationDropdown');
+const notificationCount = document.getElementById('notificationCount');
+const notificationBadgeCount = document.getElementById('notificationBadgeCount');
+const markAllReadBtn = document.getElementById('markAllRead');
+const notificationList = document.getElementById('notificationList');
+
+// Toggle notification dropdown
+notificationBtn.addEventListener('click', (e) => {
+    e.stopPropagation();
+    
+    // Close profile dropdown if open
+    profileDropdown.classList.remove('active');
+    
+    // Toggle notification dropdown
+    notificationDropdown.classList.toggle('active');
+    
+    // Update badge count display
+    updateNotificationCount();
+});
+
+// Close notification dropdown when clicking outside
+document.addEventListener('click', (e) => {
+    if (!notificationBtn.contains(e.target) && !notificationDropdown.contains(e.target)) {
+        notificationDropdown.classList.remove('active');
+    }
+});
+
+// Mark all as read
+markAllReadBtn.addEventListener('click', () => {
+    const unreadItems = document.querySelectorAll('.notification-item.unread');
+    unreadItems.forEach(item => {
+        item.classList.remove('unread');
+        const dot = item.querySelector('.notification-dot');
+        if (dot) dot.remove();
+    });
+    
+    // Update counts
+    notificationCount.textContent = '0';
+    notificationCount.style.display = 'none';
+    notificationBadgeCount.textContent = '0';
+    
+    // Show feedback
+    markAllReadBtn.innerHTML = '<i class="fas fa-check"></i> All read';
+    setTimeout(() => {
+        markAllReadBtn.innerHTML = '<i class="fas fa-check-double"></i> Mark all read';
+    }, 2000);
+});
+
+// Individual notification actions
+document.querySelectorAll('.notification-item').forEach(item => {
+    // Click on notification item
+    item.addEventListener('click', (e) => {
+        // Don't trigger if clicking delete button
+        if (e.target.closest('.notification-delete')) return;
+        
+        // Mark as read
+        item.classList.remove('unread');
+        const dot = item.querySelector('.notification-dot');
+        if (dot) dot.remove();
+        
+        // Update count
+        updateNotificationCount();
+        
+        // Handle notification action (customize as needed)
+        const notifId = item.getAttribute('data-id');
+        console.log('Notification clicked:', notifId);
+        
+        // Example: Show different actions based on notification type
+        if (item.querySelector('.notification-avatar.system')) {
+            console.log('System alert clicked - redirect to maintenance page');
+        } else if (item.querySelector('.notification-avatar.feedback')) {
+            console.log('Feedback clicked - redirect to feedback page');
+        }
+    });
+});
+
+// Delete individual notification
+document.querySelectorAll('.notification-delete').forEach(btn => {
+    btn.addEventListener('click', (e) => {
+        e.stopPropagation();
+        const notifId = btn.getAttribute('data-id');
+        const notifItem = document.querySelector(`.notification-item[data-id="${notifId}"]`);
+        
+        // Animate removal
+        notifItem.style.transform = 'translateX(100%)';
+        notifItem.style.opacity = '0';
+        
+        setTimeout(() => {
+            notifItem.remove();
+            updateNotificationCount();
+            
+            // Check if empty
+            if (notificationList.children.length === 0) {
+                showEmptyState();
+            }
+        }, 300);
+    });
+});
+
+// Update notification count
+function updateNotificationCount() {
+    const unreadCount = document.querySelectorAll('.notification-item.unread').length;
+    notificationCount.textContent = unreadCount;
+    notificationBadgeCount.textContent = unreadCount;
+    
+    if (unreadCount === 0) {
+        notificationCount.style.display = 'none';
+    } else {
+        notificationCount.style.display = 'flex';
+    }
+}
+
+// Show empty state
+function showEmptyState() {
+    notificationList.innerHTML = `
+        <div class="notification-empty">
+            <i class="fas fa-bell-slash"></i>
+            <p>No notifications yet</p>
+        </div>
+    `;
+}
+
+// View all notifications link
+document.querySelector('.view-all-link').addEventListener('click', (e) => {
+    e.preventDefault();
+    console.log('View all notifications clicked');
+    // Add navigation logic here
+    notificationDropdown.classList.remove('active');
+});
+
+// Initialize notification count on load
+updateNotificationCount();
+
+// Close dropdown with Escape key
+document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape') {
+        notificationDropdown.classList.remove('active');
+    }
+});
+
+    </script>
+</body>
+</html>
