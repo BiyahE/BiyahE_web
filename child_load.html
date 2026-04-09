@@ -786,10 +786,6 @@
                         </div>
 
                         <div class="input-section">
-                            <button id="connectSerialBtn" class="btn-primary" style="background: var(--warning); color: #fff; margin-bottom: 0.25rem;">
-                                <i class="fab fa-usb"></i> Connect USB Scanner
-                            </button>
-                            
                             <div class="input-group">
                                 <i class="fas fa-keyboard"></i>
                                 <input type="text" id="rfidInput" class="input-field"
@@ -797,6 +793,10 @@
                             </div>
                             <button class="btn-primary" onclick="window.lookupPassenger()">
                                 <i class="fas fa-search"></i> Look Up Passenger
+                            </button>
+                            
+                            <button id="connectSerialBtn" class="btn-primary" style="background: var(--danger); color: #fff; margin-top: 0.25rem; width: 50%; align-self: center;">
+                                <i class="fab fa-usb"></i> Connect USB Scanner
                             </button>
                         </div>
                     </div>
@@ -1183,17 +1183,17 @@
         });
 
         // ==========================================
-        // GIDUGANG NGA SCRIPT PARA SA ESP8266 SERIAL (WITH AUTO-CONNECT)
+        // SCRIPT PARA SA ESP8266 SERIAL (AUTO-HIDE BUTTON & SEMI-AUTOMATIC)
         // ==========================================
         let serialPort;
         let serialReader;
 
-        // Kini nga function maoy mo-usab sa porma sa button kung maka-connect na
+        // Kini mo-tago sa button kung connected na
         function setScannerConnectedUI() {
             const btn = document.getElementById('connectSerialBtn');
-            btn.innerHTML = '<i class="fas fa-check-circle"></i> Scanner Active';
-            btn.style.background = 'var(--success)';
-            btn.disabled = true;
+            if(btn) {
+                btn.style.display = 'none'; // KINI ANG NAGTAGO SA BUTTON
+            }
             showToast('ESP8266 Scanner Ready!', 'success');
         }
 
@@ -1201,15 +1201,14 @@
         window.addEventListener('load', async () => {
             if ("serial" in navigator) {
                 try {
-                    // Pangitaon niya kung naay ESP8266 nga na-aprubahan na sa una
                     const authorizedPorts = await navigator.serial.getPorts();
                     
                     if (authorizedPorts.length > 0) {
-                        serialPort = authorizedPorts[0]; // Kuhaon ang pinaka-una
+                        serialPort = authorizedPorts[0]; 
                         await serialPort.open({ baudRate: 9600 });
                         
                         setScannerConnectedUI();
-                        readSerial(); // Sugdan og basa dayon
+                        readSerial(); 
                     }
                 } catch (err) {
                     console.log("Wala pay na-save nga port o wa naka-plug ang scanner.", err);
@@ -1217,10 +1216,9 @@
             }
         });
 
-        // 2. MANUAL CONNECT BUTTON (Kung wala pa kaila ang browser)
-        document.getElementById('connectSerialBtn').addEventListener('click', async () => {
+        // 2. MANUAL BUTTON (Para lang sa pinaka-unang click)
+        document.getElementById('connectSerialBtn')?.addEventListener('click', async () => {
             try {
-                // Mangayo og permiso sa user
                 serialPort = await navigator.serial.requestPort();
                 await serialPort.open({ baudRate: 9600 });
                 
@@ -1232,7 +1230,7 @@
             }
         });
 
-        // 3. ANG FUNCTION PARA MAMINAW SA SCANNER
+        // 3. TIG-BASA SA DATA GIKAN SA ESP8266
         async function readSerial() {
             const textDecoder = new TextDecoderStream();
             const readableStreamClosed = serialPort.readable.pipeTo(textDecoder.writable);
@@ -1246,15 +1244,12 @@
                     if (done) { serialReader.releaseLock(); break; }
                     
                     buffer += value;
-                    // Inig ka detect niya nga naay newline (mana ug scan)
                     if (buffer.includes('\n')) {
                         const scannedCode = buffer.trim();
-                        buffer = ""; // e-reset ang buffer
+                        buffer = ""; 
                         
                         if(scannedCode.length > 0) {
-                            // Ibutang ang na-scan ngadto sa input box
                             document.getElementById('rfidInput').value = scannedCode;
-                            // I-trigger dayon ang lookupPassenger function
                             window.lookupPassenger(scannedCode);
                         }
                     }
