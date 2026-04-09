@@ -736,7 +736,6 @@
 
 <body>
     <div class="app-container">
-        <!-- Header -->
         <header class="app-header">
             <div class="brand">
                 <div class="brand-icon">
@@ -755,9 +754,7 @@
             </div>
         </header>
 
-        <!-- Main Grid -->
         <main class="main-grid">
-            <!-- Scanner Card -->
             <div class="card">
                 <div class="card-header">
                     <div class="card-title">
@@ -767,7 +764,6 @@
                 </div>
                 <div class="card-body">
                     <div class="scanner-content">
-                        <!-- RFID Panel -->
                         <div id="rfidPanel" class="scan-visual">
                             <div class="scanner-frame">
                                 <div class="signal-waves">
@@ -789,8 +785,11 @@
                             </div>
                         </div>
 
-                        <!-- Input -->
                         <div class="input-section">
+                            <button id="connectSerialBtn" class="btn-primary" style="background: var(--warning); color: #fff; margin-bottom: 0.25rem;">
+                                <i class="fab fa-usb"></i> Connect USB Scanner
+                            </button>
+                            
                             <div class="input-group">
                                 <i class="fas fa-keyboard"></i>
                                 <input type="text" id="rfidInput" class="input-field"
@@ -804,7 +803,6 @@
                 </div>
             </div>
 
-            <!-- Passenger Info Card -->
             <div class="card">
                 <div class="card-header">
                     <div class="card-title">
@@ -861,7 +859,6 @@
         </main>
     </div>
 
-    <!-- Toast -->
     <div class="toast" id="toast">
         <i class="fas fa-check-circle"></i>
         <span id="toastMsg">Success</span>
@@ -1184,6 +1181,89 @@
                 lookupPassenger();
             }
         });
+
+        // ==========================================
+        // GIDUGANG NGA SCRIPT PARA SA ESP8266 SERIAL (WITH AUTO-CONNECT)
+        // ==========================================
+        let serialPort;
+        let serialReader;
+
+        // Kini nga function maoy mo-usab sa porma sa button kung maka-connect na
+        function setScannerConnectedUI() {
+            const btn = document.getElementById('connectSerialBtn');
+            btn.innerHTML = '<i class="fas fa-check-circle"></i> Scanner Active';
+            btn.style.background = 'var(--success)';
+            btn.disabled = true;
+            showToast('ESP8266 Scanner Ready!', 'success');
+        }
+
+        // 1. AUTO-CONNECT FEATURE INIG ABLI SA WEBPAGE
+        window.addEventListener('load', async () => {
+            if ("serial" in navigator) {
+                try {
+                    // Pangitaon niya kung naay ESP8266 nga na-aprubahan na sa una
+                    const authorizedPorts = await navigator.serial.getPorts();
+                    
+                    if (authorizedPorts.length > 0) {
+                        serialPort = authorizedPorts[0]; // Kuhaon ang pinaka-una
+                        await serialPort.open({ baudRate: 9600 });
+                        
+                        setScannerConnectedUI();
+                        readSerial(); // Sugdan og basa dayon
+                    }
+                } catch (err) {
+                    console.log("Wala pay na-save nga port o wa naka-plug ang scanner.", err);
+                }
+            }
+        });
+
+        // 2. MANUAL CONNECT BUTTON (Kung wala pa kaila ang browser)
+        document.getElementById('connectSerialBtn').addEventListener('click', async () => {
+            try {
+                // Mangayo og permiso sa user
+                serialPort = await navigator.serial.requestPort();
+                await serialPort.open({ baudRate: 9600 });
+                
+                setScannerConnectedUI();
+                readSerial();
+            } catch (err) {
+                console.error("Error connecting:", err);
+                showToast('Wala naka-connect o gi-cancel.', 'error');
+            }
+        });
+
+        // 3. ANG FUNCTION PARA MAMINAW SA SCANNER
+        async function readSerial() {
+            const textDecoder = new TextDecoderStream();
+            const readableStreamClosed = serialPort.readable.pipeTo(textDecoder.writable);
+            serialReader = textDecoder.readable.getReader();
+
+            let buffer = "";
+
+            while (true) {
+                try {
+                    const { value, done } = await serialReader.read();
+                    if (done) { serialReader.releaseLock(); break; }
+                    
+                    buffer += value;
+                    // Inig ka detect niya nga naay newline (mana ug scan)
+                    if (buffer.includes('\n')) {
+                        const scannedCode = buffer.trim();
+                        buffer = ""; // e-reset ang buffer
+                        
+                        if(scannedCode.length > 0) {
+                            // Ibutang ang na-scan ngadto sa input box
+                            document.getElementById('rfidInput').value = scannedCode;
+                            // I-trigger dayon ang lookupPassenger function
+                            window.lookupPassenger(scannedCode);
+                        }
+                    }
+                } catch (error) {
+                    console.error("Error reading serial:", error);
+                    break;
+                }
+            }
+        }
 
         (function notifyParent() {
             const filename = window.location.pathname.split('/').pop();
