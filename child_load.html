@@ -604,11 +604,14 @@
             background: var(--text-muted);
         }
 
-        /* Transactions - COMPACT */
+        /* ====================================
+           GI-USAB: TRANSACTIONS / RECENT TOP-UPS
+           ==================================== */
         .transactions-area {
-            margin-top: auto;
-            padding-top: 0.5rem;
-            flex-shrink: 1;
+            margin-top: 1rem; /* Modikit na siya sa ibabaw imbis ma-push sa ubos */
+            padding-top: 1rem;
+            border-top: 1px dashed var(--border); /* Nagbutang kog nipis nga linya */
+            flex: 1; /* Mo-stretch paubos */
             min-height: 0;
             overflow: hidden;
             display: flex;
@@ -618,9 +621,9 @@
         .tx-list {
             display: flex;
             flex-direction: column;
-            gap: 0.375rem;
-            max-height: 90px;
-            overflow-y: auto;
+            gap: 0.5rem;
+            flex: 1; /* I-fill ang nabilin nga space */
+            overflow-y: auto; /* Mo-scroll kung daghan */
         }
 
         .tx-item {
