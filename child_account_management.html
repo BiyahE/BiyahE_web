@@ -5,9 +5,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>BIYAHE - Management Dashboard</title>
-    <!-- FontAwesome Icons -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <!-- Google Fonts: Inter -->
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
 
     <style>
@@ -191,21 +189,6 @@
             font-size: 0.875rem;
         }
 
-        .btn-icon {
-            width: 28px;
-            height: 28px;
-            border: none;
-            background: transparent;
-            color: var(--text-secondary);
-            border-radius: var(--radius-sm);
-            display: inline-flex;
-            align-items: center;
-            justify-content: center;
-            cursor: pointer;
-            transition: all 0.2s;
-            font-size: 0.875rem;
-        }
-
         .btn-icon:hover {
             background: var(--bg-light);
             color: var(--primary-color);
@@ -231,7 +214,6 @@
             cursor: not-allowed;
             pointer-events: none;
         }
-
 
         .search-filter-bar {
             display: flex;
@@ -361,7 +343,6 @@
             color: var(--primary-color);
         }
 
-        /* Name Abbreviation Avatar */
         .user-cell {
             display: flex;
             align-items: center;
@@ -440,7 +421,6 @@
             font-size: 0.625rem;
         }
 
-        /* Status Badges */
         .status-badge {
             display: inline-flex;
             align-items: center;
@@ -624,6 +604,27 @@
             box-shadow: 0 0 0 3px rgba(36, 37, 83, 0.1);
         }
 
+        /* RFID field focused state — ready to scan */
+        .form-input.rfid-ready {
+            border-color: #3b82f6;
+            box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.15);
+            background: #f0f9ff;
+        }
+
+        /* RFID field success flash */
+        .form-input.rfid-success {
+            border-color: #10b981 !important;
+            box-shadow: 0 0 0 3px rgba(16, 185, 129, 0.2) !important;
+            background: #f0fdf4 !important;
+        }
+
+        /* RFID field error flash — triggered when a QR code is scanned */
+        .form-input.rfid-error {
+            border-color: #ef4444 !important;
+            box-shadow: 0 0 0 3px rgba(239, 68, 68, 0.2) !important;
+            background: #fef2f2 !important;
+        }
+
         select.form-input {
             cursor: pointer;
             appearance: none;
@@ -637,6 +638,25 @@
             margin-top: 0.375rem;
             font-size: 0.75rem;
             color: var(--text-muted);
+        }
+
+        /* RFID scan hint */
+        .rfid-hint {
+            margin-top: 0.375rem;
+            font-size: 0.75rem;
+            color: #3b82f6;
+            display: flex;
+            align-items: center;
+            gap: 0.375rem;
+        }
+
+        .rfid-hint i {
+            font-size: 0.75rem;
+        }
+
+        /* RFID error hint colour override */
+        .rfid-hint.error {
+            color: #ef4444;
         }
 
         .empty-state {
@@ -748,7 +768,6 @@
             font-family: monospace;
         }
 
-        /* Tab Styles - Updated for right alignment */
         .tabs-container {
             display: flex;
             gap: 0.5rem;
@@ -797,7 +816,6 @@
             display: flex;
         }
 
-        /* Passenger specific styles */
         .rfid-cell {
             display: flex;
             align-items: center;
@@ -899,13 +917,12 @@
             animation: fadeIn 0.3s ease-out;
         }
 
-        /* Hidden utility class */
         .hidden {
             display: none !important;
         }
 
         /* ==========================================
-           VIEW MODAL STYLES
+            VIEW MODAL STYLES
            ========================================== */
         .view-modal {
             max-width: 500px;
@@ -1152,14 +1169,11 @@
         }
     </style>
     <base target="_blank">
-    <base target="_blank">
 </head>
 
 <body>
     <div class="account-container">
-        <div class="read-only-banner hidden" id="accountsReadOnlyBanner">
-
-        </div>
+        <div class="read-only-banner hidden" id="accountsReadOnlyBanner"></div>
 
         <div class="card">
             <div class="card-header">
@@ -1170,22 +1184,19 @@
                         <p class="card-subtitle">Manage system users and passengers</p>
                     </div>
                 </div>
-
                 <button class="btn btn-primary btn-sm" id="addAccountBtnHeader" onclick="openAccountModal()">
                     <i class="fas fa-plus"></i> Add Account
                 </button>
-
             </div>
 
             <div class="card-body">
-                <!-- Accounts Tab -->
+                <!-- STAFF ACCOUNTS TAB -->
                 <div id="accounts-tab" class="tab-content active">
                     <div class="search-filter-bar">
                         <div class="search-box">
                             <i class="fas fa-search"></i>
                             <input type="text" id="accountSearch" placeholder="Search accounts by name or email...">
                         </div>
-                        <!-- Tabs and Add Button on the right -->
                         <div style="display: flex; align-items: center; gap: 0.75rem;">
                             <div class="tabs-container">
                                 <button class="tab-btn active" onclick="switchTab('accounts')" id="tab-accounts">
@@ -1218,7 +1229,7 @@
                     </div>
                 </div>
 
-                <!-- Passengers Tab -->
+                <!-- PASSENGERS TAB -->
                 <div id="passengers-tab" class="tab-content">
                     <div class="search-filter-bar">
                         <div class="search-box">
@@ -1226,7 +1237,6 @@
                             <input type="text" id="passengerSearch"
                                 placeholder="Search passengers by name, email, or RFID...">
                         </div>
-                        <!-- Tabs and Add Button on the right -->
                         <div style="display: flex; align-items: center; gap: 0.75rem;">
                             <div class="tabs-container">
                                 <button class="tab-btn" onclick="switchTab('accounts')" id="tab-accounts-passenger">
@@ -1263,7 +1273,7 @@
         </div>
     </div>
 
-    <!-- Add/Edit Account Modal -->
+    <!-- ADD / EDIT ACCOUNT MODAL -->
     <div class="modal-overlay" id="accountModal">
         <div class="modal">
             <div class="modal-header">
@@ -1273,30 +1283,42 @@
             <div class="modal-body">
                 <form id="accountForm">
                     <input type="hidden" id="accountEditId">
+
+                    <!-- Full Name - Read-only in edit mode -->
                     <div class="form-group">
                         <label class="form-label">Full Name</label>
                         <input type="text" class="form-input" id="accountFullName" placeholder="Enter full name"
                             required>
+                        <p class="form-hint" id="fullNameHint" style="display:none; color: var(--text-muted);">
+                            <i class="fas fa-lock"></i> Name cannot be changed
+                        </p>
                     </div>
+
+                    <!-- Email - Read-only in edit mode -->
                     <div class="form-group">
                         <label class="form-label">Email Address</label>
                         <input type="email" class="form-input" id="accountEmail" placeholder="Enter email address"
                             required>
+                        <p class="form-hint" id="emailHint" style="display:none; color: var(--text-muted);">
+                            <i class="fas fa-lock"></i> Email cannot be changed
+                        </p>
                     </div>
+
+                    <!-- Password - Editable -->
                     <div class="form-group" id="passwordFieldGroup">
                         <label class="form-label">Password</label>
                         <input type="password" class="form-input" id="accountPassword" placeholder="Enter password"
                             minlength="6">
                         <p class="form-hint" id="passwordHint">Password must be at least 6 characters</p>
                     </div>
+
+                    <!-- Role - Editable -->
                     <div class="form-group">
                         <label class="form-label">Role</label>
-                        <select class="form-input" id="accountRole">
-                            <option value="regular_staff">Regular Staff</option>
-                            <option value="accounting_staff">Accounting Staff</option>
-                            <option value="admin">Admin</option>
-                        </select>
+                        <select class="form-input" id="accountRole"></select>
                     </div>
+
+                    <!-- Status - Editable -->
                     <div class="form-group">
                         <label class="form-label">Status</label>
                         <select class="form-input" id="accountStatus">
@@ -1314,7 +1336,7 @@
         </div>
     </div>
 
-    <!-- Add/Edit Passenger Modal -->
+    <!-- ADD / EDIT PASSENGER MODAL -->
     <div class="modal-overlay" id="passengerModal">
         <div class="modal">
             <div class="modal-header">
@@ -1336,8 +1358,13 @@
                     </div>
                     <div class="form-group">
                         <label class="form-label">RFID Number</label>
-                        <input type="text" class="form-input" id="passengerRfid" placeholder="Enter RFID number"
-                            required>
+                        <input type="text" class="form-input" id="passengerRfid"
+                            placeholder="Click here, then tap card on scanner" autocomplete="off" readonly
+                            onfocus="onRfidFieldFocus(this)" onblur="onRfidFieldBlur(this)">
+                        <p class="rfid-hint" id="rfidHint">
+                            <i class="fas fa-wifi" id="rfidHintIcon"></i>
+                            <span id="rfidHintText">Click the field, then tap your card on the scanner</span>
+                        </p>
                     </div>
                     <div class="form-group">
                         <label class="form-label">Balance</label>
@@ -1362,211 +1389,264 @@
         </div>
     </div>
 
-    <!-- View Account Modal (Read-only) -->
+    <!-- VIEW ACCOUNT MODAL -->
     <div class="modal-overlay" id="viewAccountModal">
         <div class="modal view-modal">
             <div class="modal-header">
                 <div class="modal-header-left">
-                    <div class="header-icon view-icon">
-                        <i class="fas fa-user"></i>
-                    </div>
+                    <div class="header-icon view-icon"><i class="fas fa-user"></i></div>
                     <div>
                         <h3 class="modal-title">Account Details</h3>
                         <p class="modal-subtitle">View-only mode</p>
                     </div>
                 </div>
-                <button class="modal-close" onclick="closeModal('viewAccountModal')">
-                    <i class="fas fa-times"></i>
-                </button>
+                <button class="modal-close" onclick="closeModal('viewAccountModal')"><i
+                        class="fas fa-times"></i></button>
             </div>
-            <div class="modal-body view-modal-body" id="viewAccountModalBody">
-                <!-- Content populated dynamically -->
-            </div>
+            <div class="modal-body view-modal-body" id="viewAccountModalBody"></div>
             <div class="modal-footer view-modal-footer">
                 <button class="btn btn-secondary" onclick="closeModal('viewAccountModal')">Close</button>
             </div>
         </div>
     </div>
 
-    <!-- View Passenger Modal (Read-only) -->
+    <!-- VIEW PASSENGER MODAL -->
     <div class="modal-overlay" id="viewPassengerModal">
         <div class="modal view-modal">
             <div class="modal-header">
                 <div class="modal-header-left">
-                    <div class="header-icon view-icon">
-                        <i class="fas fa-id-card"></i>
-                    </div>
+                    <div class="header-icon view-icon"><i class="fas fa-id-card"></i></div>
                     <div>
                         <h3 class="modal-title">Passenger Details</h3>
                         <p class="modal-subtitle">View-only mode</p>
                     </div>
                 </div>
-                <button class="modal-close" onclick="closeModal('viewPassengerModal')">
-                    <i class="fas fa-times"></i>
-                </button>
+                <button class="modal-close" onclick="closeModal('viewPassengerModal')"><i
+                        class="fas fa-times"></i></button>
             </div>
-            <div class="modal-body view-modal-body" id="viewPassengerModalBody">
-                <!-- Content populated dynamically -->
-            </div>
+            <div class="modal-body view-modal-body" id="viewPassengerModalBody"></div>
             <div class="modal-footer view-modal-footer">
                 <button class="btn btn-secondary" onclick="closeModal('viewPassengerModal')">Close</button>
             </div>
         </div>
     </div>
 
-    <!-- Toast Notification -->
     <div class="toast" id="toast">
         <i class="fas fa-check-circle"></i>
         <span id="toastMessage">Operation successful</span>
     </div>
 
-    <!-- Add this BEFORE any other scripts -->
     <script src="js/logger.js"></script>
-    <!-- Bcrypt library -->
     <script src="https://cdn.jsdelivr.net/npm/bcryptjs@2.4.3/dist/bcrypt.min.js"></script>
-    <!-- Load Supabase FIRST -->
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-    <!-- Load auth.js AFTER libraries -->
     <script src="js/auth.js"></script>
-    <!-- Main Application Script -->
+
     <script>
+        // ===================================================================
+        // STATE
+        // ===================================================================
         let accountData = [];
         let passengerData = [];
         let currentUserRole = 'staff';
         let currentUserId = null;
         let currentTab = 'accounts';
 
-        // View-only roles - staff_finance and staff_loader can only view
+        // Roles that are view-only for staff accounts
         const VIEW_ONLY_ROLES = ['regular_staff', 'staff', 'staff_finance', 'staff_loader'];
-        // Helper function to get name abbreviation
+
+        // ===================================================================
+        // RFID FIELD HELPERS
+        // ===================================================================
+
+        /** Called when the RFID input gains focus — marks it as ready to scan */
+        function onRfidFieldFocus(el) {
+            el.classList.add('rfid-ready');
+            el.classList.remove('rfid-success', 'rfid-error');
+            const hint = document.getElementById('rfidHint');
+            const hintTxt = document.getElementById('rfidHintText');
+            const hintIcon = document.getElementById('rfidHintIcon');
+            if (hint) hint.classList.remove('error');
+            if (hintIcon) { hintIcon.className = 'fas fa-wifi'; }
+            if (hintTxt) hintTxt.textContent = 'Ready — tap the card on the scanner now';
+        }
+
+        /** Called when the RFID input loses focus */
+        function onRfidFieldBlur(el) {
+            el.classList.remove('rfid-ready');
+            const hint = document.getElementById('rfidHint');
+            const hintTxt = document.getElementById('rfidHintText');
+            const hintIcon = document.getElementById('rfidHintIcon');
+            if (hint) hint.classList.remove('error');
+            if (hintIcon) { hintIcon.className = 'fas fa-wifi'; }
+            if (hintTxt) hintTxt.textContent = 'Click the field, then tap your card on the scanner';
+        }
+
+        /**
+         * Core handler — receives a scanned code and fills the RFID field
+         * ONLY when:
+         *   1. The passenger modal is open, AND
+         *   2. The RFID field is focused, AND
+         *   3. The scanned code is NOT a QR code.
+         *
+         * QR codes produced by this system follow the pattern "BIYAHE-{ts}-{rand}".
+         * Additionally any string longer than 20 characters is rejected because
+         * real RFID UIDs (Mifare, NTAG, EM4100 …) are 8–14 hex chars at most.
+         */
+        function handleRfidScan(scannedCode) {
+            if (!scannedCode) return;
+
+            const rfidField = document.getElementById('passengerRfid');
+            const passengerModal = document.getElementById('passengerModal');
+
+            if (!rfidField || !passengerModal) return;
+
+            const modalOpen = passengerModal.classList.contains('active');
+            const rfidFocused = document.activeElement === rfidField;
+
+            if (!modalOpen || !rfidFocused) return;
+
+            // ── Validation: reject QR codes ──────────────────────────────
+            // 1. Pattern check — your QR codes start with "BIYAHE-"
+            const isQrCode = /^BIYAHE-/i.test(scannedCode);
+
+            // 2. Length check — RFID UIDs are 8–20 chars; QR payloads are longer
+            const tooLong = scannedCode.length > 20;
+
+            if (isQrCode || tooLong) {
+                // Flash the field red and show an error hint
+                rfidField.classList.remove('rfid-ready', 'rfid-success');
+                rfidField.classList.add('rfid-error');
+
+                const hint = document.getElementById('rfidHint');
+                const hintTxt = document.getElementById('rfidHintText');
+                const hintIcon = document.getElementById('rfidHintIcon');
+                if (hint) hint.classList.add('error');
+                if (hintTxt) hintTxt.textContent = '\u2717 QR code detected \u2014 please tap an RFID card instead';
+
+                // Reset back to ready state after 2.5 s
+                setTimeout(() => {
+                    rfidField.classList.remove('rfid-error');
+                    rfidField.classList.add('rfid-ready');
+                    if (hint) hint.classList.remove('error');
+                    if (hintIcon) { hintIcon.className = 'fas fa-wifi'; }
+                    if (hintTxt) hintTxt.textContent = 'Ready \u2014 tap the card on the scanner now';
+                }, 2500);
+
+                return; // Do NOT write any value
+            }
+            // ────────────────────────────────────────────────────────────
+
+            // Valid RFID — accept and flash green
+            rfidField.value = scannedCode;
+
+            rfidField.classList.remove('rfid-ready', 'rfid-error');
+            rfidField.classList.add('rfid-success');
+
+            const hint = document.getElementById('rfidHint');
+            const hintTxt = document.getElementById('rfidHintText');
+            const hintIcon = document.getElementById('rfidHintIcon');
+            if (hint) hint.classList.remove('error');
+            if (hintIcon) { hintIcon.className = 'fas fa-check-circle'; }
+            if (hintTxt) hintTxt.textContent = '\u2713 Card scanned: ' + scannedCode;
+
+            // Reset styles after 2 s
+            setTimeout(() => {
+                rfidField.classList.remove('rfid-success');
+                if (hint) hint.classList.remove('error');
+                if (hintIcon) { hintIcon.className = 'fas fa-wifi'; }
+                if (hintTxt) hintTxt.textContent = 'Click the field, then tap your card on the scanner';
+            }, 2000);
+        }
+
+        // ===================================================================
+        // HELPERS
+        // ===================================================================
+
         function getNameAbbreviation(fullName) {
             if (!fullName || typeof fullName !== 'string') return '??';
-
             const words = fullName.trim().split(/\s+/);
             if (words.length === 0) return '??';
-
-            if (words.length === 1) {
-                return words[0].substring(0, 2).toUpperCase();
-            }
-
-            return words.map(word => word.charAt(0).toUpperCase()).join('').substring(0, 2);
+            if (words.length === 1) return words[0].substring(0, 2).toUpperCase();
+            return words.map(w => w.charAt(0).toUpperCase()).join('').substring(0, 2);
         }
 
-        // Helper function to get passenger avatar HTML (image or abbreviation fallback)
         function getPassengerAvatarHtml(profile, fullName, size = 'small') {
             const nameAbbr = getNameAbbreviation(fullName);
+            const sizePx = size === 'large' ? '64px' : '32px';
+            const fontSize = size === 'large' ? '1.5rem' : '0.75rem';
 
             if (profile && profile.trim() !== '') {
-                // Return image avatar
-                const sizePx = size === 'large' ? '64px' : '32px';
-                const fontSize = size === 'large' ? '1.5rem' : '0.75rem';
-                return `<img src="${profile}" alt="${fullName}" class="user-avatar" style="width: ${sizePx}; height: ${sizePx}; font-size: ${fontSize}; object-fit: cover; border: 2px solid var(--border-color);" onerror="this.onerror=null; this.parentElement.innerHTML='<div class=\\'user-avatar\\' style=\\'width: ${sizePx}; height: ${sizePx}; font-size: ${fontSize};\\'>${nameAbbr}</div>'; this.remove();">`;
-            } else {
-                // Return abbreviation avatar
-                const sizePx = size === 'large' ? '64px' : '32px';
-                const fontSize = size === 'large' ? '1.5rem' : '0.75rem';
-                return `<div class="user-avatar" style="width: ${sizePx}; height: ${sizePx}; font-size: ${fontSize};">${nameAbbr}</div>`;
+                return `<img src="${profile}" alt="${fullName}" class="user-avatar"
+                    style="width:${sizePx};height:${sizePx};font-size:${fontSize};object-fit:cover;border:2px solid var(--border-color);"
+                    onerror="this.onerror=null;this.parentElement.innerHTML='<div class=\\'user-avatar\\' style=\\'width:${sizePx};height:${sizePx};font-size:${fontSize};\\' >${nameAbbr}</div>';this.remove();">`;
             }
+            return `<div class="user-avatar" style="width:${sizePx};height:${sizePx};font-size:${fontSize};">${nameAbbr}</div>`;
         }
 
-        // Wait for auth.js to initialize
+        // ===================================================================
+        // AUTH WAIT
+        // ===================================================================
+
         async function waitForAuth(maxAttempts = 100) {
             return new Promise((resolve, reject) => {
                 let attempts = 0;
-                const checkInterval = setInterval(() => {
+                const id = setInterval(() => {
                     attempts++;
+                    const hasSupabase = typeof window.supabaseClient !== 'undefined' &&
+                        window.supabaseClient !== null &&
+                        typeof window.supabaseClient.from === 'function';
+                    const hasAuth = typeof window.Auth !== 'undefined' &&
+                        window.Auth !== null &&
+                        typeof window.Auth.getCurrentUser === 'function';
 
-                    if (typeof window.supabase !== 'undefined' && window.supabase !== null) {
-                        clearInterval(checkInterval);
-                        console.log('Auth.js initialized successfully');
-                        resolve(window.supabase);
-                    } else if (attempts >= maxAttempts) {
-                        clearInterval(checkInterval);
-                        reject(new Error('auth.js failed to load. Please ensure auth.js is in the same directory and contains valid Supabase configuration.'));
-                    }
+                    if (hasSupabase && hasAuth) { clearInterval(id); resolve(); }
+                    else if (attempts >= maxAttempts) { clearInterval(id); reject(new Error('auth.js failed to load.')); }
                 }, 50);
             });
         }
 
+        // ===================================================================
+        // INIT
+        // ===================================================================
+
         document.addEventListener('DOMContentLoaded', async function () {
-            const accountTbody = document.getElementById('accountTableBody');
-            accountTbody.innerHTML = `
-                <tr>
-                    <td colspan="10">
-                        <div class="loading-state">
-                            <div class="loading-spinner"></div>
-                            <p>Initializing...</p>
-                        </div>
-                    </td>
-                </tr>
-            `;
+            document.getElementById('accountTableBody').innerHTML = `
+                <tr><td colspan="10">
+                    <div class="loading-state">
+                        <div class="loading-spinner"></div><p>Initializing...</p>
+                    </div>
+                </td></tr>`;
 
             try {
                 await waitForAuth();
-
                 const client = window.supabaseClient;
-
-                if (!client || typeof client.from !== 'function') {
-                    throw new Error('Supabase client not properly initialized. Check auth.js exports.');
-                }
-
-                console.log('Supabase client ready:', client);
+                if (!client || typeof client.from !== 'function') throw new Error('Supabase client not ready.');
 
                 checkUserRole();
                 await loadAccounts(client);
                 await loadPassengers(client);
 
-                document.getElementById('accountSearch').addEventListener('input', function (e) {
+                document.getElementById('accountSearch').addEventListener('input', e => {
                     if (currentTab === 'accounts') renderAccountTable(e.target.value.toLowerCase());
                 });
-
-                document.getElementById('passengerSearch').addEventListener('input', function (e) {
+                document.getElementById('passengerSearch').addEventListener('input', e => {
                     if (currentTab === 'passengers') renderPassengerTable(e.target.value.toLowerCase());
                 });
-            } catch (error) {
-                console.error('Initialization error:', error);
+            } catch (err) {
+                console.error('Initialization error:', err);
             }
         });
 
-        async function waitForAuth(maxAttempts = 100) {
-            return new Promise((resolve, reject) => {
-                let attempts = 0;
-                const checkInterval = setInterval(() => {
-                    attempts++;
-
-                    const hasSupabase = typeof window.supabaseClient !== 'undefined' &&
-                        window.supabaseClient !== null &&
-                        typeof window.supabaseClient.from === 'function';
-
-                    const hasAuth = typeof window.Auth !== 'undefined' &&
-                        window.Auth !== null &&
-                        typeof window.Auth.getCurrentUser === 'function';
-
-                    if (hasSupabase && hasAuth) {
-                        clearInterval(checkInterval);
-                        console.log('Auth.js initialized successfully');
-                        resolve();
-                    } else if (attempts >= maxAttempts) {
-                        clearInterval(checkInterval);
-                        reject(new Error('auth.js failed to load.'));
-                    }
-                }, 50);
-            });
-        }
+        // ===================================================================
+        // TABS
+        // ===================================================================
 
         function switchTab(tab) {
-            const allowedTabs = getAllowedAccountTabs();
-
-            // Prevent switching to a tab that's not allowed
-            if (!allowedTabs.includes(tab)) {
-                console.warn(`Tab '${tab}' not allowed for role ${currentUserRole}`);
-                return;
-            }
-
+            const allowed = getAllowedAccountTabs();
+            if (!allowed.includes(tab)) return;
             currentTab = tab;
 
-            document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
-
+            document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
             if (tab === 'accounts') {
                 document.getElementById('tab-accounts').classList.add('active');
                 document.getElementById('tab-accounts-passenger').classList.add('active');
@@ -1575,349 +1655,210 @@
                 document.getElementById('tab-passengers-passenger').classList.add('active');
             }
 
-            document.querySelectorAll('.tab-content').forEach(content => content.classList.remove('active'));
+            document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
             document.getElementById(`${tab}-tab`).classList.add('active');
 
-            updateButtonVisibility();
+            updateButtonVisibility(); // This will now hide/show based on tab
 
-            if (tab === 'accounts') {
-                renderAccountTable(document.getElementById('accountSearch').value.toLowerCase());
-            } else {
-                renderPassengerTable(document.getElementById('passengerSearch').value.toLowerCase());
-            }
+            if (tab === 'accounts') renderAccountTable(document.getElementById('accountSearch').value.toLowerCase());
+            else renderPassengerTable(document.getElementById('passengerSearch').value.toLowerCase());
         }
 
         function updateButtonVisibility() {
-            const addAccountBtn = document.getElementById('addAccountBtnHeader');
-            const isViewOnly = VIEW_ONLY_ROLES.includes(currentUserRole);
+            const btn = document.getElementById('addAccountBtnHeader');
+            const isVO = VIEW_ONLY_ROLES.includes(currentUserRole);
+            const allowed = getAllowedAccountTabs();
 
-            // Get allowed tabs for this role
-            const allowedTabs = getAllowedAccountTabs();
-
-            // Hide Add Account button for view-only roles, or if staff accounts tab not allowed
-            if (isViewOnly || !allowedTabs.includes('accounts')) {
-                addAccountBtn.classList.add('hidden');
+            // Hide button in passengers tab OR if view-only/no permissions
+            if (currentTab === 'passengers' || isVO || !allowed.includes('accounts')) {
+                btn.classList.add('hidden');
             } else {
-                addAccountBtn.classList.remove('hidden');
+                btn.classList.remove('hidden');
             }
         }
 
-        // Get which account tabs the current role can see
         function getAllowedAccountTabs() {
-            // Check if RolePermissions exists and has accountTabPermissions
             if (typeof RolePermissions !== 'undefined' && RolePermissions.accountTabPermissions) {
                 return RolePermissions.accountTabPermissions[currentUserRole] || ['accounts', 'passengers'];
             }
-
-            // Fallback: loader only sees passengers
-            if (currentUserRole === 'staff_loader') {
-                return ['passengers'];
-            }
-
+            if (currentUserRole === 'staff_loader') return ['passengers'];
             return ['accounts', 'passengers'];
         }
 
-        // Hide tabs that the user doesn't have permission to see
         function updateTabVisibility() {
-            const allowedTabs = getAllowedAccountTabs();
+            const allowed = getAllowedAccountTabs();
 
-            const tabAccounts = document.getElementById('tab-accounts');
-            const tabPassengers = document.getElementById('tab-passengers');
-            const tabAccountsPassenger = document.getElementById('tab-accounts-passenger');
-            const tabPassengersPassenger = document.getElementById('tab-passengers-passenger');
+            ['tab-accounts', 'tab-accounts-passenger'].forEach(id => {
+                const el = document.getElementById(id);
+                if (el) el.style.display = allowed.includes('accounts') ? 'inline-flex' : 'none';
+            });
+            ['tab-passengers', 'tab-passengers-passenger'].forEach(id => {
+                const el = document.getElementById(id);
+                if (el) el.style.display = allowed.includes('passengers') ? 'inline-flex' : 'none';
+            });
 
-            // Hide Staff Accounts tab if not allowed
-            if (!allowedTabs.includes('accounts')) {
-                if (tabAccounts) tabAccounts.style.display = 'none';
-                if (tabAccountsPassenger) tabAccountsPassenger.style.display = 'none';
-            } else {
-                if (tabAccounts) tabAccounts.style.display = 'inline-flex';
-                if (tabAccountsPassenger) tabAccountsPassenger.style.display = 'inline-flex';
-            }
-
-            // Hide Passengers tab if not allowed (though loader should always see this)
-            if (!allowedTabs.includes('passengers')) {
-                if (tabPassengers) tabPassengers.style.display = 'none';
-                if (tabPassengersPassenger) tabPassengersPassenger.style.display = 'none';
-            } else {
-                if (tabPassengers) tabPassengers.style.display = 'inline-flex';
-                if (tabPassengersPassenger) tabPassengersPassenger.style.display = 'inline-flex';
-            }
-
-            // Auto-switch to passengers tab if currently on accounts but not allowed
-            if (currentTab === 'accounts' && !allowedTabs.includes('accounts')) {
-                switchTab('passengers');
-            }
+            if (currentTab === 'accounts' && !allowed.includes('accounts')) switchTab('passengers');
         }
+
+        // ===================================================================
+        // DATA LOADERS
+        // ===================================================================
 
         async function loadAccounts(supabaseClient) {
             const tbody = document.getElementById('accountTableBody');
-            tbody.innerHTML = `
-                <tr>
-                    <td colspan="10">
-                        <div class="loading-state">
-                            <div class="loading-spinner"></div>
-                            <p>Loading accounts...</p>
-                        </div>
-                    </td>
-                </tr>
-            `;
+            tbody.innerHTML = `<tr><td colspan="10"><div class="loading-state"><div class="loading-spinner"></div><p>Loading accounts...</p></div></td></tr>`;
 
             try {
-                const { data, error } = await supabaseClient
-                    .from('Staff_Account')
-                    .select('*')
-                    .order('id', { ascending: true });
-
+                const { data, error } = await supabaseClient.from('Staff_Account').select('*').order('id', { ascending: true });
                 if (error) throw error;
-
                 if (!data || data.length === 0) {
-                    tbody.innerHTML = `
-                        <tr>
-                            <td colspan="10" style="text-align: center; padding: 3rem;">
-                                <div class="empty-state">
-                                    <i class="fas fa-inbox"></i>
-                                    <h4>No accounts found</h4>
-                                </div>
-                            </td>
-                        </tr>
-                    `;
+                    tbody.innerHTML = `<tr><td colspan="10" style="text-align:center;padding:3rem;"><div class="empty-state"><i class="fas fa-inbox"></i><h4>No accounts found</h4></div></td></tr>`;
                     return;
                 }
 
-                accountData = data.map(account => {
-                    let rawStatus = account.status;
-                    let normalizedStatus = 'active';
-
-                    if (rawStatus) {
-                        const statusLower = String(rawStatus).toLowerCase().trim();
-                        if (statusLower === 'inactive' || statusLower === '0' || statusLower === 'false') {
-                            normalizedStatus = 'inactive';
-                        }
-                    }
-
+                accountData = data.map(a => {
+                    const statusLower = String(a.status || '').toLowerCase().trim();
+                    const normalizedStatus = (statusLower === 'inactive' || statusLower === '0' || statusLower === 'false') ? 'inactive' : 'active';
                     return {
-                        id: account.id,
-                        fullName: account.fullname || account.full_name || 'Unknown',
-                        email: account.email,
-                        password: account.password || '••••••••',
-                        role: account.role || 'staff',
+                        id: a.id,
+                        fullName: a.fullname || a.full_name || 'Unknown',
+                        email: a.email,
+                        password: a.password || '••••••••',
+                        role: a.role || 'staff',
                         status: normalizedStatus,
-                        rawStatus: rawStatus,
-                        createdAt: account.created_at,
-                        updatedAt: account.updated_at
+                        rawStatus: a.status,
+                        createdAt: a.created_at,
+                        updatedAt: a.updated_at
                     };
                 });
 
                 renderAccountTable();
-            } catch (error) {
-                console.error('Error loading accounts:', error);
+            } catch (err) {
+                console.error('Error loading accounts:', err);
                 showToast('Failed to load accounts', 'error');
             }
         }
 
         async function loadPassengers(supabaseClient) {
             const tbody = document.getElementById('passengerTableBody');
-            tbody.innerHTML = `
-                <tr>
-                    <td colspan="9">
-                        <div class="loading-state">
-                            <div class="loading-spinner"></div>
-                            <p>Loading passengers...</p>
-                        </div>
-                    </td>
-                </tr>
-            `;
+            tbody.innerHTML = `<tr><td colspan="9"><div class="loading-state"><div class="loading-spinner"></div><p>Loading passengers...</p></div></td></tr>`;
 
             try {
                 const { data, error } = await supabaseClient
                     .from('registration')
                     .select('id,fullname,phone,email,balance,profile,RFID,QR_code,updated_at,status')
-                    .order('id', { ascending: true });;
-
+                    .order('id', { ascending: true });
                 if (error) throw error;
-
                 if (!data || data.length === 0) {
-                    tbody.innerHTML = `
-                        <tr>
-                            <td colspan="9" style="text-align: center; padding: 3rem;">
-                                <div class="empty-state">
-                                    <i class="fas fa-inbox"></i>
-                                    <h4>No passengers found</h4>
-                                </div>
-                            </td>
-                        </tr>
-                    `;
+                    tbody.innerHTML = `<tr><td colspan="9" style="text-align:center;padding:3rem;"><div class="empty-state"><i class="fas fa-inbox"></i><h4>No passengers found</h4></div></td></tr>`;
                     return;
                 }
 
-                passengerData = data.map(passenger => {
-                    let rawStatus = passenger.status;
+                passengerData = data.map(p => {
+                    const statusLower = String(p.status || '').toLowerCase().trim();
                     let normalizedStatus = 'active';
-
-                    if (rawStatus !== null && rawStatus !== undefined) {
-                        const statusLower = String(rawStatus).toLowerCase().trim();
-                        if (statusLower === 'inactive') normalizedStatus = 'inactive';
-                        else if (statusLower === 'suspended') normalizedStatus = 'suspended';
-                    }
-
+                    if (statusLower === 'inactive') normalizedStatus = 'inactive';
+                    if (statusLower === 'suspended') normalizedStatus = 'suspended';
                     return {
-                        id: passenger.id,
-                        fullName: passenger.fullname || 'Unknown',
-                        email: passenger.email || 'N/A',
-                        phone: passenger.phone || 'N/A',
-                        rfidNumber: passenger.RFID || 'N/A',
-                        qrCode: passenger.QR_code || 'N/A',
-                        balance: parseFloat(passenger.balance) || 0,
-                        profile: passenger.profile || null,
+                        id: p.id,
+                        fullName: p.fullname || 'Unknown',
+                        email: p.email || 'N/A',
+                        phone: p.phone || 'N/A',
+                        rfidNumber: p.RFID || 'N/A',
+                        qrCode: p.QR_code || 'N/A',
+                        balance: parseFloat(p.balance) || 0,
+                        profile: p.profile || null,
                         status: normalizedStatus,
-                        rawStatus: rawStatus,
-                        updatedAt: passenger.updated_at
-                        // removed createdAt - column doesn't exist in registration table
+                        rawStatus: p.status,
+                        updatedAt: p.updated_at
                     };
                 });
 
                 renderPassengerTable();
-            } catch (error) {
-                console.error('Error loading passengers:', error);
+            } catch (err) {
+                console.error('Error loading passengers:', err);
                 showToast('Failed to load passengers', 'error');
             }
         }
 
+        // ===================================================================
+        // ROLE CHECK
+        // ===================================================================
+
         function checkUserRole() {
             const banner = document.getElementById('accountsReadOnlyBanner');
-
-            const currentUser = (typeof Auth !== 'undefined' && Auth.getCurrentUser)
-                ? Auth.getCurrentUser()
-                : null;
+            const currentUser = (typeof Auth !== 'undefined' && Auth.getCurrentUser) ? Auth.getCurrentUser() : null;
 
             if (currentUser) {
-                let rawRole = currentUser.role;
-                currentUserRole = rawRole;
+                currentUserRole = currentUser.role;
                 currentUserId = currentUser.id;
             }
 
             const isViewOnly = VIEW_ONLY_ROLES.includes(currentUserRole);
-            const allowedTabs = getAllowedAccountTabs();
+            if (isViewOnly) banner.classList.remove('hidden');
+            else banner.classList.add('hidden');
 
-            // Show banner for view-only roles
-            if (isViewOnly) {
-                banner.classList.remove('hidden');
-
-
-            } else {
-                banner.classList.add('hidden');
-            }
-
-            // Update UI based on permissions
             updateTabVisibility();
             updateButtonVisibility();
         }
 
+        // ===================================================================
+        // RENDER TABLES
+        // ===================================================================
+
         function renderAccountTable(searchTerm = '') {
             const tbody = document.getElementById('accountTableBody');
-            const thead = document.querySelector('#accounts-tab .data-table thead tr');
-
             const isViewOnly = VIEW_ONLY_ROLES.includes(currentUserRole);
-
             tbody.innerHTML = '';
 
-            const filtered = accountData.filter(account =>
-                account.fullName.toLowerCase().includes(searchTerm) ||
-                account.email.toLowerCase().includes(searchTerm) ||
-                account.id.toString().toLowerCase().includes(searchTerm)
+            const filtered = accountData.filter(a =>
+                a.fullName.toLowerCase().includes(searchTerm) ||
+                a.email.toLowerCase().includes(searchTerm) ||
+                a.id.toString().includes(searchTerm)
             );
 
             if (filtered.length === 0) {
-                tbody.innerHTML = `
-                    <tr>
-                        <td colspan="10" style="text-align: center; padding: 3rem;">
-                            <div class="empty-state">
-                                <i class="fas fa-users"></i>
-                                <h4>No accounts found</h4>
-                            </div>
-                        </td>
-                    </tr>
-                `;
+                tbody.innerHTML = `<tr><td colspan="10" style="text-align:center;padding:3rem;"><div class="empty-state"><i class="fas fa-users"></i><h4>No accounts found</h4></div></td></tr>`;
                 return;
             }
 
-            filtered.forEach((account, index) => {
-                const tr = document.createElement('tr');
-                tr.style.animationDelay = `${index * 0.05}s`;
+            const roleLabels = {
+                admin: 'Admin', regular_staff: 'Regular Staff', accounting_staff: 'Accounting Staff',
+                staff_operator: 'Operator', staff_finance: 'Finance', staff_loader: 'Loader',
+                driver: 'Driver', staff: 'Staff'
+            };
 
+            filtered.forEach((account, i) => {
+                const tr = document.createElement('tr');
+                tr.style.animationDelay = `${i * 0.05}s`;
                 const isCurrentUser = currentUserId && account.id.toString() === currentUserId.toString();
-                if (isCurrentUser) {
-                    tr.classList.add('current-user');
-                }
+                if (isCurrentUser) tr.classList.add('current-user');
 
                 let roleIcon = 'fa-user';
                 if (account.role === 'admin') roleIcon = 'fa-shield-alt';
-                else if (account.role === 'accounting_staff') roleIcon = 'fa-calculator';
+                if (account.role === 'accounting_staff') roleIcon = 'fa-calculator';
 
                 const statusConfig = getStatusConfig(account.status);
                 const nameAbbr = getNameAbbreviation(account.fullName);
-
-                // Build action buttons - VIEW button for read-only, EDIT for full access
-                let actionButtons = '';
-
-                if (isViewOnly) {
-                    // View-only roles get VIEW button (eye icon)
-                    actionButtons = `
-                        <button class="btn-icon view" onclick="viewAccountDetails('${account.id}')" title="View Details">
-                          <i class="fas fa-eye"></i>
-                        </button>
-                    `;
-                } else {
-                    // Full access roles get edit button
-                    if (isCurrentUser) {
-                        actionButtons = `
-                            <button class="btn-icon edit disabled" title="Cannot edit your own account" disabled>
-                                <i class="fas fa-edit"></i>
-                            </button>
-                        `;
-                    } else {
-                        actionButtons = `
-                            <button class="btn-icon edit" onclick="openEditModal('${account.id}')" title="Edit">
-                                <i class="fas fa-edit"></i>
-                            </button>
-                        `;
-                    }
-                }
-
-                const roleLabels = {
-                    'admin': 'Admin',
-                    'regular_staff': 'Regular Staff',
-                    'accounting_staff': 'Accounting Staff',
-                    'staff_operator': 'Operator',
-                    'staff_finance': 'Finance',
-                    'staff_loader': 'Loader',
-                    'driver': 'Driver',
-                    'staff': 'Staff'
-                };
                 const displayRole = roleLabels[account.role] || account.role;
-                const roleBadgeHtml = `<span class="role-badge ${account.role}"><i class="fas ${roleIcon}"></i> ${displayRole}</span>`;
-                const statusBadgeHtml = `<span class="status-badge ${statusConfig.class}"><i class="fas ${statusConfig.icon}"></i> ${statusConfig.label}</span>`;
+
+                let actionButtons = '';
+                if (isViewOnly) {
+                    actionButtons = `<button class="btn-icon view" onclick="viewAccountDetails('${account.id}')" title="View Details"><i class="fas fa-eye"></i></button>`;
+                } else if (isCurrentUser) {
+                    actionButtons = `<button class="btn-icon edit disabled" title="Cannot edit your own account" disabled><i class="fas fa-edit"></i></button>`;
+                } else {
+                    actionButtons = `<button class="btn-icon edit" onclick="openEditModal('${account.id}')" title="Edit"><i class="fas fa-edit"></i></button>`;
+                }
 
                 tr.innerHTML = `
                     <td><span class="user-id">#${account.id}</span></td>
-                    <td>
-                        <div class="user-cell">
-                            <div class="user-avatar">${nameAbbr}</div>
-                        </div>
-                    </td>
-                    <td>
-                        <div class="user-info">
-                            <span class="user-name">
-                                ${account.fullName}
-                                ${isCurrentUser ? '<span class="current-user-badge"><i class="fas fa-user"></i> You</span>' : ''}
-                            </span>
-                        </div>
-                    </td>
+                    <td><div class="user-cell"><div class="user-avatar">${nameAbbr}</div></div></td>
+                    <td><div class="user-info"><span class="user-name">${account.fullName}${isCurrentUser ? '<span class="current-user-badge"><i class="fas fa-user"></i> You</span>' : ''}</span></div></td>
                     <td><div class="email-cell"><i class="fas fa-envelope"></i><span>${account.email}</span></div></td>
-                    <td><span style="font-family: monospace; color: var(--text-muted);">••••••••</span></td>
-                    <td>${roleBadgeHtml}</td>
-                    <td>${statusBadgeHtml}</td>
+                    <td><span style="font-family:monospace;color:var(--text-muted);">••••••••</span></td>
+                    <td><span class="role-badge ${account.role}"><i class="fas ${roleIcon}"></i> ${displayRole}</span></td>
+                    <td><span class="status-badge ${statusConfig.class}"><i class="fas ${statusConfig.icon}"></i> ${statusConfig.label}</span></td>
                     <td><div class="date-cell"><i class="fas fa-calendar"></i><span>${formatDate(account.createdAt)}</span></div></td>
                     <td><div class="date-cell"><i class="fas fa-clock"></i><span>${formatDate(account.updatedAt)}</span></div></td>
                     <td><div class="actions-cell">${actionButtons}</div></td>
@@ -1928,86 +1869,47 @@
 
         function renderPassengerTable(searchTerm = '') {
             const tbody = document.getElementById('passengerTableBody');
-            const thead = document.querySelector('#passengers-tab .data-table thead tr');
-
             const isViewOnly = VIEW_ONLY_ROLES.includes(currentUserRole);
-
             tbody.innerHTML = '';
 
-            const filtered = passengerData.filter(passenger =>
-                passenger.fullName.toLowerCase().includes(searchTerm) ||
-                passenger.email.toLowerCase().includes(searchTerm) ||
-                passenger.rfidNumber.toLowerCase().includes(searchTerm) ||
-                passenger.id.toString().toLowerCase().includes(searchTerm)
+            const filtered = passengerData.filter(p =>
+                p.fullName.toLowerCase().includes(searchTerm) ||
+                p.email.toLowerCase().includes(searchTerm) ||
+                p.rfidNumber.toLowerCase().includes(searchTerm) ||
+                p.id.toString().includes(searchTerm)
             );
 
             if (filtered.length === 0) {
-                tbody.innerHTML = `
-                    <tr>
-                        <td colspan="9" style="text-align: center; padding: 3rem;">
-                            <div class="empty-state">
-                                <i class="fas fa-id-card"></i>
-                                <h4>No passengers found</h4>
-                            </div>
-                        </td>
-                    </tr>
-                `;
+                tbody.innerHTML = `<tr><td colspan="9" style="text-align:center;padding:3rem;"><div class="empty-state"><i class="fas fa-id-card"></i><h4>No passengers found</h4></div></td></tr>`;
                 return;
             }
 
-            filtered.forEach((passenger, index) => {
+            filtered.forEach((passenger, i) => {
                 const tr = document.createElement('tr');
-                tr.style.animationDelay = `${index * 0.05}s`;
-
+                tr.style.animationDelay = `${i * 0.05}s`;
                 const statusConfig = getStatusConfig(passenger.status);
                 const balanceLow = passenger.balance < 50;
 
-                // Action buttons - VIEW for read-only (except loader who can edit passengers), EDIT for full access
                 let actionButtons = '';
-                // Loader role can edit passengers since it's their only accessible table
                 if (isViewOnly && currentUserRole !== 'staff_loader') {
-                    actionButtons = `
-                        <button class="btn-icon view" onclick="viewPassengerDetails('${passenger.id}')" title="View Details">
-                            <i class="fas fa-eye"></i>
-                        </button>
-                    `;
+                    actionButtons = `<button class="btn-icon view" onclick="viewPassengerDetails('${passenger.id}')" title="View Details"><i class="fas fa-eye"></i></button>`;
                 } else {
-                    actionButtons = `
-                        <button class="btn-icon edit" onclick="openEditPassengerModal('${passenger.id}')" title="Edit">
-                            <i class="fas fa-edit"></i>
-                        </button>
-                    `;
+                    actionButtons = `<button class="btn-icon edit" onclick="openEditPassengerModal('${passenger.id}')" title="Edit"><i class="fas fa-edit"></i></button>`;
                 }
 
                 tr.innerHTML = `
                     <td><span class="user-id">#${passenger.id}</span></td>
-                    <td>
-                        <div class="user-cell">
-                            ${getPassengerAvatarHtml(passenger.profile, passenger.fullName, 'small')}
-                        </div>
-                    </td>
+                    <td><div class="user-cell">${getPassengerAvatarHtml(passenger.profile, passenger.fullName, 'small')}</div></td>
                     <td><span class="user-name">${passenger.fullName}</span></td>
                     <td><div class="email-cell"><i class="fas fa-envelope"></i><span>${passenger.email}</span></div></td>
-                    <td>
-                        <div class="rfid-cell">
-                            <i class="fas fa-wifi"></i>
-                            <span>${passenger.rfidNumber}</span>
-                        </div>
-                    </td>
+                    <td><div class="rfid-cell"><i class="fas fa-wifi"></i><span>${passenger.rfidNumber}</span></div></td>
                     <td>
                         <div class="qr-cell">
-                            <div class="qr-code-mini" title="${passenger.qrCode}">
-                                <i class="fas fa-qrcode"></i>
-                            </div>
-                            <span style="font-size: 0.75rem; color: var(--text-muted);">${passenger.qrCode.substring(0, 8)}...</span>
+                            <div class="qr-code-mini" title="${passenger.qrCode}"><i class="fas fa-qrcode"></i></div>
+                            <span style="font-size:0.75rem;color:var(--text-muted);">${passenger.qrCode.substring(0, 8)}...</span>
                         </div>
                     </td>
-                    <td>
-                        <div class="balance-cell ${balanceLow ? 'low' : ''}">
-                            <i class="fas fa-peso-sign"></i>
-                            <span>${passenger.balance.toFixed(2)}</span>
-                        </div>
-                    </td>
+                    <td><div class="balance-cell ${balanceLow ? 'low' : ''}"><i class="fas fa-peso-sign"></i><span>${passenger.balance.toFixed(2)}</span></div></td>
                     <td><span class="status-badge ${statusConfig.class}"><i class="fas ${statusConfig.icon}"></i> ${statusConfig.label}</span></td>
                     <td><div class="actions-cell">${actionButtons}</div></td>
                 `;
@@ -2015,55 +1917,50 @@
             });
         }
 
-        function getStatusConfig(status) {
-            const statusLower = String(status).toLowerCase().trim();
+        // ===================================================================
+        // STATUS / DATE HELPERS
+        // ===================================================================
 
-            const configs = {
+        function getStatusConfig(status) {
+            const s = String(status).toLowerCase().trim();
+            return {
                 active: { class: 'active', icon: 'fa-check-circle', label: 'Active' },
                 inactive: { class: 'inactive', icon: 'fa-times-circle', label: 'Inactive' },
                 suspended: { class: 'suspended', icon: 'fa-ban', label: 'Suspended' },
                 pending: { class: 'pending', icon: 'fa-clock', label: 'Pending' }
-            };
-
-            return configs[statusLower] || configs.active;
+            }[s] || { class: 'active', icon: 'fa-check-circle', label: 'Active' };
         }
 
         function formatDate(dateString) {
             if (!dateString) return 'N/A';
-            const date = new Date(dateString);
-            return date.toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' });
+            return new Date(dateString).toLocaleDateString('en-US', {
+                year: 'numeric', month: 'short', day: 'numeric',
+                hour: '2-digit', minute: '2-digit'
+            });
         }
 
-        // View Account Details (Read-only modal)
+        // ===================================================================
+        // VIEW MODALS
+        // ===================================================================
+
         function viewAccountDetails(id) {
             const account = accountData.find(a => a.id == id);
-            if (!account) {
-                showToast('Account not found', 'error');
-                return;
-            }
+            if (!account) { showToast('Account not found', 'error'); return; }
 
             const nameAbbr = getNameAbbreviation(account.fullName);
             const statusClass = account.status || 'inactive';
-
             const roleLabels = {
-                'admin': 'Admin',
-                'regular_staff': 'Regular Staff',
-                'accounting_staff': 'Accounting Staff',
-                'staff_operator': 'Operator',
-                'staff_finance': 'Finance',
-                'staff_loader': 'Loader',
-                'driver': 'Driver',
-                'staff': 'Staff'
+                admin: 'Admin', regular_staff: 'Regular Staff', accounting_staff: 'Accounting Staff',
+                staff_operator: 'Operator', staff_finance: 'Finance', staff_loader: 'Loader',
+                driver: 'Driver', staff: 'Staff'
             };
             const displayRole = roleLabels[account.role] || account.role;
-
             let roleIcon = 'fa-user';
             if (account.role === 'admin') roleIcon = 'fa-shield-alt';
-            else if (account.role === 'accounting_staff') roleIcon = 'fa-calculator';
-            else if (account.role === 'staff_finance') roleIcon = 'fa-coins';
+            if (account.role === 'accounting_staff') roleIcon = 'fa-calculator';
+            if (account.role === 'staff_finance') roleIcon = 'fa-coins';
 
-            const modalBody = document.getElementById('viewAccountModalBody');
-            modalBody.innerHTML = `
+            document.getElementById('viewAccountModalBody').innerHTML = `
                 <div class="view-user-header">
                     <div class="view-user-avatar-large">${nameAbbr}</div>
                     <div class="view-user-title">
@@ -2074,90 +1971,28 @@
                         </span>
                     </div>
                 </div>
-
                 <div class="view-details-grid">
-                    <div class="view-detail-card">
-                        <div class="view-detail-icon user">
-                            <i class="fas fa-id-badge"></i>
-                        </div>
-                        <div class="view-detail-content">
-                            <label>Account ID</label>
-                            <span>#${account.id}</span>
-                        </div>
-                    </div>
-
-                    <div class="view-detail-card">
-                        <div class="view-detail-icon email">
-                            <i class="fas fa-envelope"></i>
-                        </div>
-                        <div class="view-detail-content">
-                            <label>Email Address</label>
-                            <span>${account.email}</span>
-                        </div>
-                    </div>
-
-                    <div class="view-detail-card">
-                        <div class="view-detail-icon role">
-                            <i class="fas ${roleIcon}"></i>
-                        </div>
-                        <div class="view-detail-content">
-                            <label>Role</label>
-                            <span>${displayRole}</span>
-                        </div>
-                    </div>
-
-                    <div class="view-detail-card">
-                        <div class="view-detail-icon status">
-                            <i class="fas fa-power-off"></i>
-                        </div>
-                        <div class="view-detail-content">
-                            <label>Account Status</label>
-                            <span>${account.status === 'active' ? 'Active' : 'Inactive'}</span>
-                        </div>
-                    </div>
-
-                    <div class="view-detail-card">
-                        <div class="view-detail-icon date">
-                            <i class="fas fa-calendar-plus"></i>
-                        </div>
-                        <div class="view-detail-content">
-                            <label>Created At</label>
-                            <span>${formatDate(account.createdAt)}</span>
-                        </div>
-                    </div>
-
-                    <div class="view-detail-card">
-                        <div class="view-detail-icon date">
-                            <i class="fas fa-clock"></i>
-                        </div>
-                        <div class="view-detail-content">
-                            <label>Last Updated</label>
-                            <span>${formatDate(account.updatedAt)}</span>
-                        </div>
-                    </div>
-                </div>
-            `;
-
+                    <div class="view-detail-card"><div class="view-detail-icon user"><i class="fas fa-id-badge"></i></div><div class="view-detail-content"><label>Account ID</label><span>#${account.id}</span></div></div>
+                    <div class="view-detail-card"><div class="view-detail-icon email"><i class="fas fa-envelope"></i></div><div class="view-detail-content"><label>Email Address</label><span>${account.email}</span></div></div>
+                    <div class="view-detail-card"><div class="view-detail-icon role"><i class="fas ${roleIcon}"></i></div><div class="view-detail-content"><label>Role</label><span>${displayRole}</span></div></div>
+                    <div class="view-detail-card"><div class="view-detail-icon status"><i class="fas fa-power-off"></i></div><div class="view-detail-content"><label>Account Status</label><span>${account.status === 'active' ? 'Active' : 'Inactive'}</span></div></div>
+                    <div class="view-detail-card"><div class="view-detail-icon date"><i class="fas fa-calendar-plus"></i></div><div class="view-detail-content"><label>Created At</label><span>${formatDate(account.createdAt)}</span></div></div>
+                    <div class="view-detail-card"><div class="view-detail-icon date"><i class="fas fa-clock"></i></div><div class="view-detail-content"><label>Last Updated</label><span>${formatDate(account.updatedAt)}</span></div></div>
+                </div>`;
             document.getElementById('viewAccountModal').classList.add('active');
         }
 
-        // View Passenger Details (Read-only modal)
         function viewPassengerDetails(id) {
             const passenger = passengerData.find(p => p.id == id);
-            if (!passenger) {
-                showToast('Passenger not found', 'error');
-                return;
-            }
+            if (!passenger) { showToast('Passenger not found', 'error'); return; }
 
             const statusClass = passenger.status || 'inactive';
             const balanceLow = passenger.balance < 50;
-
-            const modalBody = document.getElementById('viewPassengerModalBody');
             const avatarHtml = getPassengerAvatarHtml(passenger.profile, passenger.fullName, 'large')
                 .replace(/class="user-avatar"/g, 'class="view-user-avatar-large"')
-                .replace('width: 64px; height: 64px;', 'width: 64px !important; height: 64px !important; border-radius: 50% !important;');
+                .replace('width: 64px; height: 64px;', 'width:64px!important;height:64px!important;border-radius:50%!important;');
 
-            modalBody.innerHTML = `
+            document.getElementById('viewPassengerModalBody').innerHTML = `
                 <div class="view-user-header">
                     ${avatarHtml}
                     <div class="view-user-title">
@@ -2168,96 +2003,24 @@
                         </span>
                     </div>
                 </div>
-
                 <div class="view-details-grid">
-                    <div class="view-detail-card">
-                        <div class="view-detail-icon user">
-                            <i class="fas fa-id-badge"></i>
-                        </div>
-                        <div class="view-detail-content">
-                            <label>Passenger ID</label>
-                            <span>#${passenger.id}</span>
-                        </div>
-                    </div>
-
-                    <div class="view-detail-card">
-                        <div class="view-detail-icon email">
-                            <i class="fas fa-envelope"></i>
-                        </div>
-                        <div class="view-detail-content">
-                            <label>Email Address</label>
-                            <span>${passenger.email}</span>
-                        </div>
-                    </div>
-
-                    <div class="view-detail-card full-width">
-                        <div class="view-detail-icon rfid">
-                            <i class="fas fa-wifi"></i>
-                        </div>
-                        <div class="view-detail-content">
-                            <label>RFID Number</label>
-                            <span style="font-family: monospace;">${passenger.rfidNumber}</span>
-                        </div>
-                    </div>
-
-                    <div class="view-detail-card full-width">
-                        <div class="view-detail-icon qr">
-                            <i class="fas fa-qrcode"></i>
-                        </div>
-                        <div class="view-detail-content">
-                            <label>QR Code</label>
-                            <span style="font-family: monospace; font-size: 0.75rem;">${passenger.qrCode}</span>
-                                                    </div>
-                    </div>
-
-                    <div class="view-detail-card">
-                        <div class="view-detail-icon ${balanceLow ? 'balance-low' : 'balance'}">
-                            <i class="fas fa-peso-sign"></i>
-                        </div>
-                        <div class="view-detail-content">
-                            <label>Balance</label>
-                            <span>₱${passenger.balance.toFixed(2)} ${balanceLow ? '(Low)' : ''}</span>
-                        </div>
-                    </div>
-
-                    <div class="view-detail-card">
-                        <div class="view-detail-icon status">
-                            <i class="fas fa-power-off"></i>
-                        </div>
-                        <div class="view-detail-content">
-                            <label>Account Status</label>
-                            <span>${passenger.status.charAt(0).toUpperCase() + passenger.status.slice(1)}</span>
-                        </div>
-                    </div>
-
-                    <div class="view-detail-card">
-                        <div class="view-detail-icon date">
-                            <i class="fas fa-calendar-plus"></i>
-                        </div>
-                        <div class="view-detail-content">
-                            <label>Registered</label>
-                            <span>${formatDate(passenger.updatedAt)}</span>  <!-- using updated_at instead -->
-                        </div>
-                    </div>
-
-                    <div class="view-detail-card">
-                        <div class="view-detail-icon date">
-                            <i class="fas fa-clock"></i>
-                        </div>
-                        <div class="view-detail-content">
-                            <label>Last Updated</label>
-                            <span>${formatDate(passenger.updatedAt)}</span>
-                        </div>
-                    </div>
-                </div>
-            `;
-
+                    <div class="view-detail-card"><div class="view-detail-icon user"><i class="fas fa-id-badge"></i></div><div class="view-detail-content"><label>Passenger ID</label><span>#${passenger.id}</span></div></div>
+                    <div class="view-detail-card"><div class="view-detail-icon email"><i class="fas fa-envelope"></i></div><div class="view-detail-content"><label>Email Address</label><span>${passenger.email}</span></div></div>
+                    <div class="view-detail-card full-width"><div class="view-detail-icon rfid"><i class="fas fa-wifi"></i></div><div class="view-detail-content"><label>RFID Number</label><span style="font-family:monospace;">${passenger.rfidNumber}</span></div></div>
+                    <div class="view-detail-card full-width"><div class="view-detail-icon qr"><i class="fas fa-qrcode"></i></div><div class="view-detail-content"><label>QR Code</label><span style="font-family:monospace;font-size:0.75rem;">${passenger.qrCode}</span></div></div>
+                    <div class="view-detail-card"><div class="view-detail-icon ${balanceLow ? 'balance-low' : 'balance'}"><i class="fas fa-peso-sign"></i></div><div class="view-detail-content"><label>Balance</label><span>&#8369;${passenger.balance.toFixed(2)} ${balanceLow ? '(Low)' : ''}</span></div></div>
+                    <div class="view-detail-card"><div class="view-detail-icon status"><i class="fas fa-power-off"></i></div><div class="view-detail-content"><label>Account Status</label><span>${passenger.status.charAt(0).toUpperCase() + passenger.status.slice(1)}</span></div></div>
+                    <div class="view-detail-card"><div class="view-detail-icon date"><i class="fas fa-calendar-plus"></i></div><div class="view-detail-content"><label>Registered</label><span>${formatDate(passenger.updatedAt)}</span></div></div>
+                    <div class="view-detail-card"><div class="view-detail-icon date"><i class="fas fa-clock"></i></div><div class="view-detail-content"><label>Last Updated</label><span>${formatDate(passenger.updatedAt)}</span></div></div>
+                </div>`;
             document.getElementById('viewPassengerModal').classList.add('active');
         }
 
-        // Account Modal Functions
+        // ===================================================================
+        // ACCOUNT MODAL - ADD MODE
+        // ===================================================================
+
         function openAccountModal() {
-            // Block view-only roles from adding accounts
             if (VIEW_ONLY_ROLES.includes(currentUserRole)) {
                 showToast('You have view-only access. Cannot add new accounts.', 'error');
                 return;
@@ -2272,16 +2035,31 @@
             const passwordHint = document.getElementById('passwordHint');
             const statusSelect = document.getElementById('accountStatus');
             const roleSelect = document.getElementById('accountRole');
+            const fullNameInput = document.getElementById('accountFullName');
+            const emailInput = document.getElementById('accountEmail');
+            const fullNameHint = document.getElementById('fullNameHint');
+            const emailHint = document.getElementById('emailHint');
 
-            if (!roleSelect || !statusSelect) {
-                console.error('Modal elements not found');
-                showToast('Error: Modal form is incomplete.', 'error');
-                return;
-            }
-
+            // Reset form
             if (form) form.reset();
             if (editId) editId.value = '';
             if (modalTitle) modalTitle.textContent = 'Add Account';
+
+            // Enable all fields for ADD mode
+            if (fullNameInput) {
+                fullNameInput.disabled = false;
+                fullNameInput.style.background = '';
+                fullNameInput.style.cursor = '';
+            }
+            if (emailInput) {
+                emailInput.disabled = false;
+                emailInput.style.background = '';
+                emailInput.style.cursor = '';
+            }
+            if (fullNameHint) fullNameHint.style.display = 'none';
+            if (emailHint) emailHint.style.display = 'none';
+
+            // Password field - required for new accounts
             if (passwordFieldGroup) passwordFieldGroup.style.display = 'block';
             if (passwordInput) {
                 passwordInput.required = true;
@@ -2289,45 +2067,28 @@
             }
             if (passwordHint) passwordHint.textContent = 'Password must be at least 6 characters';
 
-            roleSelect.innerHTML = '';
+            // Role dropdown
+            roleSelect.innerHTML = currentUserRole === 'admin'
+                ? `<option value="" disabled selected>Select Role</option>
+           <option value="admin">Admin</option>
+           <option value="Operator">Operator</option>
+           <option value="Finance">Finance</option>
+           <option value="Loader">Loader</option>
+           <option value="Driver">Driver</option>`
+                : `<option value="" disabled selected>Select Role</option>
+           <option value="Operator">Operator</option>
+           <option value="Finance">Finance</option>
+           <option value="Loader">Loader</option>
+           <option value="Driver">Driver</option>`;
 
-            if (currentUserRole === 'admin') {
-                roleSelect.innerHTML = `
-                    <option value="" disabled selected>Select Role</option>
-                    <option value="admin">Admin</option>
-                    <option value="Operator">Operator</option>
-                    <option value="Finance">Finance</option>
-                    <option value="Loader">Loader</option>
-                    <option value="Driver">Driver</option>
-                `;
-            } else if (currentUserRole === 'staff_operator') {
-                roleSelect.innerHTML = `
-                    <option value="" disabled selected>Select Role</option>
-                    <option value="Operator">Operator</option>
-                    <option value="Finance">Finance</option>
-                    <option value="Loader">Loader</option>
-                    <option value="Driver">Driver</option>
-                `;
-            } else {
-                roleSelect.innerHTML = `
-                    <option value="" disabled selected>Select Role</option>
-                    <option value="Operator">Operator</option>
-                    <option value="Finance">Finance</option>
-                    <option value="Loader">Loader</option>
-                    <option value="Driver">Driver</option>
-                `;
-            }
-
+            // Status - default to active for new accounts, disabled
             statusSelect.value = 'active';
-            statusSelect.disabled = false;
-            statusSelect.style.backgroundColor = '';
-            statusSelect.style.cursor = 'default';
             statusSelect.style.pointerEvents = 'none';
-            statusSelect.style.opacity = '1';
+            statusSelect.style.background = '#f1f5f9';
+            statusSelect.style.cursor = 'not-allowed';
 
-            const existingHidden = document.getElementById('hiddenAccountStatus');
-            if (existingHidden) existingHidden.remove();
-
+            // Hidden status field
+            document.getElementById('hiddenAccountStatus')?.remove();
             const hiddenStatus = document.createElement('input');
             hiddenStatus.type = 'hidden';
             hiddenStatus.id = 'hiddenAccountStatus';
@@ -2342,134 +2103,194 @@
             modal.classList.add('active');
         }
 
+        // ===================================================================
+        // ACCOUNT MODAL - EDIT MODE
+        // ===================================================================
+
         function openEditModal(id) {
-            // Block view-only roles from editing
             if (VIEW_ONLY_ROLES.includes(currentUserRole)) {
                 showToast('You have view-only access. Cannot edit accounts.', 'error');
                 return;
             }
 
             const account = accountData.find(a => a.id == id);
-            if (!account) {
-                console.error('Account not found:', id);
-                showToast('Account not found', 'error');
-                return;
-            }
-
+            if (!account) { showToast('Account not found', 'error'); return; }
             if (currentUserId && id.toString() === currentUserId.toString()) {
                 showToast('You cannot edit your own account', 'error');
                 return;
             }
 
-            const reverseRoleMapping = {
-                'staff_operator': 'Operator',
-                'staff_finance': 'Finance',
-                'staff_loader': 'Loader',
-                'driver': 'Driver',
-                'admin': 'admin'
+            const reverseMap = {
+                staff_operator: 'Operator',
+                staff_finance: 'Finance',
+                staff_loader: 'Loader',
+                driver: 'Driver',
+                admin: 'admin'
             };
-
-            const displayRole = reverseRoleMapping[account.role] || account.role;
+            const displayRole = reverseMap[account.role] || account.role;
 
             const roleSelect = document.getElementById('accountRole');
             const statusSelect = document.getElementById('accountStatus');
+            const fullNameInput = document.getElementById('accountFullName');
+            const emailInput = document.getElementById('accountEmail');
+            const fullNameHint = document.getElementById('fullNameHint');
+            const emailHint = document.getElementById('emailHint');
+            const passwordInput = document.getElementById('accountPassword');
+            const passwordHint = document.getElementById('passwordHint');
 
-            roleSelect.innerHTML = '';
+            // Role dropdown setup
+            roleSelect.innerHTML = currentUserRole === 'admin'
+                ? `<option value="" disabled>Select Role</option>
+           <option value="admin">Admin</option>
+           <option value="Operator">Operator</option>
+           <option value="Finance">Finance</option>
+           <option value="Loader">Loader</option>
+           <option value="Driver">Driver</option>`
+                : `<option value="" disabled>Select Role</option>
+           <option value="Operator">Operator</option>
+           <option value="Finance">Finance</option>
+           <option value="Loader">Loader</option>
+           <option value="Driver">Driver</option>`;
 
-            if (currentUserRole === 'admin') {
-                roleSelect.innerHTML = `
-                    <option value="" disabled>Select Role</option>
-                    <option value="admin">Admin</option>
-                    <option value="Operator">Operator</option>
-                    <option value="Finance">Finance</option>
-                    <option value="Loader">Loader</option>
-                    <option value="Driver">Driver</option>
-                `;
-            } else {
-                roleSelect.innerHTML = `
-                    <option value="" disabled>Select Role</option>
-                    <option value="Operator">Operator</option>
-                    <option value="Finance">Finance</option>
-                    <option value="Loader">Loader</option>
-                    <option value="Driver">Driver</option>
-                `;
-            }
-
-            const roleExists = Array.from(roleSelect.options).some(option => option.value === displayRole);
-
+            const roleExists = Array.from(roleSelect.options).some(o => o.value === displayRole);
             if (!roleExists && currentUserRole !== 'admin') {
                 showToast('You do not have permission to edit this account type', 'error');
                 return;
             }
-
-            document.getElementById('accountEditId').value = account.id;
-            document.getElementById('accountFullName').value = account.fullName;
-            document.getElementById('accountEmail').value = account.email;
-
-            if (roleExists) {
-                roleSelect.value = displayRole;
-            } else if (currentUserRole === 'admin') {
-                const option = document.createElement('option');
-                option.value = displayRole;
-                option.textContent = displayRole === 'admin' ? 'Admin' : displayRole;
-                roleSelect.appendChild(option);
-                roleSelect.value = displayRole;
+            if (!roleExists && currentUserRole === 'admin') {
+                const opt = document.createElement('option');
+                opt.value = displayRole;
+                opt.textContent = displayRole === 'admin' ? 'Admin' : displayRole;
+                roleSelect.appendChild(opt);
             }
+            roleSelect.value = displayRole;
 
+            // Set values
+            document.getElementById('accountEditId').value = account.id;
+            fullNameInput.value = account.fullName;
+            emailInput.value = account.email;
             statusSelect.value = account.status;
-            statusSelect.disabled = false;
-            statusSelect.style.backgroundColor = '';
-            statusSelect.style.cursor = 'pointer';
+
+            // ✅ DISABLE Full Name and Email in EDIT mode
+            fullNameInput.disabled = true;
+            fullNameInput.style.background = '#f1f5f9';
+            fullNameInput.style.cursor = 'not-allowed';
+
+
+
+            emailInput.disabled = true;
+            emailInput.style.background = '#f1f5f9';
+            emailInput.style.cursor = 'not-allowed';
+
+
+            // ✅ ENABLE Status in EDIT mode
             statusSelect.style.pointerEvents = 'auto';
-            statusSelect.style.opacity = '1';
+            statusSelect.style.background = '';
+            statusSelect.style.cursor = '';
 
-            const existingHidden = document.getElementById('hiddenAccountStatus');
-            if (existingHidden) existingHidden.remove();
-
+            // ✅ Password - optional in edit mode
             document.getElementById('passwordFieldGroup').style.display = 'block';
-            document.getElementById('accountPassword').required = false;
-            document.getElementById('accountPassword').value = '';
-            document.getElementById('passwordHint').textContent = 'Leave blank to keep current password';
+            passwordInput.required = false;
+            passwordInput.value = '';
+            passwordHint.textContent = 'Leave blank to keep current password';
 
             document.getElementById('accountModalTitle').textContent = 'Edit Account';
             document.getElementById('accountModal').classList.add('active');
         }
 
-        // Passenger Modal Functions
+        // ===================================================================
+        // PASSENGER MODAL
+        // ===================================================================
+
         function openPassengerModal() {
-            // Block view-only roles from adding passengers (except loader)
             if (VIEW_ONLY_ROLES.includes(currentUserRole) && currentUserRole !== 'staff_loader') {
                 showToast('You have view-only access. Cannot add new passengers.', 'error');
                 return;
             }
-
             document.getElementById('passengerForm').reset();
             document.getElementById('passengerEditId').value = '';
             document.getElementById('passengerModalTitle').textContent = 'Add Passenger';
             document.getElementById('passengerStatus').value = 'active';
             document.getElementById('passengerBalance').value = '0.00';
+
+            // ENABLE all fields for ADD mode
+            const fields = ['passengerFullName', 'passengerEmail', 'passengerRfid', 'passengerBalance', 'passengerStatus'];
+            fields.forEach(id => {
+                const el = document.getElementById(id);
+                if (el) {
+                    el.disabled = false;
+                    el.style.background = '';
+                    el.style.cursor = '';
+                }
+            });
+
+            // Reset RFID field visual state
+            const rfidField = document.getElementById('passengerRfid');
+            rfidField.classList.remove('rfid-ready', 'rfid-success', 'rfid-error');
+            const hint = document.getElementById('rfidHint');
+            const hintTxt = document.getElementById('rfidHintText');
+            const hintIcon = document.getElementById('rfidHintIcon');
+            if (hint) hint.classList.remove('error');
+            if (hintIcon) { hintIcon.className = 'fas fa-wifi'; }
+            if (hintTxt) hintTxt.textContent = 'Click the field, then tap your card on the scanner';
+
             document.getElementById('passengerModal').classList.add('active');
         }
 
         function openEditPassengerModal(id) {
-            // Block view-only roles from editing passengers (except loader)
             if (VIEW_ONLY_ROLES.includes(currentUserRole) && currentUserRole !== 'staff_loader') {
                 showToast('You have view-only access. Cannot edit passengers.', 'error');
                 return;
             }
-
             const passenger = passengerData.find(p => p.id == id);
-            if (!passenger) {
-                console.error('Passenger not found:', id);
-                return;
-            }
+            if (!passenger) return;
 
             document.getElementById('passengerEditId').value = passenger.id;
+
+            // Set values for all fields
             document.getElementById('passengerFullName').value = passenger.fullName;
             document.getElementById('passengerEmail').value = passenger.email;
             document.getElementById('passengerRfid').value = passenger.rfidNumber;
             document.getElementById('passengerBalance').value = passenger.balance.toFixed(2);
             document.getElementById('passengerStatus').value = passenger.status;
+
+            // Make Full Name READ-ONLY
+            const fullNameInput = document.getElementById('passengerFullName');
+            fullNameInput.disabled = true;
+            fullNameInput.style.background = '#f1f5f9';
+            fullNameInput.style.cursor = 'not-allowed';
+
+            // Make Email READ-ONLY
+            const emailInput = document.getElementById('passengerEmail');
+            emailInput.disabled = true;
+            emailInput.style.background = '#f1f5f9';
+            emailInput.style.cursor = 'not-allowed';
+
+            // Make Balance READ-ONLY
+            const balanceInput = document.getElementById('passengerBalance');
+            balanceInput.disabled = true;
+            balanceInput.style.background = '#f1f5f9';
+            balanceInput.style.cursor = 'not-allowed';
+
+            // RFID and Status remain EDITABLE (no disabled styling)
+            const rfidInput = document.getElementById('passengerRfid');
+            rfidInput.disabled = false;
+            rfidInput.style.background = '';
+            rfidInput.style.cursor = '';
+
+            const statusInput = document.getElementById('passengerStatus');
+            statusInput.disabled = false;
+            statusInput.style.background = '';
+            statusInput.style.cursor = '';
+
+            // Reset RFID field visual state
+            rfidInput.classList.remove('rfid-ready', 'rfid-success', 'rfid-error');
+            const hint = document.getElementById('rfidHint');
+            const hintTxt = document.getElementById('rfidHintText');
+            const hintIcon = document.getElementById('rfidHintIcon');
+            if (hint) hint.classList.remove('error');
+            if (hintIcon) { hintIcon.className = 'fas fa-wifi'; }
+            if (hintTxt) hintTxt.textContent = 'Click the field, then tap your card to update the RFID';
 
             document.getElementById('passengerModalTitle').textContent = 'Edit Passenger';
             document.getElementById('passengerModal').classList.add('active');
@@ -2479,81 +2300,62 @@
             document.getElementById(modalId).classList.remove('active');
         }
 
+        // ===================================================================
+        // SAVE ACCOUNT
+        // ===================================================================
+
         async function saveAccount() {
-            // Block view-only roles from saving
             if (VIEW_ONLY_ROLES.includes(currentUserRole)) {
                 showToast('You have view-only access. Cannot save changes.', 'error');
                 return;
             }
 
             const editId = document.getElementById('accountEditId').value;
-            const fullName = document.getElementById('accountFullName').value.trim();
-            const email = document.getElementById('accountEmail').value.trim();
+            const fullNameInput = document.getElementById('accountFullName');
+            const emailInput = document.getElementById('accountEmail');
             const displayRole = document.getElementById('accountRole').value;
-
-            let status = 'active';
-            const hiddenStatus = document.getElementById('hiddenAccountStatus');
+            const password = document.getElementById('accountPassword').value;
             const statusSelect = document.getElementById('accountStatus');
 
-            if (editId) {
-                status = statusSelect.value;
-            } else {
-                status = hiddenStatus ? hiddenStatus.value : 'active';
-            }
-
-            const password = document.getElementById('accountPassword').value;
+            const fullName = fullNameInput.disabled ? null : fullNameInput.value.trim();
+            const email = emailInput.disabled ? null : emailInput.value.trim().toLowerCase();
+            const status = statusSelect.value;
 
             const roleMapping = {
-                'Operator': 'staff_operator',
-                'Finance': 'staff_finance',
-                'Loader': 'staff_loader',
-                'Driver': 'driver',
-                'admin': 'admin'
+                Operator: 'staff_operator',
+                Finance: 'staff_finance',
+                Loader: 'staff_loader',
+                Driver: 'driver',
+                admin: 'admin'
             };
-
             const role = roleMapping[displayRole] || displayRole;
 
-            if (currentUserRole !== 'admin' && currentUserRole !== 'staff_operator') {
+            if (!['admin', 'staff_operator'].includes(currentUserRole)) {
                 showToast('You do not have permission to add or edit accounts.', 'error');
                 return;
             }
-
             if (currentUserRole === 'staff_operator' && role === 'admin') {
                 showToast('Staff Operator cannot create or edit admin accounts.', 'error');
                 return;
             }
 
-            if (editId && currentUserRole === 'staff_operator') {
-                const existingAccount = accountData.find(a => a.id == editId);
-                if (existingAccount && existingAccount.role === 'admin') {
-                    showToast('Staff Operator cannot edit admin accounts.', 'error');
+            if (!editId) {
+                if (!fullName || !email) {
+                    showToast('Please fill in all required fields', 'error');
                     return;
                 }
-            }
-
-            if (!fullName || !email) {
-                showToast('Please fill in all required fields', 'error');
-                return;
-            }
-
-            const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-            if (!emailRegex.test(email)) {
-                showToast('Please enter a valid email address', 'error');
-                return;
+                if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+                    showToast('Please enter a valid email address', 'error');
+                    return;
+                }
             }
 
             try {
                 const client = window.supabaseClient;
-
-                if (!client) {
-                    showToast('Database connection not available', 'error');
-                    return;
-                }
+                if (!client) { showToast('Database connection not available', 'error'); return; }
 
                 if (editId) {
                     const updateData = {
-                        fullname: fullName,
-                        email: email,
                         role: role,
                         status: status,
                         updated_at: new Date().toISOString()
@@ -2570,30 +2372,80 @@
                         .select();
 
                     if (error) throw error;
+                    showToast('Account updated successfully');
 
-                    if (!data || data.length === 0) {
-                        showToast('Update failed: No data returned.', 'error');
+                } else {
+                    // ADD MODE - Check for duplicates
+                    console.log('Checking duplicates for:', { fullName, email });
+
+                    // Check for existing fullname
+                    const { data: existingByName, error: nameError } = await client
+                        .from('Staff_Account')
+                        .select('id, fullname')
+                        .ilike('fullname', fullName); // Case-insensitive check
+
+                    if (nameError) console.error('Error checking fullname:', nameError);
+
+                    if (existingByName && existingByName.length > 0) {
+                        showToast('Full name already exists: "' + fullName + '"', 'error');
+                        console.error('Duplicate fullname found:', existingByName);
+
+                        // Highlight the fullname field
+                        fullNameInput.style.borderColor = '#ef4444';
+                        fullNameInput.style.boxShadow = '0 0 0 3px rgba(239, 68, 68, 0.2)';
+                        fullNameInput.focus();
+
+                        // Reset highlight after 3 seconds
+                        setTimeout(() => {
+                            fullNameInput.style.borderColor = '';
+                            fullNameInput.style.boxShadow = '';
+                        }, 3000);
+
                         return;
                     }
 
-                    showToast('Account updated successfully');
-                } else {
+                    // Check for existing email
+                    const { data: existingByEmail, error: emailError } = await client
+                        .from('Staff_Account')
+                        .select('id, email')
+                        .eq('email', email);
+
+                    if (emailError) console.error('Error checking email:', emailError);
+
+                    if (existingByEmail && existingByEmail.length > 0) {
+                        showToast('Email already exists: ' + email, 'error');
+                        console.error('Duplicate email found:', existingByEmail);
+
+                        // Highlight the email field
+                        emailInput.style.borderColor = '#ef4444';
+                        emailInput.style.boxShadow = '0 0 0 3px rgba(239, 68, 68, 0.2)';
+                        emailInput.focus();
+
+                        setTimeout(() => {
+                            emailInput.style.borderColor = '';
+                            emailInput.style.boxShadow = '';
+                        }, 3000);
+
+                        return;
+                    }
+
                     if (!password || password.length < 6) {
                         showToast('Password must be at least 6 characters', 'error');
                         return;
                     }
 
-                    const hashedPassword = await Auth.hashPassword(password);
-
+                    const hashedPw = await Auth.hashPassword(password);
                     const newAccount = {
                         fullname: fullName,
                         email: email,
-                        password: hashedPassword,
+                        password: hashedPw,
                         role: role,
                         status: status,
                         created_at: new Date().toISOString(),
                         updated_at: new Date().toISOString()
                     };
+
+                    console.log('Inserting:', { ...newAccount, password: '[HASHED]' });
 
                     const { data, error } = await client
                         .from('Staff_Account')
@@ -2601,65 +2453,91 @@
                         .select();
 
                     if (error) {
-                        if (error.message.includes('duplicate') || error.code === '23505') {
-                            showToast('Email already exists', 'error');
+                        console.error('Insert error:', error);
+
+                        // Handle specific constraint violations
+                        if (error.code === '23505') {
+                            if (error.message?.includes('fullname') || error.message?.includes('Staff_Account_fullname_key')) {
+                                showToast('Full name already exists. Please use a different name.', 'error');
+                                fullNameInput.style.borderColor = '#ef4444';
+                                fullNameInput.focus();
+                            } else if (error.message?.includes('email')) {
+                                showToast('Email already exists. Please use a different email.', 'error');
+                                emailInput.style.borderColor = '#ef4444';
+                                emailInput.focus();
+                            } else {
+                                showToast('Duplicate value exists in database', 'error');
+                            }
                             return;
                         }
+
+                        if (error.code === '409') {
+                            showToast('Conflict: Record already exists', 'error');
+                            return;
+                        }
+
                         throw error;
                     }
 
+                    console.log('Insert successful:', data);
                     showToast('Account created successfully');
                 }
 
                 await loadAccounts(client);
                 closeModal('accountModal');
 
-            } catch (error) {
-                console.error('Error in saveAccount:', error);
-                showToast('Failed to save account: ' + (error.message || 'Unknown error'), 'error');
+            } catch (err) {
+                console.error('Full error:', err);
+                showToast('Failed to save: ' + (err.message || 'Unknown error'), 'error');
             }
         }
 
+        // ===================================================================
+        // SAVE PASSENGER
+        // ===================================================================
+
         async function savePassenger() {
-            // Block view-only roles from saving passengers (except loader who can edit passengers)
             if (VIEW_ONLY_ROLES.includes(currentUserRole) && currentUserRole !== 'staff_loader') {
                 showToast('You have view-only access. Cannot save changes.', 'error');
                 return;
             }
 
             const editId = document.getElementById('passengerEditId').value;
-            const fullName = document.getElementById('passengerFullName').value.trim();
-            const email = document.getElementById('passengerEmail').value.trim();
             const rfidNumber = document.getElementById('passengerRfid').value.trim();
-            const balance = parseFloat(document.getElementById('passengerBalance').value) || 0;
             const status = document.getElementById('passengerStatus').value;
 
-            if (!fullName || !email || !rfidNumber) {
-                showToast('Please fill in all required fields', 'error');
+            // For edit mode, we only validate RFID and Status
+            if (!rfidNumber) {
+                showToast('RFID number is required', 'error');
                 return;
             }
 
             try {
                 if (editId) {
+                    // EDIT MODE: Only update RFID and Status
                     const updates = {
-                        fullname: fullName,
-                        email: email,
                         RFID: rfidNumber,
-                        balance: balance,
                         status: status,
                         updated_at: new Date().toISOString()
                     };
-
-                    const { data, error } = await window.supabaseClient
+                    const { error } = await window.supabaseClient
                         .from('registration')
                         .update(updates)
                         .eq('id', editId)
                         .select();
-
                     if (error) throw error;
-
                     showToast('Passenger updated successfully');
                 } else {
+                    // ADD MODE: All fields required
+                    const fullName = document.getElementById('passengerFullName').value.trim();
+                    const email = document.getElementById('passengerEmail').value.trim();
+                    const balance = parseFloat(document.getElementById('passengerBalance').value) || 0;
+
+                    if (!fullName || !email || !rfidNumber) {
+                        showToast('Please fill in all required fields', 'error');
+                        return;
+                    }
+
                     const qrCode = generateQRCode();
                     const newPassenger = {
                         fullname: fullName,
@@ -2672,22 +2550,19 @@
                         profile: null,
                         updated_at: new Date().toISOString()
                     };
-
-                    const { data, error } = await window.supabaseClient
+                    const { error } = await window.supabaseClient
                         .from('registration')
                         .insert([newPassenger])
                         .select();
-
                     if (error) throw error;
-
                     showToast('Passenger created successfully');
                 }
 
                 await loadPassengers(window.supabaseClient);
                 closeModal('passengerModal');
-            } catch (error) {
-                console.error('Error saving passenger:', error);
-                showToast(error.message || 'Failed to save passenger', 'error');
+            } catch (err) {
+                console.error('Error saving passenger:', err);
+                showToast(err.message || 'Failed to save passenger', 'error');
             }
         }
 
@@ -2695,164 +2570,127 @@
             return 'BIYAHE-' + Date.now() + '-' + Math.random().toString(36).substr(2, 9).toUpperCase();
         }
 
+        // ===================================================================
+        // TOAST
+        // ===================================================================
+
         function showToast(message, type = 'success') {
             const toast = document.getElementById('toast');
-            const toastMessage = document.getElementById('toastMessage');
+            const msgEl = document.getElementById('toastMessage');
             const icon = toast.querySelector('i');
-
-            toastMessage.textContent = message;
+            msgEl.textContent = message;
             toast.className = `toast ${type} show`;
             icon.className = type === 'error' ? 'fas fa-exclamation-circle' : 'fas fa-check-circle';
-
             setTimeout(() => toast.classList.remove('show'), 3000);
         }
 
-        // Child page role integration
+        // ===================================================================
+        // ROLE UI
+        // ===================================================================
+
         let currentRole = null;
         let canModify = false;
         let isReadOnly = false;
 
         window.addEventListener('message', (event) => {
-            if (event.data.type === 'roleInfo') {
+            if (event.data && event.data.type === 'roleInfo') {
                 currentRole = event.data.role;
                 canModify = event.data.canModify;
                 isReadOnly = event.data.isReadOnly;
-
-                if (currentRole === 'admin') {
-                    currentUserRole = 'admin';
-                }
-
+                if (currentRole === 'admin') currentUserRole = 'admin';
                 applyRoleBasedUI();
+            }
+            // RFID scan via postMessage fallback (also handled below but kept here for safety)
+            if (event.data && event.data.type === 'rfid-scan') {
+                handleRfidScan(event.data.code);
             }
         });
 
         window.addEventListener('DOMContentLoaded', () => {
-            window.parent.postMessage({
-                type: 'requestRoleInfo',
-                page: getPageName()
-            }, '*');
+            window.parent.postMessage({ type: 'requestRoleInfo', page: getPageName() }, '*');
 
             const urlParams = new URLSearchParams(window.location.search);
-            if (urlParams.get('readonly') === 'true') {
-                isReadOnly = true;
-                applyRoleBasedUI();
-            }
-            if (urlParams.get('canmodify') === 'false') {
-                canModify = false;
-                applyRoleBasedUI();
-            }
+            if (urlParams.get('readonly') === 'true') { isReadOnly = true; applyRoleBasedUI(); }
+            if (urlParams.get('canmodify') === 'false') { canModify = false; applyRoleBasedUI(); }
             const roleParam = urlParams.get('role');
-            if (roleParam) {
-                currentRole = roleParam;
-            }
+            if (roleParam) currentRole = roleParam;
         });
 
         function getPageName() {
-            const path = window.location.pathname;
-            const filename = path.split('/').pop().replace('child_', '').replace('.html', '');
-
-            const mapping = {
-                'dashboard': 'dashboard',
-                'tracking': 'live-tracking',
-                'analytics': 'analytics',
-                'feedback': 'feedback',
-                'bus_information': 'bus-info',
-                'bus_schedule': 'schedule',
-                'load': 'load',
-                'account_management': 'accounts',
-                'finance': 'finance'
-            };
-
-            return mapping[filename] || filename;
+            const filename = window.location.pathname.split('/').pop().replace('child_', '').replace('.html', '');
+            return { tracking: 'live-tracking', bus_information: 'bus-info', bus_schedule: 'schedule', account_management: 'accounts' }[filename] || filename;
         }
 
         function applyRoleBasedUI() {
             const isAdmin = currentUserRole === 'admin' || currentRole === 'admin';
-            const isViewOnly = VIEW_ONLY_ROLES.includes(currentUserRole);
-            const allowedTabs = getAllowedAccountTabs();
-
-            // Update tab visibility first
+            const isVO = VIEW_ONLY_ROLES.includes(currentUserRole);
+            const allowed = getAllowedAccountTabs();
             updateTabVisibility();
 
-            if (isAdmin) {
-                const addAccountBtn = document.getElementById('addAccountBtnHeader');
-                if (addAccountBtn) {
-                    addAccountBtn.classList.remove('hidden');
-                    addAccountBtn.style.display = 'inline-flex';
-                    addAccountBtn.disabled = false;
-                }
-                return;
-            }
+            const addBtn = document.getElementById('addAccountBtnHeader');
+            if (addBtn) addBtn.style.display = (isAdmin || (!isVO && allowed.includes('accounts'))) ? 'inline-flex' : 'none';
 
-            const addAccountBtn = document.getElementById('addAccountBtnHeader');
-            if (addAccountBtn) {
-                // Hide Add Account button for view-only OR if accounts tab not allowed
-                if (isViewOnly || !allowedTabs.includes('accounts')) {
-                    addAccountBtn.style.display = 'none';
-                } else {
-                    addAccountBtn.style.display = 'inline-flex';
-                }
-            }
-
-            if (isViewOnly) {
-                const banner = document.getElementById('accountsReadOnlyBanner');
-                if (banner) {
-                    banner.classList.remove('hidden');
-                }
-            }
+            if (isVO) document.getElementById('accountsReadOnlyBanner')?.classList.remove('hidden');
         }
 
-        // Close modal handlers
-        document.getElementById('accountModal').addEventListener('click', function (e) {
-            if (e.target === this) {
-                closeModal('accountModal');
-            }
+        // ===================================================================
+        // CLOSE MODAL ON BACKDROP CLICK
+        // ===================================================================
+
+        ['accountModal', 'passengerModal', 'viewAccountModal', 'viewPassengerModal'].forEach(id => {
+            document.getElementById(id)?.addEventListener('click', function (e) {
+                if (e.target === this) closeModal(id);
+            });
         });
 
-        document.getElementById('passengerModal').addEventListener('click', function (e) {
-            if (e.target === this) {
-                closeModal('passengerModal');
-            }
-        });
-
-        document.getElementById('viewAccountModal').addEventListener('click', function (e) {
-            if (e.target === this) {
-                closeModal('viewAccountModal');
-            }
-        });
-
-        document.getElementById('viewPassengerModal').addEventListener('click', function (e) {
-            if (e.target === this) {
-                closeModal('viewPassengerModal');
-            }
-        });
+        // ===================================================================
+        // NOTIFY PARENT
+        // ===================================================================
 
         (function notifyParent() {
-            const filename = window.location.pathname.split('/').pop();
             const pageMap = {
-                'child_dashboard.html': 'dashboard',
-                'child_tracking.html': 'live-tracking',
-                'child_analytics.html': 'analytics',
-                'child_feedback.html': 'feedback',
-                'child_bus_information.html': 'bus-info',
-                'child_bus_schedule.html': 'schedule',
-                'child_load.html': 'load',
-                'child_top_up_reference.html': 'top-up-reference',
-                'child_account_management.html': 'accounts',
-                'child_finance.html': 'finance',
-                'child_settings.html': 'settings',
-                'child_developer_logs.html': 'developer-logs'
+                'child_dashboard.html': 'dashboard', 'child_tracking.html': 'live-tracking',
+                'child_analytics.html': 'analytics', 'child_feedback.html': 'feedback',
+                'child_bus_information.html': 'bus-info', 'child_bus_schedule.html': 'schedule',
+                'child_load.html': 'load', 'child_top_up_reference.html': 'top-up-reference',
+                'child_account_management.html': 'accounts', 'child_finance.html': 'finance',
+                'child_settings.html': 'settings', 'child_developer_logs.html': 'developer-logs'
             };
-
-            const pageName = pageMap[filename];
+            const pageName = pageMap[window.location.pathname.split('/').pop()];
             if (pageName && window.parent !== window) {
-                window.parent.postMessage({
-                    type: 'pageLoaded',
-                    page: pageName
-                }, '*');
+                window.parent.postMessage({ type: 'pageLoaded', page: pageName }, '*');
             }
         })();
+
     </script>
+
+    <script>
+        // ===================================================================
+        // RFID SCAN LISTENERS
+        // Receives scanned codes from the dashboard's USB serial reader
+        // via BroadcastChannel (primary) and postMessage (fallback).
+        //
+        // handleRfidScan() validates the code BEFORE writing it:
+        //   - Rejects strings starting with "BIYAHE-" (your QR code format)
+        //   - Rejects strings longer than 20 characters (QR payloads are long;
+        //     real RFID UIDs are 8–14 hex characters at most)
+        //   - Only fills the field when the passenger modal is open AND the
+        //     RFID input is focused
+        // ===================================================================
+
+        // BroadcastChannel — primary path from dashboard
+        try {
+            const rfidChannel = new BroadcastChannel('rfid-scanner');
+            rfidChannel.onmessage = (event) => {
+                if (event.data && event.data.type === 'rfid-scan') {
+                    handleRfidScan(event.data.code);
+                }
+            };
+        } catch (e) {
+            console.warn('BroadcastChannel not supported:', e);
+        }
+    </script>
+
 </body>
 
 </html>

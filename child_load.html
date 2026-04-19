@@ -608,10 +608,13 @@
            GI-USAB: TRANSACTIONS / RECENT TOP-UPS
            ==================================== */
         .transactions-area {
-            margin-top: 1rem; /* Modikit na siya sa ibabaw imbis ma-push sa ubos */
+            margin-top: 1rem;
+            /* Modikit na siya sa ibabaw imbis ma-push sa ubos */
             padding-top: 1rem;
-            border-top: 1px dashed var(--border); /* Nagbutang kog nipis nga linya */
-            flex: 1; /* Mo-stretch paubos */
+            border-top: 1px dashed var(--border);
+            /* Nagbutang kog nipis nga linya */
+            flex: 1;
+            /* Mo-stretch paubos */
             min-height: 0;
             overflow: hidden;
             display: flex;
@@ -622,8 +625,10 @@
             display: flex;
             flex-direction: column;
             gap: 0.5rem;
-            flex: 1; /* I-fill ang nabilin nga space */
-            overflow-y: auto; /* Mo-scroll kung daghan */
+            flex: 1;
+            /* I-fill ang nabilin nga space */
+            overflow-y: auto;
+            /* Mo-scroll kung daghan */
         }
 
         .tx-item {
@@ -797,8 +802,8 @@
                             <button class="btn-primary" onclick="window.lookupPassenger()">
                                 <i class="fas fa-search"></i> Look Up Passenger
                             </button>
-                            
-                            <button id="connectSerialBtn" class="btn-primary" style="background: var(--danger); color: #fff; margin-top: 0.25rem; width: 50%; align-self: center;">
+
+                            <button id="connectSerialBtn" class="btn-primary" style="display:none;">
                                 <i class="fab fa-usb"></i> Connect USB Scanner
                             </button>
                         </div>
@@ -947,7 +952,7 @@
                 currentPassenger = data;
                 displayPassenger(data);
                 showToast(`Found: ${data.fullname}`, 'success');
-                document.getElementById('rfidInput').value = '';
+                // ✅ RFID INPUT NO LONGER CLEARED HERE - stays filled
                 setTimeout(() => document.getElementById('loadAmount').focus(), 100);
 
             } catch (e) {
@@ -970,7 +975,7 @@
             document.getElementById('pRFID').textContent = 'Enter RFID or QR code';
             document.getElementById('pBalance').textContent = '0.00';
             document.getElementById('loadAmount').value = '';
-            document.getElementById('rfidInput').value = '';
+            document.getElementById('rfidInput').value = ''; // Clears RFID input
             document.getElementById('rfidInput').focus();
         }
 
@@ -995,11 +1000,16 @@
                 return;
             }
 
+            const loadBtn = document.getElementById('loadBtn');
+
+            // Disable button immediately and show spinner
+            loadBtn.disabled = true;
+            loadBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Processing...';
+
             try {
                 const client = await window.Auth.ensureSupabase();
                 const newBalance = parseFloat(currentPassenger.balance || 0) + amt;
 
-                // Get current staff info from your auth system
                 const staffEmail = await getCurrentStaffEmail();
 
                 const ts = new Date().toISOString().replace(/[-:T.Z]/g, '').slice(0, 14);
@@ -1060,33 +1070,26 @@
                 showToast(`Loaded ₱${amt.toFixed(2)} to ${currentPassenger.fullname}`, 'success', 3000);
                 playSuccess();
 
-                // ✅ CLEAR EVERYTHING AFTER TOAST DISAPPEARS
-                setTimeout(() => {
-                    clearPassenger();
-
-                    // Also clear amount input
-                    const loadInput = document.getElementById('loadAmount');
-                    loadInput.value = '';
-                    loadInput.setAttribute('autocomplete', 'off');
-
-                    // Focus back to RFID input for next scan
-                    document.getElementById('rfidInput').focus();
-                }, 3000);
-
             } catch (e) {
                 showToast('Load failed: ' + e.message, 'error');
                 console.error('Load error:', e);
+            } finally {
+                // ✅ EVERYTHING CLEARS AND BUTTON RE-ENABLES AFTER 1 SECOND
+                setTimeout(() => {
+                    // Clear all form data
+                    clearPassenger();
+
+                    // Re-enable button
+                    loadBtn.disabled = false;
+                    loadBtn.innerHTML = '<i class="fas fa-plus-circle"></i> Add Balance';
+                }, 1000);
             }
         }
 
-        // Helper function to get current staff email
         async function getCurrentStaffEmail() {
-            // Option 1: If stored in Auth object
             if (window.Auth && window.Auth.currentUser) {
                 return window.Auth.currentUser.email;
             }
-
-            // Option 2: If stored in sessionStorage/localStorage
             return sessionStorage.getItem('staffEmail') || localStorage.getItem('staffEmail');
         }
 
@@ -1186,82 +1189,41 @@
         });
 
         // ==========================================
-        // SCRIPT PARA SA ESP8266 SERIAL (AUTO-HIDE BUTTON & SEMI-AUTOMATIC)
+        // RFID SCANNER RECEIVER (at end of script)
         // ==========================================
-        let serialPort;
-        let serialReader;
 
-        // Kini mo-tago sa button kung connected na
-        function setScannerConnectedUI() {
-            const btn = document.getElementById('connectSerialBtn');
-            if(btn) {
-                btn.style.display = 'none'; // KINI ANG NAGTAGO SA BUTTON
+        function _handleRfidCode(code) {
+            console.log('Received RFID code:', code);
+            if (code && code.length > 0) {
+                const input = document.getElementById('rfidInput');
+                if (input) {
+                    input.value = code;
+                    input.focus();
+                }
+                setTimeout(() => window.lookupPassenger(code), 50);
             }
-            showToast('ESP8266 Scanner Ready!', 'success');
         }
 
-        // 1. AUTO-CONNECT FEATURE INIG ABLI SA WEBPAGE
-        window.addEventListener('load', async () => {
-            if ("serial" in navigator) {
-                try {
-                    const authorizedPorts = await navigator.serial.getPorts();
-                    
-                    if (authorizedPorts.length > 0) {
-                        serialPort = authorizedPorts[0]; 
-                        await serialPort.open({ baudRate: 9600 });
-                        
-                        setScannerConnectedUI();
-                        readSerial(); 
-                    }
-                } catch (err) {
-                    console.log("Wala pay na-save nga port o wa naka-plug ang scanner.", err);
+        // BroadcastChannel (same-origin tabs)
+        try {
+            const _rfidChannel = new BroadcastChannel('rfid-scanner');
+            _rfidChannel.addEventListener('message', (e) => {
+                console.log('BroadcastChannel received:', e.data);
+                if (e.data?.type === 'rfid-scan') {
+                    _handleRfidCode(e.data.code);
                 }
-            }
-        });
-
-        // 2. MANUAL BUTTON (Para lang sa pinaka-unang click)
-        document.getElementById('connectSerialBtn')?.addEventListener('click', async () => {
-            try {
-                serialPort = await navigator.serial.requestPort();
-                await serialPort.open({ baudRate: 9600 });
-                
-                setScannerConnectedUI();
-                readSerial();
-            } catch (err) {
-                console.error("Error connecting:", err);
-                showToast('Wala naka-connect o gi-cancel.', 'error');
-            }
-        });
-
-        // 3. TIG-BASA SA DATA GIKAN SA ESP8266
-        async function readSerial() {
-            const textDecoder = new TextDecoderStream();
-            const readableStreamClosed = serialPort.readable.pipeTo(textDecoder.writable);
-            serialReader = textDecoder.readable.getReader();
-
-            let buffer = "";
-
-            while (true) {
-                try {
-                    const { value, done } = await serialReader.read();
-                    if (done) { serialReader.releaseLock(); break; }
-                    
-                    buffer += value;
-                    if (buffer.includes('\n')) {
-                        const scannedCode = buffer.trim();
-                        buffer = ""; 
-                        
-                        if(scannedCode.length > 0) {
-                            document.getElementById('rfidInput').value = scannedCode;
-                            window.lookupPassenger(scannedCode);
-                        }
-                    }
-                } catch (error) {
-                    console.error("Error reading serial:", error);
-                    break;
-                }
-            }
+            });
+        } catch (e) {
+            console.error('BroadcastChannel error:', e);
         }
+
+        // postMessage from parent iframe
+        window.addEventListener('message', (e) => {
+            console.log('postMessage received:', e.data);
+            if (e.data?.type === 'rfid-scan') {
+                _handleRfidCode(e.data.code);
+            }
+        });
 
         (function notifyParent() {
             const filename = window.location.pathname.split('/').pop();

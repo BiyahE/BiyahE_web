@@ -779,6 +779,11 @@
                 transform: translate(-50%, -50%) scale(1);
                 opacity: 0.6;
             }
+
+            100% {
+                transform: translate(-50%, -50%) scale(2);
+                opacity: 0;
+            }
         }
 
         .bus-marker-inner.gps-live {
@@ -1026,7 +1031,319 @@
             background: rgba(156, 163, 175, 0.1);
             color: #6b7280;
         }
+
+        /* ==========================================
+           MODERN POPUP STYLES - From child_tracking.html
+           ========================================== */
+
+        /* Custom Popup Container */
+        .custom-popup .leaflet-popup-content-wrapper {
+            background: rgba(255, 255, 255, 0.98);
+            backdrop-filter: blur(10px);
+            border-radius: 12px;
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+            border: 1px solid rgba(0, 0, 0, 0.05);
+            overflow: visible;
+            padding: 0;
+            position: relative;
+        }
+
+        .custom-popup .leaflet-popup-content {
+            margin: 0;
+            padding: 0;
+            width: 220px !important;
+        }
+
+        .custom-popup .leaflet-popup-tip {
+            background: rgba(255, 255, 255, 0.98);
+            backdrop-filter: blur(10px);
+            width: 12px;
+            height: 12px;
+        }
+
+        /* Hide default close button */
+        .custom-popup .leaflet-popup-close-button {
+            display: none !important;
+        }
+
+        .bus-popup {
+            font-family: 'Inter', sans-serif;
+            position: relative;
+        }
+
+        /* Custom Close Button - Outside on top */
+        .popup-close-btn {
+            position: absolute;
+            top: -12px;
+            right: -12px;
+            width: 28px;
+            height: 28px;
+            background: #ef4444;
+            border-radius: 50%;
+            color: white;
+            font-size: 14px;
+            border: 3px solid white;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 1000;
+            transition: all 0.2s ease;
+        }
+
+        .popup-close-btn:hover {
+            background: #dc2626;
+            transform: scale(1.1);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+        }
+
+        .popup-close-btn:active {
+            transform: scale(0.95);
+        }
+
+        .popup-header {
+            padding: 12px 14px;
+            color: white;
+            position: relative;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            border-radius: 12px 12px 0 0;
+        }
+
+        .popup-header.live {
+            background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+        }
+
+        .popup-header.recent {
+            background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
+        }
+
+        .popup-header.inactive {
+            background: linear-gradient(135deg, #9ca3af 0%, #6b7280 100%);
+        }
+
+        .popup-header.offline {
+            background: linear-gradient(135deg, #6b7280 0%, #4b5563 100%);
+        }
+
+        .popup-bus-info {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .popup-bus-icon {
+            width: 32px;
+            height: 32px;
+            background: rgba(255, 255, 255, 0.2);
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 14px;
+            border: 1px solid rgba(255, 255, 255, 0.3);
+        }
+
+        .popup-bus-title {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .popup-bus-id {
+            font-size: 14px;
+            font-weight: 700;
+            letter-spacing: -0.3px;
+            line-height: 1.2;
+        }
+
+        .popup-bus-route {
+            font-size: 10px;
+            opacity: 0.9;
+            font-weight: 500;
+        }
+
+        .popup-status-badge {
+            padding: 3px 8px;
+            background: rgba(255, 255, 255, 0.25);
+            border-radius: 12px;
+            font-size: 9px;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            border: 1px solid rgba(255, 255, 255, 0.3);
+        }
+
+        .popup-body {
+            padding: 12px 14px;
+        }
+
+        .popup-info-row {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin-bottom: 8px;
+            font-size: 11px;
+        }
+
+        .popup-info-row:last-child {
+            margin-bottom: 0;
+        }
+
+        .popup-info-icon {
+            width: 24px;
+            height: 24px;
+            background: var(--bg-light);
+            border-radius: 6px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: var(--text-secondary);
+            font-size: 10px;
+            flex-shrink: 0;
+        }
+
+        .popup-info-content {
+            flex: 1;
+            min-width: 0;
+        }
+
+        .popup-info-label {
+            font-size: 9px;
+            color: var(--text-secondary);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            font-weight: 600;
+            margin-bottom: 1px;
+        }
+
+        .popup-info-value {
+            font-size: 11px;
+            font-weight: 600;
+            color: var(--text-primary);
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .popup-coordinates {
+            background: var(--bg-light);
+            padding: 6px 10px;
+            border-radius: 6px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin: 10px 0;
+        }
+
+        .popup-coords-text {
+            font-family: 'SF Mono', monospace;
+            font-size: 9px;
+            color: var(--text-secondary);
+            letter-spacing: 0.3px;
+        }
+
+        .popup-coords-copy {
+            background: white;
+            border: 1px solid var(--border-color);
+            padding: 3px 6px;
+            border-radius: 4px;
+            font-size: 9px;
+            color: var(--text-secondary);
+            cursor: pointer;
+            transition: all 0.2s;
+            display: flex;
+            align-items: center;
+            gap: 3px;
+        }
+
+        .popup-coords-copy:hover {
+            background: var(--primary-color);
+            color: white;
+            border-color: var(--primary-color);
+        }
+
+        .popup-footer {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding-top: 10px;
+            border-top: 1px solid var(--border-color);
+            margin-top: 8px;
+        }
+
+        .popup-timestamp {
+            font-size: 10px;
+            color: var(--text-secondary);
+            display: flex;
+            align-items: center;
+            gap: 4px;
+        }
+
+        .popup-timestamp i {
+            font-size: 8px;
+        }
+
+        .popup-actions {
+            display: flex;
+            gap: 6px;
+        }
+
+        .popup-btn {
+            padding: 5px 10px;
+            border-radius: 6px;
+            font-size: 10px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+            display: flex;
+            align-items: center;
+            gap: 4px;
+            border: none;
+        }
+
+        .popup-btn-primary {
+            background: var(--primary-color);
+            color: white;
+        }
+
+        .popup-btn-primary:hover {
+            background: #2563eb;
+        }
+
+        .popup-btn-icon {
+            width: 26px;
+            height: 26px;
+            padding: 0;
+            background: var(--bg-light);
+            color: var(--text-secondary);
+            border: 1px solid var(--border-color);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .popup-btn-icon:hover {
+            background: var(--border-color);
+            color: var(--text-primary);
+        }
+
+        @media (max-width: 768px) {
+            .custom-popup .leaflet-popup-content {
+                width: 200px !important;
+            }
+
+            .popup-close-btn {
+                top: -10px;
+                right: -10px;
+                width: 26px;
+                height: 26px;
+                font-size: 12px;
+            }
+        }
     </style>
+    <base target="_blank">
     <base target="_blank">
 </head>
 
@@ -1222,8 +1539,7 @@
     </div>
 
 
-    <!-- Add this BEFOR
-     E any other scripts -->
+    <!-- Add this BEFORE any other scripts -->
     <script src="js/logger.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
@@ -1732,10 +2048,11 @@
             marker.gpsStatus = gpsStatus;
             marker.busId = busId;
 
-            // Add popup
+            // Add popup with custom class
             marker.bindPopup(createBusPopup(busId, gpsStatus, gpsData), {
-                closeButton: true,
-                className: 'bus-popup'
+                closeButton: false,
+                className: 'custom-popup',
+                offset: [0, -10]
             });
 
             // Click event
@@ -1785,58 +2102,136 @@
             marker.gpsStatus = gpsStatus;
         }
 
+        // ==========================================
+        // MODERN POPUP CREATION - From child_tracking.html
+        // ==========================================
+
         function createBusPopup(busId, gpsStatus, gpsData) {
             const hoursSince = gpsData ? getHoursSince(gpsData.timestamp) : Infinity;
-            let statusConfig;
 
+            // Determine status configuration
+            let statusClass, statusText, statusIcon;
             if (hoursSince <= 0.5) {
-                statusConfig = { color: '#10b981', label: 'Live GPS', icon: 'fa-satellite-dish', class: 'live' };
+                statusClass = 'live';
+                statusText = 'Live';
+                statusIcon = 'fa-bolt';
             } else if (hoursSince <= INACTIVE_THRESHOLD_HOURS) {
-                statusConfig = { color: '#3b82f6', label: 'Last Seen', icon: 'fa-history', class: 'last-seen' };
+                statusClass = 'recent';
+                statusText = 'Recent';
+                statusIcon = 'fa-history';
             } else {
-                statusConfig = { color: '#9ca3af', label: 'Inactive', icon: 'fa-moon', class: 'inactive' };
+                statusClass = 'inactive';
+                statusText = 'Inactive';
+                statusIcon = 'fa-moon';
             }
 
             const lastUpdateText = gpsData ? formatLastUpdate(gpsData.timestamp) : 'Unknown';
             const hoursText = hoursSince !== Infinity ? `(${hoursSince.toFixed(1)}h ago)` : '';
 
+            // Get bus data from table data if available
+            const busInfo = allBusData.find(b => b.bus_id === busId) || {};
+            const driver = busInfo.driver || 'Unknown Driver';
+            const route = busInfo.route || 'Unknown Route';
+
             return `
-        <div class="bus-popup-content">
-            <div class="bus-popup-header" style="background: ${statusConfig.color}">
-                <i class="fas fa-bus"></i>
-                <span>${busId}</span>
-            </div>
-            <div class="bus-popup-body">
-                <div class="bus-popup-row">
-                    <span class="bus-popup-label">GPS Status:</span>
-                    <span class="gps-status-indicator ${statusConfig.class}">
-                        <i class="fas ${statusConfig.icon}"></i> ${statusConfig.label}
-                    </span>
+                <div class="bus-popup">
+                    <button class="popup-close-btn" onclick="window.closeBusPopup('${busId}')" title="Close">
+                        <i class="fas fa-times"></i>
+                    </button>
+                    
+                    <div class="popup-header ${statusClass}">
+                        <div class="popup-bus-info">
+                            <div class="popup-bus-icon">
+                                <i class="fas fa-bus"></i>
+                            </div>
+                            <div class="popup-bus-title">
+                                <div class="popup-bus-id">${busId}</div>
+                                <div class="popup-bus-route">${route}</div>
+                            </div>
+                        </div>
+                        <div class="popup-status-badge">${statusText}</div>
+                    </div>
+                    
+                    <div class="popup-body">
+                        <div class="popup-info-row">
+                            <div class="popup-info-icon">
+                                <i class="fas fa-user"></i>
+                            </div>
+                            <div class="popup-info-content">
+                                <div class="popup-info-label">Driver</div>
+                                <div class="popup-info-value">${driver}</div>
+                            </div>
+                        </div>
+
+                        <div class="popup-info-row">
+                            <div class="popup-info-icon">
+                                <i class="fas fa-tachometer-alt"></i>
+                            </div>
+                            <div class="popup-info-content">
+                                <div class="popup-info-label">Speed</div>
+                                <div class="popup-info-value">${gpsData && gpsData.speed > 0 ? gpsData.speed.toFixed(1) + ' km/h' : '0 km/h'}</div>
+                            </div>
+                        </div>
+
+                        <div class="popup-coordinates">
+                            <span class="popup-coords-text">${gpsData ? gpsData.lat.toFixed(6) + ', ' + gpsData.lng.toFixed(6) : 'Unknown'}</span>
+                            <button class="popup-coords-copy" onclick="navigator.clipboard.writeText('${gpsData ? gpsData.lat.toFixed(6) + ', ' + gpsData.lng.toFixed(6) : ''}'); this.innerHTML='<i class=\\'fas fa-check\\'></i>'; setTimeout(() => this.innerHTML='<i class=\\'fas fa-copy\\'></i>', 1500)">
+                                <i class="fas fa-copy"></i>
+                            </button>
+                        </div>
+
+                        <div class="popup-footer">
+                            <div class="popup-timestamp">
+                                <i class="fas fa-clock"></i>
+                                <span>${lastUpdateText} ${hoursText}</span>
+                            </div>
+                            <div class="popup-actions">
+                                <button class="popup-btn popup-btn-icon" onclick="window.followBus('${busId}')" title="Follow Bus">
+                                    <i class="fas fa-crosshairs"></i>
+                                </button>
+                                <button class="popup-btn popup-btn-primary" onclick="window.showBusDetails('${busId}')">
+                                    <i class="fas fa-info-circle"></i> Details
+                                </button>
+                            </div>
+                        </div>
+                    </div>
                 </div>
-                <div class="bus-popup-row">
-                    <span class="bus-popup-label">Last Update:</span>
-                    <span class="bus-popup-value">${lastUpdateText} ${hoursText}</span>
-                </div>
-                <div class="bus-popup-row">
-                    <span class="bus-popup-label">Speed:</span>
-                    <span class="bus-popup-value">${gpsData && gpsData.speed > 0 ? gpsData.speed.toFixed(1) + ' km/h' : '0 km/h'}</span>
-                </div>
-                <div class="bus-popup-row">
-                    <span class="bus-popup-label">Coordinates:</span>
-                    <span class="bus-popup-value" style="font-family: monospace; font-size: 11px;">
-                        ${gpsData ? gpsData.lat.toFixed(6) + ', ' + gpsData.lng.toFixed(6) : 'Unknown'}
-                    </span>
-                </div>
-                ${gpsData && gpsData.stats ? `
-                <div class="bus-popup-row">
-                    <span class="bus-popup-label">Stats:</span>
-                    <span class="bus-popup-value">${gpsData.stats}</span>
-                </div>
-                ` : ''}
-            </div>
-        </div>
-    `;
+            `;
         }
+
+        // ==========================================
+        // GLOBAL POPUP FUNCTIONS
+        // ==========================================
+
+        // Global function to close bus popup
+        window.closeBusPopup = function (busId) {
+            const marker = busMarkers[busId];
+            if (marker) {
+                marker.closePopup();
+            }
+        };
+
+        // Global function to follow bus
+        window.followBus = function (busId) {
+            window.followedBusId = busId;
+            const marker = busMarkers[busId];
+            if (marker && mapInstance) {
+                const latLng = marker.getLatLng();
+                mapInstance.flyTo([latLng.lat, latLng.lng], 18, {
+                    duration: 1.5
+                });
+            }
+            Object.values(busMarkers).forEach(m => m.closePopup());
+        };
+
+        // Global function to show bus details
+        window.showBusDetails = function (busId) {
+            const bus = allBusData.find(b => b.bus_id === busId);
+            if (bus) {
+                showToast(`Bus ${busId} - Driver: ${bus.driver}`, 'success');
+            }
+            window.closeBusPopup(busId);
+        };
 
         // ==========================================
         // MAIN DATA FETCHING (Updated with GPS)
@@ -2056,6 +2451,13 @@
                 emptyOverlay.style.bottom = '0';
                 emptyOverlay.style.zIndex = '400';
                 emptyOverlay.style.display = 'flex';
+                emptyOverlay.style.flexDirection = 'column';
+                emptyOverlay.style.alignItems = 'center';
+                emptyOverlay.style.justifyContent = 'center';
+                emptyOverlay.style.background = 'rgba(248, 250, 252, 0.95)';
+                emptyOverlay.style.color = '#64748b';
+                emptyOverlay.style.fontSize = '1rem';
+                emptyOverlay.style.gap = '0.75rem';
                 mapContainer.appendChild(emptyOverlay);
             } else {
                 emptyOverlay.style.display = 'flex';
@@ -2502,6 +2904,46 @@
         }
 
         // ==========================================
+        // TOAST NOTIFICATION
+        // ==========================================
+
+        function showToast(message, type = 'success') {
+            let toast = document.getElementById('childToast');
+            if (!toast) {
+                toast = document.createElement('div');
+                toast.id = 'childToast';
+                toast.style.cssText = `
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            padding: 1rem 1.5rem;
+            background: ${type === 'error' ? '#ef4444' : '#10b981'};
+            color: white;
+            border-radius: 0.5rem;
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+            z-index: 9999;
+            opacity: 0;
+            transform: translateY(20px);
+            transition: all 0.3s ease;
+            font-family: 'Inter', sans-serif;
+            font-size: 0.875rem;
+            font-weight: 500;
+        `;
+                document.body.appendChild(toast);
+            }
+
+            toast.textContent = message;
+            toast.style.background = type === 'error' ? '#ef4444' : '#10b981';
+            toast.style.opacity = '1';
+            toast.style.transform = 'translateY(0)';
+
+            setTimeout(() => {
+                toast.style.opacity = '0';
+                toast.style.transform = 'translateY(20px)';
+            }, 3000);
+        }
+
+        // ==========================================
         // DOM READY & INITIALIZATION
         // ==========================================
 
@@ -2562,7 +3004,7 @@
 
             // Expand map button
             document.getElementById('expandMap').addEventListener('click', () => {
-                window.parent.location.href = 'index.html#live-tracking';
+                window.parent.location.href = 'dashboard.html#live-tracking';
             });
         });
 
@@ -2697,42 +3139,6 @@
                     });
                 });
             }
-        }
-
-        function showToast(message, type = 'success') {
-            let toast = document.getElementById('childToast');
-            if (!toast) {
-                toast = document.createElement('div');
-                toast.id = 'childToast';
-                toast.style.cssText = `
-            position: fixed;
-            bottom: 20px;
-            right: 20px;
-            padding: 1rem 1.5rem;
-            background: ${type === 'error' ? '#ef4444' : '#10b981'};
-            color: white;
-            border-radius: 0.5rem;
-            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
-            z-index: 9999;
-            opacity: 0;
-            transform: translateY(20px);
-            transition: all 0.3s ease;
-            font-family: 'Inter', sans-serif;
-            font-size: 0.875rem;
-            font-weight: 500;
-        `;
-                document.body.appendChild(toast);
-            }
-
-            toast.textContent = message;
-            toast.style.background = type === 'error' ? '#ef4444' : '#10b981';
-            toast.style.opacity = '1';
-            toast.style.transform = 'translateY(0)';
-
-            setTimeout(() => {
-                toast.style.opacity = '0';
-                toast.style.transform = 'translateY(20px)';
-            }, 3000);
         }
 
         (function notifyParent() {

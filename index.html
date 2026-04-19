@@ -5,9 +5,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Login - BIYAHE Bus Management System</title>
-    <!-- FontAwesome Icons -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <!-- Google Fonts: Inter -->
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <style>
         * {
@@ -27,22 +25,16 @@
             color: #1f2937;
         }
 
-        /* Centered Top Alert */
         #alertContainer {
             position: fixed;
-            /* fixed on the viewport */
             top: 1rem;
-            /* distance from top */
             left: 50%;
-            /* center horizontally */
             transform: translateX(-50%);
             z-index: 9999;
-            /* above everything */
             width: auto;
             max-width: 90%;
         }
 
-        /* Main Container */
         .main-container {
             width: 100%;
             max-width: 1500px;
@@ -110,7 +102,6 @@
             font-size: 1rem;
         }
 
-        /* Form Grid Layout - Matching Register */
         .form-grid {
             display: flex;
             flex-direction: column;
@@ -163,7 +154,6 @@
             color: #9ca3af;
         }
 
-        /* Password Field - Matching Register */
         .password-wrapper {
             position: relative;
             height: 48px;
@@ -197,7 +187,6 @@
             color: #6b7280;
         }
 
-        /* Options Row - Styled to match register spacing */
         .form-options {
             display: flex;
             justify-content: space-between;
@@ -231,10 +220,8 @@
 
         .forgot-link:hover {
             color: #1f2937;
-
         }
 
-        /* Submit Button - Matching Register */
         .btn-submit {
             width: 100%;
             height: 48px;
@@ -261,8 +248,6 @@
             transform: translateY(0);
         }
 
-
-        /* Right Column (Image) */
         .auth-image-section {
             width: 55%;
             padding: 0 10px 0 0;
@@ -285,7 +270,6 @@
             opacity: 0.9;
         }
 
-        /* Floating Cards */
         .floating-card {
             position: absolute;
             border-radius: 1rem;
@@ -432,14 +416,9 @@
             height: 3rem;
             width: 100%;
             opacity: 0.3;
-            background: repeating-linear-gradient(45deg,
-                    transparent,
-                    transparent 5px,
-                    white 5px,
-                    white 6px);
+            background: repeating-linear-gradient(45deg, transparent, transparent 5px, white 5px, white 6px);
         }
 
-        /* Alerts */
         .alert {
             padding: 1rem 1.25rem;
             border-radius: 1rem;
@@ -475,7 +454,6 @@
             color: #dc2626;
         }
 
-        /* Loading State */
         .btn-loading {
             position: relative;
             color: transparent !important;
@@ -501,7 +479,6 @@
             }
         }
 
-        /* Responsive */
         @media (max-width: 1024px) {
             .card-wrapper {
                 flex-direction: column;
@@ -560,9 +537,7 @@
                 <div>
                     <div class="brand-badge">
                         <img src="images/bus-logo.png" alt="Biyahe Logo" class="brand-logo">
-                        <div class="brand-text">
-                            BiyahE
-                        </div>
+                        <div class="brand-text">BiyahE</div>
                     </div>
 
                     <div class="form-header">
@@ -603,8 +578,6 @@
                         <button type="submit" class="btn-submit">Sign In</button>
                     </form>
                 </div>
-
-
             </section>
 
             <!-- Right Side - Image -->
@@ -654,19 +627,42 @@
         </div>
     </div>
 
-
-    <!-- Add this BEFORE any other scripts -->
     <script src="js/logger.js"></script>
-    <!-- Load Supabase FIRST -->
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-    <!-- Load bcryptjs -->
     <script src="https://cdn.jsdelivr.net/npm/bcryptjs@2.4.3/dist/bcrypt.min.js"></script>
-
-    <!-- Load auth.js AFTER libraries -->
     <script src="js/auth.js"></script>
 
     <script>
-        // Password toggle functionality - Matching Register
+        // ============================================
+        // HISTORY LOCK — runs immediately, before DOMContentLoaded
+        // ============================================
+
+        // Step 1: Blast the history stack with two identical sentinel entries.
+        //   Entry A (index 0) — replaced below with replaceState
+        //   Entry B (index 1) — pushed now
+        //
+        // The browser's back/forward buttons only become active when there are
+        // at least 2 distinct entries. By controlling both entries we can
+        // intercept every popstate and push the user back to index 1 every time.
+
+        // Replace whatever is currently at position 0 with a sentinel
+        history.replaceState({ loginSentinel: true, idx: 0 }, '', window.location.href);
+
+        // Push a second sentinel at position 1 — this is where we always live
+        history.pushState({ loginSentinel: true, idx: 1 }, '', window.location.href);
+
+        // Now intercept every popstate (back OR forward).
+        // Because we are always at idx=1, pressing back lands on idx=0 and
+        // pressing forward tries to go past idx=1. Either way we push back to idx=1.
+        window.addEventListener('popstate', function (e) {
+            // Push a fresh sentinel so we are always one step ahead of anything
+            // the browser tries to navigate to.
+            history.go(1);
+        });
+
+        // ============================================
+        // PASSWORD TOGGLE
+        // ============================================
         function setupPasswordToggle(inputId, toggleId, iconId) {
             const passwordInput = document.getElementById(inputId);
             const passwordToggle = document.getElementById(toggleId);
@@ -675,7 +671,6 @@
             passwordToggle.addEventListener('click', function () {
                 const type = passwordInput.getAttribute('type') === 'password' ? 'text' : 'password';
                 passwordInput.setAttribute('type', type);
-
                 if (type === 'text') {
                     toggleIcon.classList.remove('fa-eye');
                     toggleIcon.classList.add('fa-eye-slash');
@@ -688,16 +683,15 @@
 
         setupPasswordToggle('password', 'passwordToggle', 'toggleIcon');
 
-        // Simple encryption for storing password locally (basic obfuscation)
-        function simpleEncrypt(text) {
-            return btoa(text.split('').reverse().join(''));
-        }
+        // ============================================
+        // SIMPLE CREDENTIAL ENCRYPTION (obfuscation only)
+        // ============================================
+        function simpleEncrypt(text) { return btoa(text.split('').reverse().join('')); }
+        function simpleDecrypt(text) { return atob(text).split('').reverse().join(''); }
 
-        function simpleDecrypt(text) {
-            return atob(text).split('').reverse().join('');
-        }
-
-        // Login form handler
+        // ============================================
+        // LOGIN FORM
+        // ============================================
         document.getElementById('loginForm').addEventListener('submit', async function (e) {
             e.preventDefault();
 
@@ -726,8 +720,8 @@
                     }
 
                     setTimeout(() => {
-                        // Use replace() instead of href to remove login page from history
-                        // Redirect to dashboard.html - the dashboard will handle role-based routing
+                        // replace() wipes this page from history entirely so
+                        // back from dashboard can never return here.
                         window.location.replace('dashboard.html');
                     }, 800);
                 } else {
@@ -742,26 +736,27 @@
             }
         });
 
-        // Show alert function
+        // ============================================
+        // ALERT HELPER
+        // ============================================
         function showAlert(message, type) {
             const container = document.getElementById('alertContainer');
             container.innerHTML = `
-                    <div class="alert alert-${type}">
-                        <i class="fas fa-${type === 'success' ? 'check-circle' : 'exclamation-circle'}"></i>
-                        <span>${message}</span>
-                    </div>
-                `;
-
+                <div class="alert alert-${type}">
+                    <i class="fas fa-${type === 'success' ? 'check-circle' : 'exclamation-circle'}"></i>
+                    <span>${message}</span>
+                </div>
+            `;
             if (type === 'error') {
-                setTimeout(() => {
-                    container.innerHTML = '';
-                }, 5000);
+                setTimeout(() => { container.innerHTML = ''; }, 5000);
             }
         }
 
-        // Check for remembered credentials on page load
+        // ============================================
+        // INIT — restore remembered credentials
+        // ============================================
         document.addEventListener('DOMContentLoaded', function () {
-            // If already logged in, redirect immediately without adding to history
+            // If already logged in, skip the login page entirely
             if (typeof Auth !== 'undefined' && Auth.isLoggedIn && Auth.isLoggedIn()) {
                 window.location.replace('dashboard.html');
                 return;
@@ -778,8 +773,7 @@
             if (rememberMeChecked === 'true' && rememberedPassword) {
                 document.getElementById('rememberMe').checked = true;
                 try {
-                    const decryptedPassword = simpleDecrypt(rememberedPassword);
-                    document.getElementById('password').value = decryptedPassword;
+                    document.getElementById('password').value = simpleDecrypt(rememberedPassword);
                 } catch (e) {
                     console.error('Failed to decrypt password');
                     localStorage.removeItem('rememberedPassword');

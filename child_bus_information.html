@@ -1104,6 +1104,7 @@
     </style>
     <base target="_blank">
     <base target="_blank">
+    <base target="_blank">
 </head>
 
 <body>
@@ -1214,12 +1215,6 @@
                             required>
                     </div>
 
-                    <!-- ADDED: IP Address field -->
-                    <div class="form-group">
-                        <label class="form-label">IP Address</label>
-                        <input type="text" class="form-input" id="busIpAd" placeholder="e.g., 192.168.1.100">
-                    </div>
-
                     <div class="form-row">
                         <div class="form-group">
                             <label class="form-label">Capacity *</label>
@@ -1244,24 +1239,6 @@
                             <input type="number" class="form-input" id="busMaxCap" placeholder="Auto-calculated" min="1"
                                 readonly>
                         </div>
-                    </div>
-
-                    <!-- ADDED: Departure and Arrival fields -->
-                    <div class="form-row">
-                        <div class="form-group">
-                            <label class="form-label">Departure Time *</label>
-                            <input type="time" class="form-input" id="busDeparture" required>
-                        </div>
-                        <div class="form-group">
-                            <label class="form-label">Arrival Time *</label>
-                            <input type="time" class="form-input" id="busArrival" required>
-                        </div>
-                    </div>
-
-                    <!-- ADDED: Frequency field -->
-                    <div class="form-group">
-                        <label class="form-label">Frequency</label>
-                        <input type="text" class="form-input" id="busFrequency" placeholder="e.g., Every 30 mins">
                     </div>
 
                     <div class="form-row">
@@ -1594,15 +1571,22 @@
                 });
         }
 
+        // ==========================================
+        // FIXED: handleRealtimeUpdate - prevents duplicate rows
+        // ==========================================
         function handleRealtimeUpdate(payload) {
             const { eventType, new: newRecord, old: oldRecord } = payload;
 
             switch (eventType) {
                 case 'INSERT':
-                    busData.push(newRecord);
-                    // Add new driver to assigned set
-                    if (newRecord.driver) {
-                        assignedDrivers.add(newRecord.driver.trim().toLowerCase());
+                    // FIX: Check if bus already exists to prevent duplicates
+                    const exists = busData.some(b => b.bus_id === newRecord.bus_id);
+                    if (!exists) {
+                        busData.push(newRecord);
+                        // Add new driver to assigned set
+                        if (newRecord.driver) {
+                            assignedDrivers.add(newRecord.driver.trim().toLowerCase());
+                        }
                     }
                     break;
 
@@ -1940,36 +1924,6 @@
                             <span>₱${bus.minimum_fare || '0.00'}</span>
                         </div>
                     </div>
-
-                    <div class="view-detail-card">
-                        <div class="view-detail-icon time">
-                            <i class="fas fa-clock"></i>
-                        </div>
-                        <div class="view-detail-content">
-                            <label>Schedule</label>
-                            <span>${bus.departure || '--:--'} - ${bus.arrival || '--:--'}</span>
-                        </div>
-                    </div>
-
-                    <div class="view-detail-card">
-                        <div class="view-detail-icon frequency">
-                            <i class="fas fa-redo"></i>
-                        </div>
-                        <div class="view-detail-content">
-                            <label>Frequency</label>
-                            <span>${bus.frequency || 'Not set'}</span>
-                        </div>
-                    </div>
-
-                    <div class="view-detail-card full-width">
-                        <div class="view-detail-icon ip">
-                            <i class="fas fa-network-wired"></i>
-                        </div>
-                        <div class="view-detail-content">
-                            <label>IP Address</label>
-                            <span>${bus.ip_ad || 'Not configured'}</span>
-                        </div>
-                    </div>
                 </div>
 
                 <div class="view-info-section">
@@ -2050,22 +2004,17 @@
                 bus_id: document.getElementById('busId').value.trim(),
                 driver: document.getElementById('busDriver').value.trim(),
                 route: document.getElementById('busRoute').value.trim(),
-                ip_ad: document.getElementById('busIpAd').value.trim() || null,
                 capacity: parseInt(document.getElementById('busCapacity').value) || 0,
                 minimum_fare: parseFloat(document.getElementById('busMinFare').value) || 0,
                 standing: parseInt(document.getElementById('busStanding').value) || 0,
                 maximum_capacity: parseInt(document.getElementById('busMaxCap').value) || parseInt(document.getElementById('busCapacity').value) || 0,
                 status: document.getElementById('busStatus').value,
-                departure: document.getElementById('busDeparture').value,
-                arrival: document.getElementById('busArrival').value,
-                frequency: document.getElementById('busFrequency').value.trim() || null,
                 updated_by: user.email || 'unknown'
             };
 
             // Validate required fields
             if (!busDataUpdate.bus_id || !busDataUpdate.driver || !busDataUpdate.route ||
-                !busDataUpdate.capacity || !busDataUpdate.minimum_fare ||
-                !busDataUpdate.departure || !busDataUpdate.arrival) {
+                !busDataUpdate.capacity || !busDataUpdate.minimum_fare) {
                 showToast('Please fill in all required fields', 'error');
                 return;
             }
@@ -2107,7 +2056,7 @@
 
                 showToast(editId ? 'Bus updated successfully!' : 'Bus added successfully!', 'success');
                 closeModal('busModal');
-                await loadBusData(false);
+                // FIX: Removed loadBusData() call - real-time subscription handles the update
 
             } catch (error) {
                 console.error('Save error:', error);
@@ -2141,17 +2090,12 @@
             document.getElementById('busId').disabled = true;
             document.getElementById('busDriver').value = bus.driver ?? '';
             document.getElementById('busRoute').value = bus.route ?? '';
-            document.getElementById('busIpAd').value = bus.ip_ad ?? '';
             document.getElementById('busCapacity').value = bus.capacity ?? '';
             document.getElementById('busMinFare').value = bus.minimum_fare ?? '';
             document.getElementById('busStanding').value = bus.standing ?? '';
 
             // Calculate and set max capacity
             calculateMaxCapacity();
-
-            document.getElementById('busDeparture').value = bus.departure ?? '';
-            document.getElementById('busArrival').value = bus.arrival ?? '';
-            document.getElementById('busFrequency').value = bus.frequency ?? '';
 
             // Enable status select for Edit mode
             const statusSelect = document.getElementById('busStatus');
@@ -2280,8 +2224,7 @@
             const filename = window.location.pathname.split('/').pop();
             const pageMap = {
                 'child_dashboard.html': 'dashboard',
-                'child_tracking.html': 'live-tracking',
-                'child_analytics.html': 'analytics',
+                'child_tracking.html': 'live-tracking', 'child_analytics.html': 'analytics',
                 'child_feedback.html': 'feedback',
                 'child_bus_information.html': 'bus-info',
                 'child_bus_schedule.html': 'schedule',

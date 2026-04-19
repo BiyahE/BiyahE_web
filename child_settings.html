@@ -45,7 +45,6 @@
             overflow: hidden;
         }
 
-        /* Main Container */
         .profile-container {
             width: 100%;
             height: 100vh;
@@ -54,7 +53,6 @@
             padding: 1rem;
         }
 
-        /* Card */
         .card {
             background: var(--white);
             border-radius: var(--radius-md);
@@ -118,7 +116,6 @@
             overflow-y: auto;
         }
 
-        /* Profile Layout */
         .profile-layout {
             display: grid;
             grid-template-columns: 280px 1fr;
@@ -126,7 +123,6 @@
             height: 100%;
         }
 
-        /* Sidebar Info */
         .profile-sidebar {
             display: flex;
             flex-direction: column;
@@ -202,7 +198,6 @@
             font-weight: 500;
         }
 
-        /* Info List */
         .info-list {
             background: var(--bg-light);
             border: 1px solid var(--border-color);
@@ -280,7 +275,6 @@
             border: 1px solid rgba(239, 68, 68, 0.2);
         }
 
-        /* Main Content */
         .profile-main {
             display: flex;
             flex-direction: column;
@@ -301,7 +295,6 @@
             color: var(--primary-color);
         }
 
-        /* Form */
         .form-grid {
             display: grid;
             grid-template-columns: repeat(2, 1fr);
@@ -362,7 +355,6 @@
             font-size: 0.875rem;
         }
 
-        /* Buttons */
         .form-actions {
             display: flex;
             gap: 0.625rem;
@@ -397,6 +389,13 @@
             box-shadow: 0 6px 12px rgba(59, 130, 246, 0.3);
         }
 
+        /* Save button loading state */
+        .btn-primary.saving {
+            opacity: 0.75;
+            cursor: not-allowed;
+            pointer-events: none;
+        }
+
         .btn-secondary {
             background: var(--bg-light);
             color: var(--text-secondary);
@@ -420,7 +419,6 @@
             box-shadow: 0 6px 12px rgba(239, 68, 68, 0.3);
         }
 
-        /* Modal Styles */
         .modal-overlay {
             position: fixed;
             inset: 0;
@@ -497,7 +495,6 @@
             justify-content: center;
         }
 
-        /* Toast */
         .toast {
             position: fixed;
             bottom: 1rem;
@@ -511,6 +508,9 @@
             z-index: 2000;
             transform: translateX(150%);
             transition: transform 0.3s ease;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
         }
 
         .toast.show {
@@ -525,7 +525,6 @@
             background: #ef4444;
         }
 
-        /* Responsive */
         @media (max-width: 768px) {
             .profile-layout {
                 grid-template-columns: 1fr;
@@ -545,7 +544,6 @@
             }
         }
 
-        /* Scrollbar */
         .card-body::-webkit-scrollbar {
             width: 6px;
         }
@@ -584,7 +582,6 @@
                 <div class="profile-layout">
                     <!-- Sidebar -->
                     <div class="profile-sidebar">
-                        <!-- Avatar Section -->
                         <div class="avatar-section">
                             <div class="avatar" id="avatarPreview"
                                 onclick="document.getElementById('avatarInput').click()">
@@ -600,39 +597,30 @@
                             <div class="user-role" id="settingsRole">Loading...</div>
                         </div>
 
-                        <!-- Info List -->
                         <div class="info-list">
                             <div class="info-item">
-                                <div class="info-icon-small">
-                                    <i class="fas fa-hashtag"></i>
-                                </div>
+                                <div class="info-icon-small"><i class="fas fa-hashtag"></i></div>
                                 <div class="info-content">
                                     <div class="info-label">Staff ID</div>
                                     <div class="info-value" id="displayStaffId">—</div>
                                 </div>
                             </div>
                             <div class="info-item">
-                                <div class="info-icon-small">
-                                    <i class="fas fa-user-tag"></i>
-                                </div>
+                                <div class="info-icon-small"><i class="fas fa-user-tag"></i></div>
                                 <div class="info-content">
                                     <div class="info-label">Role</div>
                                     <div class="info-value" id="displayRole">—</div>
                                 </div>
                             </div>
                             <div class="info-item">
-                                <div class="info-icon-small">
-                                    <i class="fas fa-envelope"></i>
-                                </div>
+                                <div class="info-icon-small"><i class="fas fa-envelope"></i></div>
                                 <div class="info-content">
                                     <div class="info-label">Email</div>
                                     <div class="info-value" id="displayEmail" style="font-size: 0.75rem;">—</div>
                                 </div>
                             </div>
                             <div class="info-item">
-                                <div class="info-icon-small">
-                                    <i class="fas fa-circle"></i>
-                                </div>
+                                <div class="info-icon-small"><i class="fas fa-circle"></i></div>
                                 <div class="info-content">
                                     <div class="info-label">Status</div>
                                     <div id="displayStatus">—</div>
@@ -674,7 +662,7 @@
                         </div>
 
                         <div class="form-actions">
-                            <button class="btn btn-primary" onclick="saveProfile()">
+                            <button class="btn btn-primary" id="saveBtn" onclick="saveProfile()">
                                 <i class="fas fa-save"></i> Save Changes
                             </button>
                             <button class="btn btn-secondary" onclick="showResetModal()">
@@ -752,9 +740,9 @@
 
         function showToast(msg, type = 'success') {
             const t = document.getElementById('toast');
-            t.textContent = msg;
+            t.innerHTML = `<i class="fas fa-${type === 'success' ? 'check-circle' : 'exclamation-circle'}"></i> ${msg}`;
             t.className = 'toast ' + type + ' show';
-            setTimeout(() => t.classList.remove('show'), 3000);
+            setTimeout(() => t.classList.remove('show'), 3500);
         }
 
         // =====================================================
@@ -774,18 +762,12 @@
             showToast('Changes discarded');
         }
 
-        // Close modal when clicking outside
         document.addEventListener('click', function (e) {
-            if (e.target.classList.contains('modal-overlay')) {
-                hideResetModal();
-            }
+            if (e.target.classList.contains('modal-overlay')) hideResetModal();
         });
 
-        // Close modal on Escape key
         document.addEventListener('keydown', function (e) {
-            if (e.key === 'Escape') {
-                hideResetModal();
-            }
+            if (e.key === 'Escape') hideResetModal();
         });
 
         // =====================================================
@@ -805,9 +787,7 @@
 
             const plainPw = localStorage.getItem('_sp');
             if (plainPw) {
-                try {
-                    await getSB().auth.signInWithPassword({ email, password: plainPw });
-                } catch (e) { }
+                try { await getSB().auth.signInWithPassword({ email, password: plainPw }); } catch (e) { }
             }
 
             const { data, error } = await getSB()
@@ -826,7 +806,6 @@
 
             const merged = { ...JSON.parse(localStorage.getItem('currentUser') || '{}'), ...data };
             localStorage.setItem('currentUser', JSON.stringify(merged));
-
             populateUI(data);
         }
 
@@ -860,6 +839,8 @@
 
         // =====================================================
         // SAVE PROFILE
+        // ✅ Posts profile-updated to parent dashboard after save
+        //    so the header name, initials, and greeting update instantly.
         // =====================================================
         async function saveProfile() {
             const firstName = document.getElementById('firstName').value.trim();
@@ -871,13 +852,29 @@
                 return;
             }
 
+            // Show loading state on button
+            const saveBtn = document.getElementById('saveBtn');
+            if (saveBtn) {
+                saveBtn.classList.add('saving');
+                saveBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Saving…';
+            }
+
             const fullname = [firstName, lastName].filter(Boolean).join(' ');
             const currentUser = JSON.parse(localStorage.getItem('currentUser') || '{}');
 
-            const { error } = await getSB()
+            // Update Supabase and return the latest role from the DB
+            const { data, error } = await getSB()
                 .from('Staff_Account')
                 .update({ fullname, email, updated_at: new Date().toISOString() })
-                .eq('id', currentUser.id);
+                .eq('id', currentUser.id)
+                .select('role')
+                .single();
+
+            // Restore button regardless of outcome
+            if (saveBtn) {
+                saveBtn.classList.remove('saving');
+                saveBtn.innerHTML = '<i class="fas fa-save"></i> Save Changes';
+            }
 
             if (error) {
                 console.error(error);
@@ -885,19 +882,37 @@
                 return;
             }
 
+            // Pull the freshest role — prefer DB value, fall back to cached
+            const freshRole = (data && data.role) ? data.role : (currentUser.role || '');
+
+            // Update localStorage
             currentUser.fullname = fullname;
             currentUser.email = email;
+            if (freshRole) currentUser.role = freshRole;
             localStorage.setItem('currentUser', JSON.stringify(currentUser));
 
+            // Save optional fields
             localStorage.setItem('biyaheProfile', JSON.stringify({
                 phone: document.getElementById('phone').value
             }));
 
+            // Update this page's sidebar UI immediately
             document.getElementById('settingsUserName').textContent = fullname;
             document.getElementById('avatarInitials').textContent = getInitials(fullname);
             document.getElementById('displayEmail').textContent = email;
 
-            showToast('Profile updated successfully');
+            // ✅ Notify the parent dashboard to update the header right now
+            // dashboard.html listens for { type: 'profile-updated' } and calls refreshProfileUI()
+            if (window.parent !== window) {
+                window.parent.postMessage({
+                    type: 'profile-updated',
+                    fullname: fullname,
+                    role: freshRole,
+                    email: email
+                }, '*');
+            }
+
+            showToast('Profile updated successfully!');
         }
 
         // =====================================================
@@ -924,6 +939,7 @@
             await loadUserData();
         });
 
+        // Notify parent dashboard which page is currently loaded (nav sync)
         (function notifyParent() {
             const filename = window.location.pathname.split('/').pop();
             const pageMap = {
@@ -943,10 +959,7 @@
 
             const pageName = pageMap[filename];
             if (pageName && window.parent !== window) {
-                window.parent.postMessage({
-                    type: 'pageLoaded',
-                    page: pageName
-                }, '*');
+                window.parent.postMessage({ type: 'pageLoaded', page: pageName }, '*');
             }
         })();
     </script>

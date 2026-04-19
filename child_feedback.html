@@ -969,28 +969,29 @@
         }
 
         .toast {
-            position: fixed;
-            bottom: 1.5rem;
-            right: 1.5rem;
             padding: 1rem 1.5rem;
             background: var(--text-primary);
             color: white;
             border-radius: var(--radius-md);
             box-shadow: var(--shadow-lg);
-            z-index: 9999;
-            opacity: 0;
-            transform: translateY(20px);
-            transition: all 0.3s ease;
             font-size: 0.875rem;
             font-weight: 500;
             display: flex;
             align-items: center;
             gap: 0.625rem;
+            animation: slideIn 0.3s ease;
         }
 
-        .toast.show {
-            opacity: 1;
-            transform: translateY(0);
+        @keyframes slideIn {
+            from {
+                opacity: 0;
+                transform: translateX(100%);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateX(0);
+            }
         }
 
         .toast.success {
@@ -1023,6 +1024,7 @@
             animation: highlightNew 2s ease-out, fadeInUp 0.4s cubic-bezier(0.4, 0, 0.2, 1) backwards;
         }
     </style>
+    <base target="_blank">
 </head>
 
 <body>
@@ -1134,6 +1136,10 @@
         </div>
     </div>
 
+    <!-- Toast Container - FIXED: Added this missing element -->
+    <div id="toastContainer"
+        style="position: fixed; bottom: 1.5rem; right: 1.5rem; z-index: 9999; display: flex; flex-direction: column; gap: 0.5rem;">
+    </div>
 
     <!-- Add this BEFORE any other scripts -->
     <script src="js/logger.js"></script>
@@ -1148,6 +1154,26 @@
         let reconnectAttempts = 0;
         const MAX_RECONNECT_ATTEMPTS = 5;
         let debugMode = false;
+        let isReconnecting = false; // NEW: Prevent race conditions
+
+        // ==========================================
+        // ROLE CHECK HELPERS - ADDED FOR ADMIN REPLY HIDING
+        // ==========================================
+
+        // Helper function to check if current user is admin
+        function isAdminRole() {
+            // Also read from localStorage so it works before postMessage fires
+            const storedUser = localStorage.getItem('currentUser');
+            const storedRole = storedUser ? JSON.parse(storedUser).role : null;
+            const role = currentRole || currentUserRole || storedRole || 'staff';
+            return role === 'admin';
+        }
+
+        // Helper function to check if user can reply to feedback
+        function canReplyToFeedback() {
+            // Admin cannot reply, all other roles can
+            return !isAdminRole();
+        }
 
         function getSupabaseClient() {
             return window.supabaseClient || window.supabase || null;
@@ -1161,17 +1187,22 @@
 
             if (debugMode) {
                 const panel = document.getElementById('debugPanel');
-                const line = document.createElement('div');
-                line.className = `debug-line ${type}`;
-                line.textContent = fullMessage;
-                panel.appendChild(line);
-                panel.scrollTop = panel.scrollHeight;
+                if (panel) {
+                    const line = document.createElement('div');
+                    line.className = `debug-line ${type}`;
+                    line.textContent = fullMessage;
+                    panel.appendChild(line);
+                    panel.scrollTop = panel.scrollHeight;
+                }
             }
         }
 
         function toggleDebug() {
             debugMode = !debugMode;
-            document.getElementById('debugPanel').classList.toggle('show', debugMode);
+            const panel = document.getElementById('debugPanel');
+            if (panel) {
+                panel.classList.toggle('show', debugMode);
+            }
             debugLog('Debug mode ' + (debugMode ? 'enabled' : 'disabled'), 'info');
         }
 
@@ -1186,7 +1217,19 @@
 
             // Setup realtime subscription after initial load
             setupRealtimeSubscription();
+
+            // NEW: Handle visibility change to reconnect when user returns to tab
+            document.addEventListener('visibilitychange', handleVisibilityChange);
         });
+
+        // NEW: Handle tab visibility changes
+        function handleVisibilityChange() {
+            if (document.visibilityState === 'visible' && !isRealtimeConnected && !isReconnecting) {
+                debugLog('Tab became visible, reconnecting realtime...', 'info');
+                reconnectAttempts = 0;
+                setupRealtimeSubscription();
+            }
+        }
 
         async function waitForSupabase() {
             let attempts = 0;
@@ -1204,7 +1247,7 @@
             }
         }
 
-        // Setup Supabase Realtime subscription with comprehensive debugging
+        // FIXED: Setup Supabase Realtime subscription with proper callback handling
         function setupRealtimeSubscription() {
             const client = getSupabaseClient();
             if (!client) {
@@ -1213,10 +1256,29 @@
                 return;
             }
 
-            // Remove existing channel if any
+            // Prevent multiple simultaneous connection attempts
+            if (isReconnecting) {
+                debugLog('Reconnection already in progress, skipping...', 'info');
+                return;
+            }
+
+            // If already connected, don't recreate
+            if (isRealtimeConnected && realtimeChannel) {
+                debugLog('Already connected, skipping setup', 'info');
+                return;
+            }
+
+            isReconnecting = true;
+
+            // Remove existing channel only if it exists
             if (realtimeChannel) {
                 debugLog('Removing existing channel before creating new one', 'info');
-                client.removeChannel(realtimeChannel);
+                try {
+                    client.removeChannel(realtimeChannel);
+                } catch (e) {
+                    debugLog('Error removing channel: ' + e.message, 'error');
+                }
+                realtimeChannel = null;
             }
 
             try {
@@ -1226,69 +1288,85 @@
                 const channelName = 'feedback-changes-' + Date.now();
                 debugLog(`Channel name: ${channelName}`, 'info');
 
-                realtimeChannel = client
-                    .channel(channelName)
-                    .on(
-                        'postgres_changes',
-                        {
-                            event: '*', // Listen to all events (INSERT, UPDATE, DELETE)
-                            schema: 'public',
-                            table: 'Feedback'
-                        },
-                        (payload) => {
-                            debugLog(`Realtime event received: ${payload.eventType}`, 'success');
-                            debugLog(`Payload: ${JSON.stringify(payload)}`, 'info');
-                            handleRealtimeChange(payload);
+                // FIXED: Create channel first, then attach listeners separately
+                realtimeChannel = client.channel(channelName);
+
+                // FIXED: Attach postgres_changes listener with proper callback
+                realtimeChannel.on(
+                    'postgres_changes',
+                    {
+                        event: '*',
+                        schema: 'public',
+                        table: 'Feedback'
+                    },
+                    function (payload) {  // Use regular function instead of arrow function
+                        debugLog(`Realtime event received: ${payload.eventType}`, 'success');
+                        debugLog(`Payload: ${JSON.stringify(payload)}`, 'info');
+                        handleRealtimeChange(payload);
+                    }
+                );
+
+                // FIXED: Subscribe with proper callback handling
+                realtimeChannel.subscribe(function (status, err) {
+                    debugLog(`Subscription status: ${status}`, status === 'SUBSCRIBED' ? 'success' : 'info');
+
+                    if (err) {
+                        debugLog(`Subscription error: ${JSON.stringify(err)}`, 'error');
+                    }
+
+                    if (status === 'SUBSCRIBED') {
+                        isRealtimeConnected = true;
+                        reconnectAttempts = 0;
+                        isReconnecting = false;
+                        updateRealtimeStatus('connected');
+                        debugLog('Successfully subscribed to Feedback changes', 'success');
+                    } else if (status === 'CLOSED' || status === 'CHANNEL_ERROR') {
+                        isRealtimeConnected = false;
+                        updateRealtimeStatus('disconnected');
+                        debugLog(`Channel closed or error: ${status}`, 'error');
+
+                        // Auto-reconnect with exponential backoff
+                        if (reconnectAttempts < MAX_RECONNECT_ATTEMPTS && !isReconnecting) {
+                            reconnectAttempts++;
+                            const delay = Math.min(1000 * Math.pow(2, reconnectAttempts), 30000);
+                            debugLog(`Reconnecting in ${delay / 1000}s (attempt ${reconnectAttempts}/${MAX_RECONNECT_ATTEMPTS})`, 'info');
+                            showToast(`Realtime disconnected. Reconnecting in ${delay / 1000}s...`, 'error');
+                            setTimeout(function () {
+                                isReconnecting = false;
+                                setupRealtimeSubscription();
+                            }, delay);
+                        } else if (reconnectAttempts >= MAX_RECONNECT_ATTEMPTS) {
+                            isReconnecting = false;
+                            showToast('Realtime connection failed. Click status to retry.', 'error');
                         }
-                    )
-                    .subscribe((status, err) => {
-                        debugLog(`Subscription status: ${status}`, status === 'SUBSCRIBED' ? 'success' : 'info');
-                        if (err) {
-                            debugLog(`Subscription error: ${JSON.stringify(err)}`, 'error');
+                    } else if (status === 'TIMED_OUT') {
+                        isRealtimeConnected = false;
+                        updateRealtimeStatus('disconnected');
+                        debugLog('Connection timed out', 'error');
+
+                        // Attempt reconnection on timeout
+                        if (!isReconnecting && reconnectAttempts < MAX_RECONNECT_ATTEMPTS) {
+                            reconnectAttempts++;
+                            const delay = 5000;
+                            debugLog(`Reconnecting after timeout in ${delay / 1000}s...`, 'info');
+                            setTimeout(function () {
+                                isReconnecting = false;
+                                setupRealtimeSubscription();
+                            }, delay);
                         }
-
-                        if (status === 'SUBSCRIBED') {
-                            isRealtimeConnected = true;
-                            reconnectAttempts = 0;
-                            updateRealtimeStatus('connected');
-
-                            debugLog('Successfully subscribed to Feedback changes', 'success');
-                        } else if (status === 'CLOSED' || status === 'CHANNEL_ERROR') {
-                            isRealtimeConnected = false;
-                            updateRealtimeStatus('disconnected');
-                            debugLog(`Channel closed or error: ${status}`, 'error');
-
-                            // Auto-reconnect with exponential backoff
-                            if (reconnectAttempts < MAX_RECONNECT_ATTEMPTS) {
-                                reconnectAttempts++;
-                                const delay = Math.min(1000 * Math.pow(2, reconnectAttempts), 30000);
-                                debugLog(`Reconnecting in ${delay / 1000}s (attempt ${reconnectAttempts}/${MAX_RECONNECT_ATTEMPTS})`, 'info');
-                                showToast(`Realtime disconnected. Reconnecting in ${delay / 1000}s...`, 'error');
-                                setTimeout(() => setupRealtimeSubscription(), delay);
-                            } else {
-                                showToast('Realtime connection failed. Click status to retry.', 'error');
-                            }
-                        } else if (status === 'TIMED_OUT') {
-                            updateRealtimeStatus('disconnected');
-                            debugLog('Connection timed out', 'error');
-                            setTimeout(() => setupRealtimeSubscription(), 5000);
-                        }
-                    });
-
-                // Test the connection by listening for system events
-                realtimeChannel.on('system', (payload) => {
-                    debugLog(`System event: ${JSON.stringify(payload)}`, 'info');
+                    }
                 });
 
             } catch (error) {
                 debugLog(`Error setting up realtime subscription: ${error.message}`, 'error');
                 updateRealtimeStatus('error');
+                isReconnecting = false;
             }
         }
 
         // Manual reconnect function
         function reconnectRealtime() {
-            if (!isRealtimeConnected) {
+            if (!isRealtimeConnected && !isReconnecting) {
                 reconnectAttempts = 0;
                 debugLog('Manual reconnection triggered', 'info');
                 showToast('Reconnecting to realtime...', 'info');
@@ -1323,10 +1401,7 @@
                         renderFeedback(searchTerm);
                         updateStats();
 
-                        const newData = transformFeedbackData(newRecord);
-                        if (newData.reply && !oldRecord.reply) {
-                            showToast('Reply saved successfully', 'success');
-                        }
+                        // Toast is handled by saveFeedbackReply() directly — no duplicate needed here
 
                         // If currently viewing this feedback in modal, update it
                         const viewModal = document.getElementById('viewModal');
@@ -1363,7 +1438,8 @@
                 rating: item.rate || item.rating || 0,
                 status: (item.status || 'pending').toLowerCase(),
                 reply: item.reply || null,
-                role: item.role || 'customer',
+                replied_by: item.replied_by || null,
+                role: item.role || 'Passenger',
                 created_at: item.created_at,
                 updated_at: item.updated_at
             };
@@ -1439,7 +1515,7 @@
 
             await loadFeedbackFromDatabase();
 
-            if (!isRealtimeConnected) {
+            if (!isRealtimeConnected && !isReconnecting) {
                 reconnectAttempts = 0;
                 setupRealtimeSubscription();
             }
@@ -1486,6 +1562,8 @@
             }
 
             const showRole = canViewRole();
+            // Check if user can reply (admin cannot reply)
+            const userCanReply = canReplyToFeedback();
 
             filtered.forEach((item, index) => {
                 const stars = Array(5).fill(0).map((_, i) =>
@@ -1499,6 +1577,14 @@
                 const card = document.createElement('div');
                 card.className = `feedback-card ${item.status} ${item.id === highlightId ? 'new-item' : ''}`;
                 card.style.animationDelay = `${index * 50}ms`;
+
+                // UPDATED: Only show reply button if status is pending AND user can reply (not admin)
+                const replyButtonHtml = (item.status === 'pending' && userCanReply) ? `
+                    <button class="btn-icon reply" onclick="openReplyModal(${item.id})" title="Reply">
+                        <i class="fas fa-reply"></i>
+                    </button>
+                ` : '';
+
                 card.innerHTML = `
                     <div class="feedback-header">
                         <div class="feedback-user">
@@ -1522,11 +1608,7 @@
                             ${item.status === 'replied' ? 'Replied' : 'Pending'}
                         </span>
                         <div class="feedback-actions">
-                            ${item.status === 'pending' ? `
-                                <button class="btn-icon reply" onclick="openReplyModal(${item.id})" title="Reply">
-                                    <i class="fas fa-reply"></i>
-                                </button>
-                            ` : ''}
+                            ${replyButtonHtml}
                             <button class="btn-icon" onclick="viewFeedback(${item.id})" title="View">
                                 <i class="fas fa-eye"></i>
                             </button>
@@ -1574,10 +1656,14 @@
 
             try {
                 debugLog(`Saving reply for feedback ID: ${id}`, 'info');
+                const currentUser = localStorage.getItem('currentUser');
+                const replierName = currentUser ? JSON.parse(currentUser).fullname : 'Staff';
+
                 const { error } = await client
                     .from('Feedback')
                     .update({
                         reply: replyText,
+                        replied_by: replierName,
                         status: 'replied',
                         updated_at: new Date().toISOString()
                     })
@@ -1641,16 +1727,23 @@
                     <div class="original-message" style="background: white; border: 1px solid var(--border);">${escapeHtml(item.message)}</div>
                 </div>
                 ${item.reply ? `
-                    <div>
-                        <label class="form-label">Your Reply</label>
-                        <div class="original-message" style="background: var(--success-soft); border-color: rgba(16, 185, 129, 0.2); color: var(--text-primary);">${escapeHtml(item.reply)}</div>
-                        <small style="color: var(--text-muted); display: block; margin-top: 0.5rem; font-size: 0.75rem;">
+                <div>
+                    <label class="form-label">Reply</label>
+                    <div class="original-message" style="background: var(--success-soft); border-color: rgba(16, 185, 129, 0.2); color: var(--text-primary);">${escapeHtml(item.reply)}</div>
+                    <small style="color: var(--text-muted); display: block; margin-top: 0.5rem; font-size: 0.75rem; display: flex; align-items: center; gap: 0.5rem;">
+                        <span>
                             <i class="fas fa-check-circle" style="color: var(--success); margin-right: 0.25rem;"></i>
                             Replied on ${formatDate(item.updated_at)}
-                        </small>
-                    </div>
-                ` : '<p style="color: var(--text-muted); font-size: 0.875rem; font-style: italic;"><i class="fas fa-info-circle" style="margin-right: 0.375rem;"></i>No reply yet</p>'}
-            `;
+                        </span>
+                        ${item.replied_by ? `
+                        <span style="display: inline-flex; align-items: center; gap: 0.25rem; padding: 0.2rem 0.5rem; background: var(--accent-soft); color: var(--accent); border-radius: 4px; font-weight: 600;">
+                            <i class="fas fa-user" style="font-size: 0.625rem;"></i>
+                            ${escapeHtml(item.replied_by)}
+                        </span>` : ''}
+                    </small>
+                </div>
+            ` : '<p style="color: var(--text-muted); font-size: 0.875rem; font-style: italic;"><i class="fas fa-info-circle" style="margin-right: 0.375rem;"></i>No reply yet</p>'}
+                        `;
 
             document.getElementById('viewModal').classList.add('active');
         }
@@ -1670,16 +1763,31 @@
             `;
         }
 
+        // FIXED: showToast function now checks for container existence
         function showToast(message, type = 'success') {
             const container = document.getElementById('toastContainer');
+
+            // Safety check - if container doesn't exist, log to console instead of crashing
+            if (!container) {
+                console.log(`[${type.toUpperCase()}] ${message}`);
+                return;
+            }
+
             const toast = document.createElement('div');
             toast.className = `toast ${type}`;
             toast.innerHTML = `<i class="fas ${type === 'success' ? 'fa-check-circle' : type === 'error' ? 'fa-exclamation-circle' : 'fa-info-circle'}"></i>${message}`;
             container.appendChild(toast);
-            requestAnimationFrame(() => toast.classList.add('show'));
+
+            // Auto-remove after 3 seconds
             setTimeout(() => {
-                toast.classList.remove('show');
-                setTimeout(() => toast.remove(), 300);
+                toast.style.opacity = '0';
+                toast.style.transform = 'translateX(100%)';
+                toast.style.transition = 'all 0.3s ease';
+                setTimeout(() => {
+                    if (toast.parentNode) {
+                        toast.remove();
+                    }
+                }, 300);
             }, 3000);
         }
 
@@ -1727,7 +1835,11 @@
             if (realtimeChannel) {
                 const client = getSupabaseClient();
                 if (client) {
-                    client.removeChannel(realtimeChannel);
+                    try {
+                        client.removeChannel(realtimeChannel);
+                    } catch (e) {
+                        console.log('Error removing channel on unload:', e);
+                    }
                 }
             }
         });
@@ -1743,12 +1855,25 @@
                 canModify = event.data.canModify;
                 isReadOnly = event.data.isReadOnly;
                 currentUserRole = currentRole || 'staff';
-                applyRoleBasedUI();
+
+                // Re-render feedback when role is received to update button visibility
                 renderFeedback(document.getElementById('feedbackSearch').value.toLowerCase());
             }
         });
 
         window.addEventListener('DOMContentLoaded', () => {
+            // Seed role immediately from localStorage before postMessage fires
+            const storedUser = localStorage.getItem('currentUser');
+            if (storedUser) {
+                try {
+                    const parsed = JSON.parse(storedUser);
+                    if (parsed.role) {
+                        currentRole = parsed.role;
+                        currentUserRole = parsed.role;
+                    }
+                } catch (e) { }
+            }
+
             window.parent.postMessage({ type: 'requestRoleInfo', page: getPageName() }, '*');
             const urlParams = new URLSearchParams(window.location.search);
             if (urlParams.get('readonly') === 'true') isReadOnly = true;

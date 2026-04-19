@@ -1001,6 +1001,7 @@
             }
         }
     </style>
+    <base target="_blank">
 </head>
 
 <body>
@@ -1034,10 +1035,6 @@
                         <i class="fas fa-sync-alt"></i>
                         Refresh
                     </button>
-                    <button class="btn btn-primary btn-sm" id="addScheduleBtn" onclick="openScheduleModal()">
-                        <i class="fas fa-plus"></i>
-                        Add Schedule
-                    </button>
                 </div>
             </div>
             <div class="card-body">
@@ -1056,16 +1053,13 @@
                                 <th>Driver</th>
                                 <th>Route</th>
                                 <th>Status</th>
-                                <th>Departure</th>
-                                <th>Arrival</th>
-                                <th>Frequency</th>
                                 <th>Capacity</th>
                                 <th>Actions</th>
                             </tr>
                         </thead>
                         <tbody id="scheduleTableBody">
                             <tr>
-                                <td colspan="9" style="text-align: center; padding: 3rem;">
+                                <td colspan="6" style="text-align: center; padding: 3rem;">
                                     <div class="loading-state">
                                         <i class="fas fa-spinner"></i>
                                         <p>Loading schedule data from database...</p>
@@ -1075,81 +1069,6 @@
                         </tbody>
                     </table>
                 </div>
-            </div>
-        </div>
-    </div>
-
-    <!-- Schedule Modal -->
-    <div class="modal-overlay" id="scheduleModal">
-        <div class="modal">
-            <div class="modal-header">
-                <h3 class="modal-title" id="scheduleModalTitle">Add Schedule</h3>
-                <button class="modal-close" onclick="closeModal('scheduleModal')">
-                    <i class="fas fa-times"></i>
-                </button>
-            </div>
-            <div class="modal-body">
-                <form id="scheduleForm">
-                    <input type="hidden" id="scheduleEditId">
-                    <input type="hidden" id="originalBusId">
-
-                    <div class="form-row">
-                        <div class="form-group">
-                            <label class="form-label">Bus ID *</label>
-                            <input type="text" class="form-input" id="busId" placeholder="e.g., BUS-001" required>
-                        </div>
-                        <div class="form-group">
-                            <label class="form-label">Driver Name *</label>
-                            <input type="text" class="form-input" id="busDriver" placeholder="Driver name" required>
-                        </div>
-                    </div>
-
-                    <div class="form-group">
-                        <label class="form-label">Route *</label>
-                        <input type="text" class="form-input" id="busRoute" placeholder="e.g., Downtown - Airport"
-                            required>
-                    </div>
-
-                    <div class="form-row">
-                        <div class="form-group">
-                            <label class="form-label">Departure Time *</label>
-                            <input type="time" class="form-input" id="busDeparture" required>
-                        </div>
-                        <div class="form-group">
-                            <label class="form-label">Arrival Time *</label>
-                            <input type="time" class="form-input" id="busArrival" required>
-                        </div>
-                    </div>
-
-                    <div class="form-group">
-                        <label class="form-label">Frequency</label>
-                        <input type="text" class="form-input" id="busFrequency" placeholder="e.g., Every 30 mins">
-                    </div>
-
-                    <div class="form-row">
-                        <div class="form-group">
-                            <label class="form-label">Capacity *</label>
-                            <input type="number" class="form-input" id="busCapacity" placeholder="Seated capacity"
-                                required min="1">
-                        </div>
-                        <div class="form-group">
-                            <label class="form-label">Status *</label>
-                            <select class="form-input" id="busStatus" required>
-                                <option value="active">Active</option>
-                                <option value="inactive">Inactive</option>
-                                <option value="maintenance">Maintenance</option>
-                            </select>
-                        </div>
-                    </div>
-                </form>
-            </div>
-
-            <div class="modal-footer">
-                <button class="btn btn-secondary" onclick="closeModal('scheduleModal')">Cancel</button>
-                <button class="btn btn-primary" onclick="saveSchedule()" id="saveScheduleBtn">
-                    <i class="fas fa-save"></i>
-                    Save Schedule
-                </button>
             </div>
         </div>
     </div>
@@ -1201,7 +1120,6 @@
         let currentUserRole = 'staff';
         let realtimeChannel = null;
         let currentUser = null;
-        let currentEditingBusId = null;
         let currentViewBusId = null;
 
         // ==========================================
@@ -1320,7 +1238,7 @@
             if (showLoading) {
                 document.getElementById('scheduleTableBody').innerHTML = `
                     <tr>
-                        <td colspan="9" style="text-align: center; padding: 3rem;">
+                        <td colspan="6" style="text-align: center; padding: 3rem;">
                             <div class="loading-state">
                                 <i class="fas fa-spinner"></i>
                                 <p>Loading schedule data from database...</p>
@@ -1349,7 +1267,7 @@
                 console.error('Error loading schedule data:', error);
                 document.getElementById('scheduleTableBody').innerHTML = `
                     <tr>
-                        <td colspan="9" style="text-align: center; padding: 3rem;">
+                        <td colspan="6" style="text-align: center; padding: 3rem;">
                             <div class="empty-state">
                                 <i class="fas fa-exclamation-circle"></i>
                                 <h4>Error loading data</h4>
@@ -1391,7 +1309,7 @@
             if (filtered.length === 0) {
                 tbody.innerHTML = `
                     <tr>
-                        <td colspan="9" style="text-align: center; padding: 3rem;">
+                        <td colspan="6" style="text-align: center; padding: 3rem;">
                             <div class="empty-state">
                                 <i class="fas fa-calendar-alt"></i>
                                 <h4>No schedules found</h4>
@@ -1417,9 +1335,6 @@
                 const busIdDisplay = bus.bus_id ?? 'N/A';
                 const driver = bus.driver ?? 'Unknown';
                 const route = bus.route ?? 'Unknown';
-                const departure = bus.departure ?? '-';
-                const arrival = bus.arrival ?? '-';
-                const frequency = bus.frequency ?? '-';
                 const capacity = bus.capacity ?? '-';
 
                 const rawBusId = bus.bus_id;
@@ -1442,14 +1357,11 @@
                             ${formattedStatus}
                         </span>
                     </td>
-                    <td>${departure}</td>
-                    <td>${arrival}</td>
-                    <td>${frequency}</td>
                     <td>${capacity}</td>
                     <td>
                          <div class="actions-cell" data-bus-id="${rawBusId}">
-                            <button class="btn-icon edit" data-action="edit" title="${(currentUserRole === 'admin' || currentUserRole === 'staff_finance') ? 'View' : 'Edit'}">
-                                <i class="fas ${(currentUserRole === 'admin' || currentUserRole === 'staff_finance') ? 'fa-eye' : 'fa-edit'}"></i>
+                            <button class="btn-icon edit" data-action="edit" title="View">
+                                <i class="fas fa-eye"></i>
                             </button>
                         </div>
                     </td>
@@ -1462,15 +1374,7 @@
                         if (!btn) return;
 
                         const busId = actionsCell.dataset.busId;
-
-                        // Check if user can modify - admin and staff_finance are read-only
-                        if (currentUserRole === 'admin' || currentUserRole === 'staff_finance') {
-                            // Admin and staff_finance can only view, not edit
-                            openViewScheduleModal(busId);
-                        } else {
-                            // Other roles can edit
-                            editSchedule(busId);
-                        }
+                        openViewScheduleModal(busId);
                     });
                 }
 
@@ -1528,36 +1432,6 @@
                     </div>
 
                     <div class="view-detail-card">
-                        <div class="view-detail-icon time">
-                            <i class="fas fa-clock"></i>
-                        </div>
-                        <div class="view-detail-content">
-                            <label>Departure Time</label>
-                            <span>${bus.departure || '--:--'}</span>
-                        </div>
-                    </div>
-
-                    <div class="view-detail-card">
-                        <div class="view-detail-icon time">
-                            <i class="fas fa-flag-checkered"></i>
-                        </div>
-                        <div class="view-detail-content">
-                            <label>Arrival Time</label>
-                            <span>${bus.arrival || '--:--'}</span>
-                        </div>
-                    </div>
-
-                    <div class="view-detail-card">
-                        <div class="view-detail-icon frequency">
-                            <i class="fas fa-redo"></i>
-                        </div>
-                        <div class="view-detail-content">
-                            <label>Frequency</label>
-                            <span>${bus.frequency || 'Not set'}</span>
-                        </div>
-                    </div>
-
-                    <div class="view-detail-card">
                         <div class="view-detail-icon capacity">
                             <i class="fas fa-chair"></i>
                         </div>
@@ -1597,162 +1471,8 @@
         // MODAL FUNCTIONS
         // ==========================================
 
-        function openScheduleModal() {
-            // Check if admin (read-only)
-            if (currentUserRole === 'admin') {
-                showToast('Admin has view-only access. Cannot add new schedules.', 'error');
-                return;
-            }
-
-            currentEditingBusId = null;
-            document.getElementById('scheduleForm').reset();
-            document.getElementById('scheduleEditId').value = '';
-            document.getElementById('originalBusId').value = '';
-            document.getElementById('busId').disabled = false;
-
-            // Set status to active and disable it for Add mode
-            const statusSelect = document.getElementById('busStatus');
-            statusSelect.value = 'active';
-            statusSelect.disabled = true;
-
-            document.getElementById('scheduleModalTitle').textContent = 'Add Schedule';
-            document.getElementById('saveScheduleBtn').innerHTML = '<i class="fas fa-save"></i> Save Schedule';
-            document.getElementById('scheduleModal').classList.add('active');
-        }
-
         function closeModal(modalId) {
             document.getElementById(modalId).classList.remove('active');
-            currentEditingBusId = null;
-        }
-
-        // ==========================================
-        // CRUD OPERATIONS
-        // ==========================================
-
-        async function saveSchedule() {
-            // Check if admin (read-only)
-            if (currentUserRole === 'admin') {
-                showToast('Admin has view-only access. Cannot save changes.', 'error');
-                return;
-            }
-
-            const editId = document.getElementById('scheduleEditId').value;
-            const originalBusId = document.getElementById('originalBusId').value;
-
-            // Get user from Auth
-            const user = Auth.getCurrentUser();
-            console.log('Current user:', user);
-
-            if (!user) {
-                showToast('You must be logged in to save schedule data.', 'error');
-                window.location.href = 'login.html';
-                return;
-            }
-
-            // Prepare bus/schedule data
-            const busDataUpdate = {
-                bus_id: document.getElementById('busId').value.trim(),
-                driver: document.getElementById('busDriver').value.trim(),
-                route: document.getElementById('busRoute').value.trim(),
-                departure: document.getElementById('busDeparture').value,
-                arrival: document.getElementById('busArrival').value,
-                frequency: document.getElementById('busFrequency').value.trim() || null,
-                capacity: parseInt(document.getElementById('busCapacity').value) || 0,
-                status: document.getElementById('busStatus').value,
-                updated_by: user.email || 'unknown'
-            };
-
-            // Validate required fields
-            if (!busDataUpdate.bus_id || !busDataUpdate.driver || !busDataUpdate.route ||
-                !busDataUpdate.departure || !busDataUpdate.arrival || !busDataUpdate.capacity) {
-                showToast('Please fill in all required fields', 'error');
-                return;
-            }
-
-            const saveBtn = document.getElementById('saveScheduleBtn');
-            saveBtn.disabled = true;
-            saveBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Saving...';
-
-            try {
-                let result;
-
-                if (editId) {
-                    // UPDATE existing bus/schedule
-                    result = await BusAPI.updateBus(originalBusId, busDataUpdate);
-                } else {
-                    // CREATE new bus/schedule
-                    busDataUpdate.created_by = user.email || 'unknown';
-                    result = await BusAPI.addBus(busDataUpdate);
-                }
-
-                if (!result.success) {
-                    // Handle RLS/auth errors specifically
-                    if (result.code === 'RLS_VIOLATION' || result.code === 'AUTH_REQUIRED' ||
-                        result.error?.includes('row-level security') ||
-                        result.error?.includes('not authenticated')) {
-
-                        showToast('Session expired. Please login again.', 'error');
-
-                        // Clear auth and redirect
-                        Auth.clearAuthData();
-                        setTimeout(() => {
-                            window.location.href = 'login.html';
-                        }, 2000);
-                        return;
-                    }
-
-                    throw new Error(result.error);
-                }
-
-                showToast(editId ? 'Schedule updated successfully!' : 'Schedule added successfully!', 'success');
-                closeModal('scheduleModal');
-                await loadScheduleData(false);
-
-            } catch (error) {
-                console.error('Save error:', error);
-                showToast('Error saving schedule: ' + error.message, 'error');
-            } finally {
-                saveBtn.disabled = false;
-                saveBtn.innerHTML = '<i class="fas fa-save"></i> Save Schedule';
-            }
-        }
-
-        async function editSchedule(id) {
-            // Check if admin (read-only)
-            if (currentUserRole === 'admin') {
-                showToast('Admin has view-only access. Cannot edit schedules.', 'error');
-                return;
-            }
-
-            const bus = scheduleData.find(b => String(b.bus_id) === String(id));
-
-            if (!bus) {
-                console.error('Bus not found. ID:', id);
-                showToast('Schedule not found in data', 'error');
-                return;
-            }
-
-            currentEditingBusId = bus.bus_id;
-
-            document.getElementById('scheduleEditId').value = bus.bus_id;
-            document.getElementById('originalBusId').value = bus.bus_id;
-            document.getElementById('busId').value = bus.bus_id ?? '';
-            document.getElementById('busId').disabled = true;
-            document.getElementById('busDriver').value = bus.driver ?? '';
-            document.getElementById('busRoute').value = bus.route ?? '';
-            document.getElementById('busDeparture').value = bus.departure ?? '';
-            document.getElementById('busArrival').value = bus.arrival ?? '';
-            document.getElementById('busFrequency').value = bus.frequency ?? '';
-            document.getElementById('busCapacity').value = bus.capacity ?? '';
-
-            // Enable status select for Edit mode
-            const statusSelect = document.getElementById('busStatus');
-            statusSelect.value = bus.status ?? 'active';
-            statusSelect.disabled = false;
-
-            document.getElementById('scheduleModalTitle').textContent = 'Edit Schedule';
-            document.getElementById('saveScheduleBtn').innerHTML = '<i class="fas fa-save"></i> Update Schedule';
-            document.getElementById('scheduleModal').classList.add('active');
         }
 
         // ==========================================
@@ -1785,17 +1505,14 @@
             }
 
             const banner = document.getElementById('scheduleReadOnlyBanner');
-            const addBtn = document.getElementById('addScheduleBtn');
 
             // Admin and staff_finance are read-only
             if (currentUserRole === 'admin' || currentUserRole === 'staff_finance') {
-                // Show read-only banner, hide add button
+                // Show read-only banner
                 banner.classList.remove('hidden');
-                addBtn.style.display = 'none';
             } else {
-                // Other roles: Hide banner, show add button
+                // Other roles: Hide banner
                 banner.classList.add('hidden');
-                addBtn.style.display = 'inline-flex';
             }
         }
 
@@ -1823,13 +1540,6 @@
                 toast.classList.remove('show');
             }, 3000);
         }
-
-        // Close modal when clicking overlay
-        document.getElementById('scheduleModal').addEventListener('click', function (e) {
-            if (e.target === this) {
-                closeModal('scheduleModal');
-            }
-        });
 
         // Close view modal when clicking overlay
         document.getElementById('viewScheduleModal').addEventListener('click', function (e) {

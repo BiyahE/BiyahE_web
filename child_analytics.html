@@ -1686,14 +1686,8 @@
             }).length;
 
             // PENDING: Feedback with NO reply AND created more than 24 hours ago
-            const oneDayAgo = new Date(now.getTime() - (24 * 60 * 60 * 1000));
             const pendingIssues = feedbackList.filter(f => {
-                const createdAt = new Date(f.created_at || f.date || f.timestamp);
-                const reply = f.reply;
-                // Check if NO reply (null, undefined, empty, or 'null' string)
-                const hasNoReply = reply === null || reply === undefined || reply.trim() === '' || reply.trim().toLowerCase() === 'null';
-                // Pending if: no reply AND created more than 24 hours ago
-                return hasNoReply && createdAt < oneDayAgo;
+                return !f.status || f.status.trim() === '' || f.status.trim().toLowerCase() === 'null';
             }).length;
 
             document.getElementById('responseRate').textContent = responseRate + '%';

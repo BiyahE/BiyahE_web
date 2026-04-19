@@ -5,9 +5,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>BIYAHE - Top Up References</title>
-    <!-- FontAwesome Icons -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <!-- Google Fonts: Inter -->
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
 
     <style>
@@ -48,7 +46,6 @@
             color: var(--text-primary);
         }
 
-        /* Main Container */
         .topup-container {
             width: 100%;
             height: 100vh;
@@ -57,7 +54,6 @@
             overflow: hidden;
         }
 
-        /* Cards */
         .card {
             background: var(--white);
             border-radius: var(--radius-md);
@@ -103,7 +99,6 @@
             flex-direction: column;
         }
 
-        /* Card Header Left */
         .card-header-left {
             display: flex;
             align-items: center;
@@ -124,7 +119,6 @@
             flex-shrink: 0;
         }
 
-        /* Buttons */
         .btn {
             display: inline-flex;
             align-items: center;
@@ -140,80 +134,6 @@
             text-decoration: none;
         }
 
-        .btn-primary {
-            background: var(--primary-color);
-            color: var(--white);
-            box-shadow: 0 4px 6px rgba(59, 130, 246, 0.2);
-        }
-
-        .btn-primary:hover {
-            background: var(--primary-hover);
-            transform: translateY(-1px);
-            box-shadow: 0 6px 12px rgba(59, 130, 246, 0.3);
-        }
-
-        .btn-secondary {
-            background: var(--bg-light);
-            color: var(--text-secondary);
-            border: 1px solid var(--border-color);
-        }
-
-        .btn-secondary:hover {
-            background: var(--border-color);
-            color: var(--text-primary);
-        }
-
-        .btn-success {
-            background: #10b981;
-            color: white;
-            box-shadow: 0 4px 6px rgba(16, 185, 129, 0.2);
-        }
-
-        .btn-success:hover {
-            background: #059669;
-            transform: translateY(-1px);
-            box-shadow: 0 6px 12px rgba(16, 185, 129, 0.3);
-        }
-
-        .btn-danger {
-            background: #ef4444;
-            color: white;
-            box-shadow: 0 4px 6px rgba(239, 68, 68, 0.2);
-        }
-
-        .btn-danger:hover {
-            background: #dc2626;
-            transform: translateY(-1px);
-            box-shadow: 0 6px 12px rgba(239, 68, 68, 0.3);
-        }
-
-        .btn-sm {
-            padding: 0.375rem 0.75rem;
-            font-size: 0.75rem;
-        }
-
-        .btn-icon {
-            width: 28px;
-            height: 28px;
-            border: none;
-            background: transparent;
-            color: var(--text-secondary);
-            border-radius: var(--radius-sm);
-            display: inline-flex;
-            align-items: center;
-            justify-content: center;
-            cursor: pointer;
-            transition: all 0.2s;
-            font-size: 0.875rem;
-        }
-
-        .btn-icon:hover {
-            background: var(--bg-light);
-            color: var(--primary-color);
-            transform: scale(1.1);
-        }
-
-        /* Loading State */
         .loading-state {
             display: flex;
             flex-direction: column;
@@ -239,9 +159,6 @@
             }
         }
 
-
-
-        /* Search Filter Bar */
         .search-filter-bar {
             display: flex;
             justify-content: space-between;
@@ -287,7 +204,6 @@
             color: var(--text-muted);
         }
 
-        /* Refresh Button */
         .refresh-btn {
             display: inline-flex;
             align-items: center;
@@ -316,7 +232,6 @@
             animation: spin 0.8s linear infinite;
         }
 
-        /* Table */
         .table-wrapper {
             overflow-y: auto;
             flex: 1;
@@ -325,7 +240,6 @@
             border: 1px solid var(--border-color);
         }
 
-        /* Custom scrollbar */
         .table-wrapper::-webkit-scrollbar {
             width: 6px;
         }
@@ -393,7 +307,6 @@
             color: #242553;
         }
 
-        /* ID Cell */
         .id-cell {
             display: flex;
             align-items: center;
@@ -413,7 +326,6 @@
             flex-shrink: 0;
         }
 
-        /* Amount styling */
         .amount {
             font-weight: 700;
             color: #059669;
@@ -424,7 +336,6 @@
             margin-right: 0.125rem;
         }
 
-        /* Status Badges */
         .status-badge {
             display: inline-flex;
             align-items: center;
@@ -435,25 +346,6 @@
             font-weight: 600;
         }
 
-        .status-badge.pending {
-            background: rgba(245, 158, 11, 0.1);
-            color: #d97706;
-            border: 1px solid rgba(245, 158, 11, 0.2);
-        }
-
-        .status-badge.verified {
-            background: rgba(16, 185, 129, 0.1);
-            color: #059669;
-            border: 1px solid rgba(16, 185, 129, 0.2);
-        }
-
-        .status-badge.rejected {
-            background: rgba(239, 68, 68, 0.1);
-            color: #dc2626;
-            border: 1px solid rgba(239, 68, 68, 0.2);
-        }
-
-        /* Payment Method Badge */
         .payment-badge {
             display: inline-flex;
             align-items: center;
@@ -488,10 +380,16 @@
             border: 1px solid rgba(245, 158, 11, 0.2);
         }
 
-        /* Actions Cell */
-        .actions-cell {
-            display: flex;
-            gap: 0.375rem;
+        .payment-badge.gcash {
+            background: rgba(59, 130, 246, 0.1);
+            color: #3b82f6;
+            border: 1px solid rgba(59, 130, 246, 0.2);
+        }
+
+        .payment-badge.maya {
+            background: rgba(16, 185, 129, 0.1);
+            color: #059669;
+            border: 1px solid rgba(16, 185, 129, 0.2);
         }
 
         .approve-actions {
@@ -549,6 +447,12 @@
             font-weight: 600;
         }
 
+        .approve-status.pending {
+            background: rgba(245, 158, 11, 0.1);
+            color: #d97706;
+            border: 1px solid rgba(245, 158, 11, 0.2);
+        }
+
         .approve-status.verified {
             background: rgba(16, 185, 129, 0.1);
             color: #059669;
@@ -561,7 +465,6 @@
             border: 1px solid rgba(239, 68, 68, 0.2);
         }
 
-        /* Empty State */
         .empty-state {
             display: flex;
             flex-direction: column;
@@ -588,7 +491,6 @@
             font-size: 0.875rem;
         }
 
-        /* Toast Notification */
         .toast {
             position: fixed;
             bottom: 1rem;
@@ -616,7 +518,6 @@
             background: #ef4444;
         }
 
-        /* Real-time indicator */
         .realtime-indicator {
             display: inline-flex;
             align-items: center;
@@ -648,7 +549,41 @@
             }
         }
 
-        /* Error Banner */
+        .realtime-connected {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.375rem;
+            padding: 0.25rem 0.625rem;
+            background: rgba(16, 185, 129, 0.15);
+            border: 1px solid rgba(16, 185, 129, 0.3);
+            border-radius: var(--radius-full);
+            font-size: 0.6875rem;
+            font-weight: 600;
+            color: #059669;
+            margin-left: 0.5rem;
+            transition: all 0.3s ease;
+        }
+
+        .realtime-connected i {
+            font-size: 0.625rem;
+        }
+
+        .realtime-connected.connected i {
+            animation: pulse 1.5s infinite;
+        }
+
+        .realtime-connected.disconnected {
+            background: rgba(239, 68, 68, 0.15);
+            border-color: rgba(239, 68, 68, 0.3);
+            color: #dc2626;
+        }
+
+        .realtime-connected.connecting {
+            background: rgba(245, 158, 11, 0.15);
+            border-color: rgba(245, 158, 11, 0.3);
+            color: #d97706;
+        }
+
         .rls-error-banner {
             display: flex;
             align-items: center;
@@ -668,12 +603,16 @@
             display: none;
         }
 
-        /* Responsive */
-        @media (max-width: 768px) {
-            .topup-container {
-                padding: 0.5rem;
-            }
 
+        .read-only-banner.hidden {
+            display: none;
+        }
+
+        .read-only-banner i {
+            font-size: 1rem;
+        }
+
+        @media (max-width: 768px) {
             .search-box input {
                 width: 100%;
             }
@@ -697,7 +636,6 @@
             }
         }
 
-        /* Animations */
         @keyframes fadeIn {
             from {
                 opacity: 0;
@@ -713,18 +651,60 @@
         .data-table tbody tr {
             animation: fadeIn 0.3s ease-out;
         }
+
+        @keyframes highlightNew {
+            0% {
+                background: rgba(16, 185, 129, 0.25);
+            }
+
+            100% {
+                background: transparent;
+            }
+        }
+
+        .data-table tbody tr.new-row {
+            animation: highlightNew 2.5s ease-out forwards;
+        }
+
+        @keyframes flashUpdate {
+            0% {
+                background: rgba(59, 130, 246, 0.25);
+            }
+
+            100% {
+                background: transparent;
+            }
+        }
+
+        .data-table tbody tr.updated-row {
+            animation: flashUpdate 2s ease-out forwards;
+        }
+
+        @keyframes flashDelete {
+            0% {
+                background: rgba(239, 68, 68, 0.2);
+                opacity: 1;
+            }
+
+            100% {
+                background: rgba(239, 68, 68, 0.05);
+                opacity: 0.4;
+            }
+        }
+
+        .data-table tbody tr.deleted-row {
+            animation: flashDelete 0.6s ease-out forwards;
+        }
     </style>
 </head>
 
 <body>
     <div class="topup-container">
-        <!-- RLS Error Banner -->
         <div class="rls-error-banner hidden" id="rlsErrorBanner">
             <i class="fas fa-exclamation-triangle"></i>
             <span id="rlsErrorText">Authentication error. Please refresh and try again.</span>
         </div>
 
-        <!-- Read-only banner for admin -->
         <div class="read-only-banner hidden" id="topupReadOnlyBanner">
 
         </div>
@@ -739,13 +719,16 @@
                         <h3 class="card-title">Top Up References</h3>
                         <p class="card-subtitle">Manage passenger top up requests
                             <span class="realtime-indicator"><i class="fas fa-circle"></i> LIVE</span>
+                            <span class="realtime-connected connecting" id="realtimeStatus">
+                                <i class="fas fa-circle-notch fa-spin"></i> Connecting...
+                            </span>
                         </p>
                     </div>
                 </div>
                 <div style="display: flex; gap: 0.5rem;">
-                    <button class="refresh-btn" id="refreshBtn" onclick="refreshData()">
+                    <button class="refresh-btn" id="refreshBtn" onclick="manualRefresh()">
                         <i class="fas fa-sync-alt"></i>
-                        Refresh
+                        <span id="refreshText">Refresh</span>
                     </button>
                 </div>
             </div>
@@ -788,13 +771,9 @@
         </div>
     </div>
 
-    <!-- Toast Notification -->
     <div class="toast" id="toast"></div>
 
-
-    <!-- Add this BEFORE any other scripts -->
     <script src="js/logger.js"></script>
-    <!-- Supabase -->
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script src="js/auth.js"></script>
     <script>
@@ -802,22 +781,21 @@
         // STATE
         // ==========================================
         let topupData = [];
-        let notifData = [];
         let realtimeChannel = null;
-        let notifChannel = null;
         let currentUserRole = 'staff';
         let currentUser = null;
+        let reconnectTimer = null;
+        let reconnectAttempts = 0;
+        const MAX_RECONNECT_ATTEMPTS = 10;
+        const RECONNECT_DELAY_BASE = 2000; // ms, doubles each attempt up to 30s
 
         // ==========================================
         // INITIALIZATION
         // ==========================================
         document.addEventListener('DOMContentLoaded', async function () {
             checkUserRole();
-
-            // Wait for auth.js to finish setting up supabaseClient
             await waitForSupabase();
 
-            // Simple auth guard
             const user = Auth.getCurrentUser();
             if (!user) {
                 window.location.href = 'login.html';
@@ -827,22 +805,18 @@
             currentUser = user;
             console.log('✅ Logged in as:', currentUser.fullname, '|', currentUser.role);
 
-            // Search listener
             document.getElementById('topupSearch').addEventListener('input', function (e) {
                 renderTable(e.target.value.toLowerCase());
             });
 
-            // Restore Supabase Auth session
             await restoreSession();
-
-            // Load data
             await loadData();
-
-            // Subscribe to real-time updates
             setupRealtimeSubscription();
         });
 
-        // Wait for supabaseClient to be ready
+        // ==========================================
+        // WAIT FOR SUPABASE
+        // ==========================================
         async function waitForSupabase() {
             let attempts = 0;
             while (!window.supabaseClient && attempts < 60) {
@@ -856,7 +830,9 @@
             }
         }
 
-        // Restore Supabase Auth session
+        // ==========================================
+        // RESTORE SESSION
+        // ==========================================
         async function restoreSession() {
             try {
                 const { data: { session } } = await window.supabaseClient.auth.getSession();
@@ -883,7 +859,7 @@
         }
 
         // ==========================================
-        // TOP UP DATA LOADING
+        // LOAD DATA
         // ==========================================
         async function loadData(showLoading = true) {
             if (showLoading) {
@@ -895,24 +871,23 @@
                                 <p>Loading top up data from database...</p>
                             </div>
                         </td>
-                    </tr>
-                `;
+                    </tr>`;
             }
 
             try {
-                const result = await window.supabaseClient
+                const { data, error } = await window.supabaseClient
                     .from('admin_notifications')
                     .select('*')
                     .order('id', { ascending: true });
 
-                if (result.error) throw result.error;
+                if (error) throw error;
 
-                topupData = result.data || [];
-                renderTable();
+                topupData = data || [];
+                renderTable(document.getElementById('topupSearch').value.toLowerCase());
 
             } catch (error) {
                 console.error('❌ Error loading data:', error);
-                showToast('Error: ' + error.message, 'error');
+                showToast('Error loading data: ' + error.message, 'error');
                 document.getElementById('tableBody').innerHTML = `
                     <tr>
                         <td colspan="10" style="text-align: center; padding: 3rem;">
@@ -922,24 +897,209 @@
                                 <p>${error.message}</p>
                             </div>
                         </td>
-                    </tr>
-                `;
+                    </tr>`;
             }
         }
 
-        async function refreshData() {
+        async function manualRefresh() {
             const btn = document.getElementById('refreshBtn');
+            const refreshText = document.getElementById('refreshText');
             btn.classList.add('spinning');
+            refreshText.textContent = 'Refreshing...';
             await loadData(false);
-            setTimeout(() => btn.classList.remove('spinning'), 500);
+            setTimeout(() => {
+                btn.classList.remove('spinning');
+                refreshText.textContent = 'Refresh';
+            }, 500);
+        }
+
+        // ==========================================
+        // REAL-TIME SUBSCRIPTION
+        //
+        // Key fix: Supabase realtime UPDATE/DELETE payloads
+        // only contain `old` data if REPLICA IDENTITY FULL
+        // is set on the table. Since we can't guarantee that,
+        // we use a full reload strategy for updates/deletes
+        // and optimistic insert for new rows. This ensures
+        // the table is always in sync.
+        // ==========================================
+        function setRealtimeStatus(state) {
+            const el = document.getElementById('realtimeStatus');
+            el.className = 'realtime-connected ' + state;
+
+            const icons = {
+                connected: '<i class="fas fa-wifi"></i> Realtime',
+                disconnected: '<i class="fas fa-wifi-slash"></i> Offline',
+                connecting: '<i class="fas fa-circle-notch fa-spin"></i> Connecting...',
+                error: '<i class="fas fa-exclamation-circle"></i> Error'
+            };
+
+            el.innerHTML = icons[state] || icons.connecting;
+        }
+
+        function setupRealtimeSubscription() {
+            // Tear down any existing channel cleanly before re-creating
+            if (realtimeChannel) {
+                try {
+                    window.supabaseClient.removeChannel(realtimeChannel);
+                } catch (e) { }
+                realtimeChannel = null;
+            }
+
+            if (reconnectTimer) {
+                clearTimeout(reconnectTimer);
+                reconnectTimer = null;
+            }
+
+            setRealtimeStatus('connecting');
+            console.log('🔄 Setting up realtime subscription...');
+
+            realtimeChannel = window.supabaseClient
+                .channel('topup_realtime_v2', {
+                    config: {
+                        // Broadcast heartbeat every 25s to keep the connection alive
+                        // (Supabase default timeout is ~60s)
+                        presence: { key: '' }
+                    }
+                })
+                .on(
+                    'postgres_changes',
+                    { event: 'INSERT', schema: 'public', table: 'admin_notifications' },
+                    (payload) => {
+                        console.log('➕ INSERT received:', payload.new);
+                        handleInsert(payload.new);
+                    }
+                )
+                .on(
+                    'postgres_changes',
+                    { event: 'UPDATE', schema: 'public', table: 'admin_notifications' },
+                    (payload) => {
+                        console.log('✏️ UPDATE received:', payload.new);
+                        // payload.new always has full new row data (even without REPLICA IDENTITY FULL)
+                        // payload.old may only have the PK. We use payload.new.id to find & replace.
+                        handleUpdate(payload.new);
+                    }
+                )
+                .on(
+                    'postgres_changes',
+                    { event: 'DELETE', schema: 'public', table: 'admin_notifications' },
+                    (payload) => {
+                        console.log('🗑️ DELETE received:', payload.old);
+                        // payload.old only has PK columns reliably. Use id to remove from local state.
+                        handleDelete(payload.old?.id);
+                    }
+                )
+                .subscribe((status, err) => {
+                    console.log('📡 Realtime status:', status, err || '');
+
+                    if (status === 'SUBSCRIBED') {
+                        setRealtimeStatus('connected');
+                        reconnectAttempts = 0;
+                        console.log('✅ Realtime subscription active');
+
+                    } else if (status === 'CHANNEL_ERROR') {
+                        setRealtimeStatus('error');
+                        console.error('❌ Realtime channel error:', err);
+                        scheduleReconnect();
+
+                    } else if (status === 'TIMED_OUT') {
+                        setRealtimeStatus('disconnected');
+                        console.warn('⏱️ Realtime timed out');
+                        scheduleReconnect();
+
+                    } else if (status === 'CLOSED') {
+                        setRealtimeStatus('disconnected');
+                        console.warn('🔌 Realtime channel closed');
+                        // Only auto-reconnect if this wasn't a deliberate teardown
+                        if (realtimeChannel) {
+                            scheduleReconnect();
+                        }
+                    }
+                });
+        }
+
+        function scheduleReconnect() {
+            if (reconnectAttempts >= MAX_RECONNECT_ATTEMPTS) {
+                console.error('❌ Max reconnect attempts reached. Manual refresh required.');
+                setRealtimeStatus('error');
+                showToast('Realtime connection lost. Please refresh the page.', 'error');
+                return;
+            }
+
+            // Exponential backoff: 2s, 4s, 8s, ... capped at 30s
+            const delay = Math.min(RECONNECT_DELAY_BASE * Math.pow(2, reconnectAttempts), 30000);
+            reconnectAttempts++;
+
+            console.log(`🔁 Reconnecting in ${delay / 1000}s (attempt ${reconnectAttempts}/${MAX_RECONNECT_ATTEMPTS})...`);
+            setRealtimeStatus('connecting');
+
+            reconnectTimer = setTimeout(() => {
+                setupRealtimeSubscription();
+            }, delay);
+        }
+
+        // ==========================================
+        // REALTIME EVENT HANDLERS
+        // ==========================================
+        function handleInsert(newRecord) {
+            if (!newRecord || !newRecord.id) return;
+
+            // Avoid duplicate if already present (e.g. from a manual refresh race)
+            const exists = topupData.some(r => r.id === newRecord.id);
+            if (!exists) {
+                topupData.push(newRecord);
+                renderTable(document.getElementById('topupSearch').value.toLowerCase(), [newRecord.id], 'new');
+                showToast(`New top-up request from ${newRecord.full_name || 'Unknown'}`, 'success');
+            }
+        }
+
+        function handleUpdate(newRecord) {
+            if (!newRecord || !newRecord.id) {
+                // Fallback: full reload if we can't identify the record
+                loadData(false);
+                return;
+            }
+
+            const idx = topupData.findIndex(r => r.id === newRecord.id);
+            if (idx !== -1) {
+                const oldRecord = topupData[idx];
+                topupData[idx] = newRecord;
+
+                // Show toast for approval status changes
+                const wasPending = oldRecord.approve === null || oldRecord.approve === undefined;
+                const isNowDecided = newRecord.approve !== null && newRecord.approve !== undefined;
+                if (wasPending && isNowDecided) {
+                    const status = newRecord.approve ? 'verified' : 'denied';
+                    showToast(`Request #${newRecord.id} ${status}`, newRecord.approve ? 'success' : 'error');
+                }
+
+                renderTable(document.getElementById('topupSearch').value.toLowerCase(), [newRecord.id], 'updated');
+            } else {
+                // Record wasn't in our local state — insert it
+                topupData.push(newRecord);
+                renderTable(document.getElementById('topupSearch').value.toLowerCase(), [newRecord.id], 'new');
+            }
+        }
+
+        function handleDelete(deletedId) {
+            if (!deletedId) {
+                // Can't identify — full reload
+                loadData(false);
+                return;
+            }
+
+            topupData = topupData.filter(r => r.id !== deletedId);
+            renderTable(document.getElementById('topupSearch').value.toLowerCase());
         }
 
         // ==========================================
         // TABLE RENDERING
         // ==========================================
-        function renderTable(searchTerm = '') {
+        function renderTable(searchTerm = '', highlightIds = [], highlightType = 'new') {
             const tbody = document.getElementById('tableBody');
             tbody.innerHTML = '';
+
+            const term = (searchTerm || '').toLowerCase();
 
             const filtered = topupData.filter(row => {
                 const searchFields = [
@@ -951,8 +1111,7 @@
                     String(row.type ?? ''),
                     String(row.payment_method ?? '')
                 ].join(' ').toLowerCase();
-
-                return searchFields.includes(searchTerm.toLowerCase());
+                return searchFields.includes(term);
             });
 
             if (filtered.length === 0) {
@@ -962,77 +1121,66 @@
                             <div class="empty-state">
                                 <i class="fas fa-wallet"></i>
                                 <h4>No records found</h4>
-                                <p>${searchTerm ? 'No matches for your search.' : 'No top up records in database.'}</p>
+                                <p>${term ? 'No matches for your search.' : 'No top up records in database.'}</p>
                             </div>
                         </td>
-                    </tr>
-                `;
+                    </tr>`;
                 return;
             }
 
             filtered.forEach((row, index) => {
                 const tr = document.createElement('tr');
-                tr.style.animationDelay = `${index * 0.05}s`;
+                tr.style.animationDelay = `${index * 0.03}s`;
+                tr.dataset.id = row.id;
 
-                const paymentClass = String(row.payment_method ?? 'cash').toLowerCase();
+                if (highlightIds.includes(row.id)) {
+                    tr.classList.add(highlightType === 'updated' ? 'updated-row' : 'new-row');
+                }
 
-                // Action column: show buttons if pending, show status if already approved/rejected
-                const isPending = row.approve === null || row.approve === undefined;
+                const paymentClass = String(row.payment_method ?? 'cash').toLowerCase().replace(/\s+/g, '');
                 const isAdmin = currentUserRole === 'admin';
+                const isPending = row.approve === null || row.approve === undefined;
 
                 let actionContent;
                 if (isAdmin) {
-                    // Admin: View only, show status
                     actionContent = isPending
                         ? '<span class="approve-status pending"><i class="fas fa-clock"></i> Pending</span>'
                         : row.approve === true
                             ? '<span class="approve-status verified"><i class="fas fa-check-circle"></i> Verified</span>'
                             : '<span class="approve-status rejected"><i class="fas fa-times-circle"></i> Rejected</span>';
                 } else {
-                    // Other roles: Can approve/reject
-                    actionContent = isPending
-                        ? `<div class="approve-actions">
-                            <button class="approve-btn verify" onclick="handleApproval(${row.id}, true)">
-                                <i class="fas fa-check"></i> Verify
-                            </button>
-                            <button class="approve-btn reject" onclick="handleApproval(${row.id}, false)">
-                                <i class="fas fa-times"></i> Reject
-                            </button>
-                           </div>`
-                        : row.approve === true
+                    if (isPending) {
+                        actionContent = `
+                            <div class="approve-actions">
+                                <button class="approve-btn verify" onclick="handleApproval(${row.id}, true)">
+                                    <i class="fas fa-check"></i> Verify
+                                </button>
+                                <button class="approve-btn reject" onclick="handleApproval(${row.id}, false)">
+                                    <i class="fas fa-times"></i> Reject
+                                </button>
+                            </div>`;
+                    } else {
+                        actionContent = row.approve === true
                             ? '<span class="approve-status verified"><i class="fas fa-check-circle"></i> Verified</span>'
                             : '<span class="approve-status rejected"><i class="fas fa-times-circle"></i> Rejected</span>';
+                    }
                 }
 
-                // Format type for display
                 let displayType = row.type ?? '-';
-                if (displayType === 'top_up_approval') {
-                    displayType = 'Top-up Approval';
-                }
+                if (displayType === 'top_up_approval') displayType = 'Top-up Approval';
 
-                // Format date and time to 12-hour format
                 let formattedDateTime = '-';
                 if (row.created_at) {
                     const date = new Date(row.created_at);
-                    const datePart = date.toLocaleDateString('en-US', {
-                        year: 'numeric',
-                        month: 'short',
-                        day: 'numeric'
-                    });
-                    const timePart = date.toLocaleTimeString('en-US', {
-                        hour: '2-digit',
-                        minute: '2-digit',
-                        hour12: true
-                    });
+                    const datePart = date.toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' });
+                    const timePart = date.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', hour12: true });
                     formattedDateTime = `${datePart}, ${timePart}`;
                 }
 
                 tr.innerHTML = `
                     <td>
                         <div class="id-cell">
-                            <div class="id-icon-small">
-                                <i class="fas fa-hashtag"></i>
-                            </div>
+                            <div class="id-icon-small"><i class="fas fa-hashtag"></i></div>
                             <span>${row.id ?? '-'}</span>
                         </div>
                     </td>
@@ -1052,59 +1200,21 @@
         }
 
         // ==========================================
-        // REAL-TIME SUBSCRIPTION
-        // ==========================================
-        function setupRealtimeSubscription() {
-            realtimeChannel = window.supabaseClient
-                .channel('admin_notif_main_changes')
-                .on('postgres_changes',
-                    { event: '*', schema: 'public', table: 'admin_notifications' },
-                    (payload) => {
-                        console.log('Real-time update:', payload);
-                        handleRealtimeUpdate(payload);
-                    }
-                )
-                .subscribe();
-        }
-
-        function handleRealtimeUpdate(payload) {
-            const { eventType, new: newRecord, old: oldRecord } = payload;
-
-            switch (eventType) {
-                case 'INSERT':
-                    topupData.push(newRecord);
-                    break;
-                case 'UPDATE':
-                    const idx = topupData.findIndex(r => r.id === oldRecord.id);
-                    if (idx !== -1) topupData[idx] = newRecord;
-                    break;
-                case 'DELETE':
-                    topupData = topupData.filter(r => r.id !== oldRecord.id);
-                    break;
-            }
-
-            renderTable(document.getElementById('topupSearch').value);
-        }
-
-        // ==========================================
         // APPROVAL HANDLER
         // ==========================================
         async function handleApproval(id, approved) {
-            // Check if admin (read-only)
             if (currentUserRole === 'admin') {
-                showToast('Admin has view-only access. Cannot approve or reject requests.', 'error');
+                showToast('Admin has view-only access.', 'error');
                 return;
             }
 
-            // Disable buttons immediately
             const buttons = document.querySelectorAll(`button[onclick*="handleApproval(${id}"]`);
             buttons.forEach(b => b.disabled = true);
 
             try {
                 console.log(`🔄 Processing approval for ID ${id}, approved=${approved}`);
 
-                // Get the reference_no from admin_notifications
-                const { data: notificationRecord, error: notifError } = await window.supabaseClient
+                const { data: notifRecord, error: notifError } = await window.supabaseClient
                     .from('admin_notifications')
                     .select('reference_no')
                     .eq('id', id)
@@ -1114,7 +1224,6 @@
 
                 const statusValue = approved ? 'verified' : 'denied';
 
-                // Update admin_notifications (approve only)
                 const { error: adminError } = await window.supabaseClient
                     .from('admin_notifications')
                     .update({ approve: approved })
@@ -1122,20 +1231,15 @@
 
                 if (adminError) throw adminError;
 
-                // Update top_up_references (status)
-                if (notificationRecord && notificationRecord.reference_no) {
+                if (notifRecord?.reference_no) {
                     await window.supabaseClient
                         .from('top_up_references')
                         .update({ status: statusValue })
-                        .eq('reference_no', notificationRecord.reference_no);
+                        .eq('reference_no', notifRecord.reference_no);
                 }
 
-                // Update local data
-                topupData = topupData.map(r => r.id === id ? { ...r, approve: approved } : r);
-
-                renderTable(document.getElementById('topupSearch').value);
-
-                showToast(approved ? 'Request verified successfully' : 'Request rejected', approved ? 'success' : 'error');
+                // Realtime will handle the UI update — no need to re-render here.
+                showToast(approved ? ' Request verified successfully' : 'Request rejected', approved ? 'success' : 'error');
 
             } catch (error) {
                 console.error('❌ Approval error:', error);
@@ -1144,20 +1248,14 @@
             }
         }
 
-
         // ==========================================
-        // AUTHENTICATION HELPERS
+        // AUTH HELPERS
         // ==========================================
         function getCurrentUserData() {
             try {
                 const userData = localStorage.getItem('userData');
-                if (userData) {
-                    return JSON.parse(userData);
-                }
-
-                if (typeof Auth !== 'undefined' && Auth.getCurrentUser) {
-                    return Auth.getCurrentUser();
-                }
+                if (userData) return JSON.parse(userData);
+                if (typeof Auth !== 'undefined' && Auth.getCurrentUser) return Auth.getCurrentUser();
             } catch (e) {
                 console.error('Error getting user data:', e);
             }
@@ -1166,12 +1264,9 @@
 
         function checkUserRole() {
             const user = getCurrentUserData();
-            if (user && user.role) {
-                currentUserRole = user.role;
-            }
+            if (user?.role) currentUserRole = user.role;
 
             const banner = document.getElementById('topupReadOnlyBanner');
-
             if (currentUserRole === 'admin') {
                 banner.classList.remove('hidden');
             } else {
@@ -1180,19 +1275,34 @@
         }
 
         // ==========================================
-        // UTILITY FUNCTIONS
+        // TOAST
         // ==========================================
+        let toastTimer = null;
         function showToast(message, type = 'success') {
             const toast = document.getElementById('toast');
+            if (toastTimer) clearTimeout(toastTimer);
             toast.textContent = message;
             toast.className = `toast ${type} show`;
-            setTimeout(() => toast.classList.remove('show'), 3000);
+            toastTimer = setTimeout(() => toast.classList.remove('show'), 3500);
         }
 
-        // Cleanup on page unload
+        // ==========================================
+        // CLEANUP
+        // ==========================================
         window.addEventListener('beforeunload', () => {
-            if (realtimeChannel) window.supabaseClient.removeChannel(realtimeChannel);
+            if (reconnectTimer) clearTimeout(reconnectTimer);
+            if (realtimeChannel) {
+                // Signal teardown so scheduleReconnect won't fire
+                const ch = realtimeChannel;
+                realtimeChannel = null;
+                window.supabaseClient.removeChannel(ch);
+                console.log('🧹 Cleaned up realtime subscription');
+            }
         });
+
+        // ==========================================
+        // PARENT FRAME NOTIFICATION
+        // ==========================================
         (function notifyParent() {
             const filename = window.location.pathname.split('/').pop();
             const pageMap = {
@@ -1205,17 +1315,13 @@
                 'child_load.html': 'load',
                 'child_top_up_reference.html': 'top-up-reference',
                 'child_account_management.html': 'accounts',
-                'child_finance.html': 'finance',
+                'child_child_finance.html': 'finance',
                 'child_settings.html': 'settings',
                 'child_developer_logs.html': 'developer-logs'
             };
-
             const pageName = pageMap[filename];
             if (pageName && window.parent !== window) {
-                window.parent.postMessage({
-                    type: 'pageLoaded',
-                    page: pageName
-                }, '*');
+                window.parent.postMessage({ type: 'pageLoaded', page: pageName }, '*');
             }
         })();
     </script>
