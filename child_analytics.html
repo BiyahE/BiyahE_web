@@ -1,0 +1,2104 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>BIYAHE - Analytics Dashboard</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <style>
+        :root {
+            --primary: #4f46e5;
+            --primary-light: #818cf8;
+            --success: #10b981;
+            --warning: #f59e0b;
+            --danger: #ef4444;
+            --purple: #8b5cf6;
+
+            --bg: #f8fafc;
+            --surface: #ffffff;
+
+            --text-primary: #0f172a;
+            --text-secondary: #64748b;
+            --text-muted: #94a3b8;
+
+            --border: #e2e8f0;
+            --shadow: 0 1px 3px 0 rgb(0 0 0 / 0.1);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        html,
+        body {
+            height: 100vh;
+            overflow: hidden;
+            font-family: 'Inter', sans-serif;
+            background: var(--bg);
+            color: var(--text-primary);
+            font-size: 13px;
+        }
+
+        .dashboard {
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+            padding: 1.25rem;
+            gap: 1rem;
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+
+        /* Header */
+        .header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            flex-shrink: 0;
+        }
+
+        .header-brand {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+        }
+
+        .brand-icon {
+            width: 36px;
+            height: 36px;
+            background: linear-gradient(135deg, var(--primary) 0%, #3730a3 100%);
+            border-radius: 0.5rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 1rem;
+        }
+
+        .brand-text h1 {
+            font-size: 1.25rem;
+            font-weight: 700;
+            letter-spacing: -0.02em;
+        }
+
+        .brand-text p {
+            font-size: 0.75rem;
+            color: var(--text-secondary);
+        }
+
+        .header-actions {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .btn {
+            display: flex;
+            align-items: center;
+            gap: 0.375rem;
+            padding: 0.5rem 0.875rem;
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: 0.5rem;
+            font-size: 0.8125rem;
+            font-weight: 500;
+            color: var(--text-secondary);
+            cursor: pointer;
+            transition: all 0.15s ease;
+        }
+
+        .btn:hover {
+            border-color: var(--primary-light);
+            color: var(--primary);
+        }
+
+        .btn-dark {
+            background: var(--text-primary);
+            color: white;
+            border-color: var(--text-primary);
+        }
+
+        .btn-dark:hover {
+            background: var(--primary);
+            border-color: var(--primary);
+        }
+
+        select {
+            border: none;
+            background: transparent;
+            font-family: inherit;
+            font-size: inherit;
+            font-weight: 500;
+            color: inherit;
+            cursor: pointer;
+            outline: none;
+        }
+
+        /* Stats - Horizontal compact */
+        .stats-row {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 0.875rem;
+            flex-shrink: 0;
+        }
+
+        .stat-card {
+            background: var(--surface);
+            border-radius: 0.75rem;
+            padding: 1rem;
+            border: 1px solid var(--border);
+            box-shadow: var(--shadow);
+            display: flex;
+            align-items: center;
+            gap: 0.875rem;
+        }
+
+        .stat-icon {
+            width: 40px;
+            height: 40px;
+            border-radius: 0.625rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1rem;
+            background: #eef2ff;
+            color: var(--primary);
+            flex-shrink: 0;
+        }
+
+        .stat-card.success .stat-icon {
+            background: #ecfdf5;
+            color: var(--success);
+        }
+
+        .stat-card.warning .stat-icon {
+            background: #fffbeb;
+            color: var(--warning);
+        }
+
+        .stat-card.purple .stat-icon {
+            background: #f5f3ff;
+            color: var(--purple);
+        }
+
+        .stat-content {
+            flex: 1;
+            min-width: 0;
+        }
+
+        .stat-label {
+            font-size: 0.6875rem;
+            color: var(--text-muted);
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.03em;
+            margin-bottom: 0.25rem;
+        }
+
+        .stat-value {
+            font-size: 1.375rem;
+            font-weight: 700;
+            color: var(--text-primary);
+            line-height: 1.2;
+        }
+
+        .stat-meta {
+            font-size: 0.75rem;
+            color: var(--text-secondary);
+            font-weight: 500;
+            display: flex;
+            align-items: center;
+            gap: 0.25rem;
+            margin-top: 0.125rem;
+        }
+
+        .stat-meta.positive {
+            color: var(--success);
+        }
+
+        .stat-meta.negative {
+            color: var(--danger);
+        }
+
+        /* Bento Grid Layout - SAT moved before CHART */
+        .bento-grid {
+            flex: 1;
+            display: grid;
+            grid-template-columns: repeat(12, 1fr);
+            grid-template-rows: 1fr 1fr;
+            gap: 1rem;
+            min-height: 0;
+
+            /* Updated: sat first, then chart, then route and activity */
+            grid-template-areas:
+                "sat   sat   chart chart chart chart chart chart route route route route"
+                "sat   sat   chart chart chart chart chart chart activity activity activity activity";
+        }
+
+        .card {
+            background: var(--surface);
+            border-radius: 0.75rem;
+            border: 1px solid var(--border);
+            box-shadow: var(--shadow);
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+            min-height: 0;
+        }
+
+        .card-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0.875rem 1rem;
+            border-bottom: 1px solid var(--border);
+            flex-shrink: 0;
+        }
+
+        .card-title {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            font-size: 0.875rem;
+            font-weight: 600;
+            color: var(--text-primary);
+        }
+
+        .card-title i {
+            color: var(--primary);
+        }
+
+        .card-actions {
+            display: flex;
+            gap: 0.25rem;
+        }
+
+        .card-btn {
+            padding: 0.375rem 0.75rem;
+            border: 1px solid var(--border);
+            background: transparent;
+            border-radius: 0.375rem;
+            font-size: 0.75rem;
+            font-weight: 500;
+            color: var(--text-secondary);
+            cursor: pointer;
+            transition: all 0.15s ease;
+        }
+
+        .card-btn:hover,
+        .card-btn.active {
+            background: var(--primary);
+            color: white;
+            border-color: var(--primary);
+        }
+
+        .card-body {
+            flex: 1;
+            padding: 1rem;
+            position: relative;
+            min-height: 0;
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+        }
+
+        /* Grid areas */
+        .chart-card {
+            grid-area: chart;
+        }
+
+        .sat-card {
+            grid-area: sat;
+        }
+
+        .route-card {
+            grid-area: route;
+        }
+
+        .activity-card {
+            grid-area: activity;
+        }
+
+        /* Chart Card - Graph at bottom layout */
+        .chart-top-section {
+            flex-shrink: 0;
+            margin-bottom: 0.75rem;
+        }
+
+        .chart-legend {
+            display: flex;
+            gap: 1.5rem;
+            font-size: 0.75rem;
+            color: var(--text-secondary);
+        }
+
+        .legend-item {
+            display: flex;
+            align-items: center;
+            gap: 0.375rem;
+        }
+
+        .legend-dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+        }
+
+        .chart-container {
+            flex: 1;
+            position: relative;
+            min-height: 0;
+        }
+
+        /* Satisfaction Card - Horizontal bar chart */
+        .satisfaction-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 0.75rem;
+        }
+
+        .satisfaction-score {
+            text-align: right;
+        }
+
+        .score-value {
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: var(--text-primary);
+            line-height: 1;
+        }
+
+        .score-label {
+            font-size: 0.6875rem;
+            color: var(--text-muted);
+            margin-top: 0.125rem;
+        }
+
+        .satisfaction-chart-container {
+            flex: 1;
+            position: relative;
+            min-height: 0;
+        }
+
+        /* Compact lists */
+        .compact-list {
+            display: flex;
+            flex-direction: column;
+            gap: 0.5rem;
+            height: 100%;
+            overflow-y: auto;
+        }
+
+        .list-item {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0.625rem 0.75rem;
+            background: #f8fafc;
+            border-radius: 0.5rem;
+            border: 1px solid transparent;
+            transition: all 0.15s ease;
+        }
+
+        .list-item:hover {
+            background: var(--surface);
+            border-color: var(--border);
+        }
+
+        .list-main {
+            display: flex;
+            align-items: center;
+            gap: 0.625rem;
+            min-width: 0;
+        }
+
+        .list-rank {
+            width: 22px;
+            height: 22px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.6875rem;
+            font-weight: 700;
+            background: var(--bg);
+            color: var(--text-muted);
+            flex-shrink: 0;
+        }
+
+        .list-rank.top {
+            background: linear-gradient(135deg, #fde68a 0%, #f59e0b 100%);
+            color: #92400e;
+        }
+
+        .list-info {
+            min-width: 0;
+        }
+
+        .list-title {
+            font-size: 0.8125rem;
+            font-weight: 600;
+            color: var(--text-primary);
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .list-sub {
+            font-size: 0.6875rem;
+            color: var(--text-muted);
+        }
+
+        .list-value {
+            font-size: 0.875rem;
+            font-weight: 700;
+            color: var(--success);
+            flex-shrink: 0;
+        }
+
+        /* Activity */
+        .activity-list {
+            display: flex;
+            flex-direction: column;
+            gap: 0.5rem;
+            flex: 1;
+            overflow-y: auto;
+            min-height: 0;
+        }
+
+        .activity-item {
+            display: flex;
+            align-items: center;
+            gap: 0.625rem;
+            padding: 0.5rem;
+            border-radius: 0.5rem;
+            transition: background 0.15s ease;
+        }
+
+        .activity-item:hover {
+            background: #f8fafc;
+        }
+
+        .activity-icon {
+            width: 28px;
+            height: 28px;
+            border-radius: 0.5rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.75rem;
+            flex-shrink: 0;
+        }
+
+        .activity-icon.sale {
+            background: #ecfdf5;
+            color: var(--success);
+        }
+
+        .activity-icon.feedback {
+            background: #f5f3ff;
+            color: var(--purple);
+        }
+
+        .activity-icon.alert {
+            background: #fef2f2;
+            color: var(--danger);
+        }
+
+        .activity-content {
+            flex: 1;
+            min-width: 0;
+        }
+
+        .activity-text {
+            font-size: 0.8125rem;
+            font-weight: 500;
+            color: var(--text-primary);
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .activity-time {
+            font-size: 0.6875rem;
+            color: var(--text-muted);
+        }
+
+        /* Quick stats row in activity footer */
+        .quick-stats-row {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 0.5rem;
+            margin-top: 0.75rem;
+            padding-top: 0.75rem;
+            border-top: 1px solid var(--border);
+            flex-shrink: 0;
+        }
+
+        .quick-stat {
+            text-align: center;
+        }
+
+        .quick-label {
+            font-size: 0.625rem;
+            color: var(--text-muted);
+            font-weight: 500;
+            margin-bottom: 0.25rem;
+        }
+
+        .quick-value {
+            font-size: 1rem;
+            font-weight: 700;
+        }
+
+        /* Loading */
+        .loading-overlay {
+            position: absolute;
+            inset: 0;
+            background: rgba(255, 255, 255, 0.9);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            z-index: 10;
+            opacity: 0;
+            visibility: hidden;
+            transition: all 0.3s ease;
+        }
+
+        .loading-overlay.active {
+            opacity: 1;
+            visibility: visible;
+        }
+
+        .spinner {
+            width: 24px;
+            height: 24px;
+            border: 2px solid var(--border);
+            border-top-color: var(--primary);
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            to {
+                transform: rotate(360deg);
+            }
+        }
+
+        .empty-state {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 100%;
+            color: var(--text-muted);
+            text-align: center;
+            padding: 1rem;
+        }
+
+        .empty-state i {
+            font-size: 1.5rem;
+            margin-bottom: 0.5rem;
+            opacity: 0.4;
+        }
+
+        .empty-state h4 {
+            font-size: 0.8125rem;
+            font-weight: 600;
+            color: var(--text-secondary);
+        }
+
+        /* Permission denied */
+        .permission-denied {
+            display: none;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+            text-align: center;
+            color: var(--text-secondary);
+            padding: 2rem;
+        }
+
+        .permission-denied.show {
+            display: flex;
+        }
+
+        .permission-icon {
+            width: 64px;
+            height: 64px;
+            background: #fef2f2;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.5rem;
+            color: var(--danger);
+            margin-bottom: 1rem;
+        }
+
+        .permission-denied h2 {
+            font-size: 1.25rem;
+            font-weight: 700;
+            color: var(--text-primary);
+            margin-bottom: 0.5rem;
+        }
+
+        .permission-denied p {
+            font-size: 0.875rem;
+            max-width: 360px;
+        }
+
+        /* Toast */
+        .toast {
+            position: fixed;
+            bottom: 1rem;
+            right: 1rem;
+            padding: 0.625rem 1rem;
+            background: var(--text-primary);
+            color: white;
+            border-radius: 0.5rem;
+            box-shadow: 0 10px 15px -3px rgb(0 0 0 / 0.1);
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            font-size: 0.8125rem;
+            font-weight: 500;
+            z-index: 9999;
+            opacity: 0;
+            transform: translateY(10px);
+            transition: all 0.3s ease;
+        }
+
+        .toast.show {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        .toast.success {
+            background: var(--success);
+        }
+
+        .toast.error {
+            background: var(--danger);
+        }
+
+        ::-webkit-scrollbar {
+            width: 4px;
+            height: 4px;
+        }
+
+        ::-webkit-scrollbar-track {
+            background: transparent;
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: var(--border);
+            border-radius: 2px;
+        }
+
+        .hidden {
+            display: none !important;
+        }
+
+        /* Force hide loading overlay when not active */
+        .loading-overlay:not(.active) {
+            opacity: 0 !important;
+            visibility: hidden !important;
+            pointer-events: none;
+        }
+    </style>
+    <base target="_blank">
+    <base target="_blank">
+</head>
+
+<body>
+    <div class="permission-denied" id="permissionDenied">
+        <div class="permission-icon"><i class="fas fa-lock"></i></div>
+        <h2>Access Denied</h2>
+        <p>You don't have permission to view analytics. This section is restricted to Admin and Finance Staff only.</p>
+    </div>
+
+    <div class="dashboard hidden" id="analyticsContent">
+        <!-- Header -->
+        <header class="header">
+            <div class="header-brand">
+                <div class="brand-icon"><i class="fas fa-chart-line"></i></div>
+                <div class="brand-text">
+                    <h1>Analytics Dashboard</h1>
+                    <p>Real-time insights</p>
+                </div>
+            </div>
+            <div class="header-actions">
+                <div class="btn">
+                    <i class="fas fa-calendar-alt" style="font-size:0.75rem;"></i>
+                    <select id="dateRangeFilter" onchange="updateDashboard()">
+                        <option value="7">7 Days</option>
+                        <option value="30" selected>30 Days</option>
+                        <option value="90">3 Months</option>
+                        <option value="365">1 Year</option>
+                    </select>
+                </div>
+                <!-- Export button removed -->
+            </div>
+        </header>
+
+        <!-- Stats -->
+        <div class="stats-row" id="statsOverview">
+            <div class="stat-card">
+                <div class="stat-icon"><i class="fas fa-peso-sign"></i></div>
+                <div class="stat-content">
+                    <div class="stat-label">Total Revenue</div>
+                    <div class="stat-value" id="totalRevenue">₱0.00</div>
+                    <div class="stat-meta positive" id="revenueChange">
+                        <i class="fas fa-arrow-up" style="font-size:0.625rem;"></i> 0% vs last period
+                    </div>
+                </div>
+            </div>
+
+            <div class="stat-card success">
+                <div class="stat-icon"><i class="fas fa-users"></i></div>
+                <div class="stat-content">
+                    <div class="stat-label">Passenger Total</div>
+                    <div class="stat-value" id="totalPassengers">₱0.00</div>
+                    <div class="stat-meta positive" id="passengerChange">
+                        <i class="fas fa-arrow-up" style="font-size:0.625rem;"></i> 0% vs last period
+                    </div>
+                </div>
+            </div>
+
+            <div class="stat-card warning">
+                <div class="stat-icon"><i class="fas fa-bus"></i></div>
+                <div class="stat-content">
+                    <div class="stat-label">Active Buses</div>
+                    <div class="stat-value" id="activeBuses">0</div>
+                    <div class="stat-meta" id="busUtilization" style="color:var(--text-muted);">
+                        <i class="fas fa-percentage" style="font-size:0.625rem;"></i> 0% utilization
+                    </div>
+                </div>
+            </div>
+
+            <div class="stat-card purple">
+                <div class="stat-icon"><i class="fas fa-clock"></i></div>
+                <div class="stat-content">
+                    <div class="stat-label">Pending Top-ups</div>
+                    <div class="stat-value" id="pendingApprovals">0</div>
+                    <div class="stat-meta" id="pendingStatus" style="color:var(--purple);">
+                        <i class="fas fa-hourglass-half" style="font-size:0.625rem;"></i> Needs action
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Bento Grid - SAT moved to first position -->
+        <main class="bento-grid">
+            <!-- Satisfaction Card - Now first (left side) -->
+            <div class="card sat-card">
+                <div class="card-header">
+                    <div class="card-title">
+                        <i class="fas fa-smile"></i>
+                        Customer Satisfaction
+                    </div>
+                </div>
+                <div class="card-body">
+                    <!-- Score header -->
+                    <div class="satisfaction-header">
+                        <div class="satisfaction-score">
+                            <div class="score-value" id="satisfactionRate">0%</div>
+                            <div class="score-label">Satisfied (4-5★)</div>
+                        </div>
+                    </div>
+                    <!-- Horizontal bar chart -->
+                    <div class="satisfaction-chart-container">
+                        <canvas id="feedbackChart"></canvas>
+                    </div>
+                    <div class="loading-overlay active" id="feedbackLoading">
+                        <div class="spinner"></div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Large Chart Card - Now second (middle) -->
+            <div class="card chart-card">
+                <div class="card-header">
+                    <div class="card-title">
+                        <i class="fas fa-chart-area"></i>
+                        Revenue & Passenger Trend
+                    </div>
+                    <div class="card-actions">
+                        <button class="card-btn active" onclick="switchChartType('revenue',this)">Revenue</button>
+                        <button class="card-btn" onclick="switchChartType('passengers',this)">Passengers</button>
+                        <button class="card-btn" onclick="switchChartType('both',this)">Both</button>
+                    </div>
+                </div>
+                <div class="card-body">
+                    <!-- Legend at top -->
+                    <div class="chart-top-section">
+                        <div class="chart-legend" id="chartLegendBar">
+                            <div class="legend-item">
+                                <div class="legend-dot" style="background:#4f46e5;"></div>
+                                Revenue (₱)
+                            </div>
+                        </div>
+                    </div>
+                    <!-- Chart at bottom -->
+                    <div class="chart-container">
+                        <canvas id="salesChart"></canvas>
+                    </div>
+                    <div class="loading-overlay active" id="salesLoading">
+                        <div class="spinner"></div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Top Routes -->
+            <div class="card route-card">
+                <div class="card-header">
+                    <div class="card-title" id="routesChartTitle">
+                        <i class="fas fa-route"></i>
+                        Top Routes
+                    </div>
+                    <div class="card-actions">
+                        <button class="card-btn active" onclick="switchRoutesView('routes', this)">Route</button>
+                        <button class="card-btn" onclick="switchRoutesView('passengers', this)">Pax</button>
+                    </div>
+                </div>
+                <div class="card-body">
+                    <div class="compact-list" id="topRoutesList"></div>
+                    <div class="loading-overlay active" id="routesLoading">
+                        <div class="spinner"></div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Activity & Summary -->
+            <div class="card activity-card">
+                <div class="card-header">
+                    <div class="card-title">
+                        <i class="fas fa-bolt"></i>
+                        Recent Activity
+                    </div>
+                    <button class="card-btn" onclick="refreshActivity()">
+                        <i class="fas fa-sync-alt" style="font-size:0.625rem;"></i>
+                    </button>
+                </div>
+                <div class="card-body">
+                    <div class="activity-list" id="activityList"></div>
+
+                    <!-- Quick Stats Footer -->
+                    <div class="quick-stats-row">
+                        <div class="quick-stat">
+                            <div class="quick-label">Response</div>
+                            <div class="quick-value" id="responseRate" style="color:var(--primary);">0%</div>
+                        </div>
+                        <div class="quick-stat">
+                            <div class="quick-label">Resolution</div>
+                            <div class="quick-value" id="resolutionTime" style="color:var(--success);">0h</div>
+                        </div>
+                        <div class="quick-stat">
+                            <div class="quick-label">New</div>
+                            <div class="quick-value" id="newToday" style="color:var(--warning);">0</div>
+                        </div>
+                        <div class="quick-stat">
+                            <div class="quick-label">Pending</div>
+                            <div class="quick-value" id="pendingCount" style="color:var(--danger);">0</div>
+                        </div>
+                    </div>
+
+                    <div class="loading-overlay active" id="activityLoading">
+                        <div class="spinner"></div>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <div class="toast" id="toast">
+        <i class="fas fa-check-circle"></i>
+        <span id="toastMessage">Operation successful</span>
+    </div>
+
+
+    <!-- Add this BEFORE any other scripts -->
+    <script src="js/logger.js"></script>
+    <script src="js/auth.js"></script>
+    <script>
+        let salesChart, feedbackChart;
+        let currentChartType = 'revenue';
+        let currentRoutesView = 'routes';
+        let currentUser = null;
+        let autoRefreshInterval = null;
+        let isRefreshing = false;
+
+        const ALLOWED_ROLES = ['admin', 'staff_finance', 'accounting_staff', 'finance', 'accountant', 'developer'];
+
+        const analyticsData = {
+            sales: [],
+            feedback: [],
+            routes: [],
+            topPassengers: [],
+            activity: [],
+            passengers: [], // Driver trip records (for revenue)
+            tapInPassengers: [], // Non-Driver records (for unique passenger total amount)
+            buses: [],
+            totals: { revenue: 0, passengerTotalAmount: 0, activeBuses: 0, totalBuses: 0, pendingApprovals: 0 },
+            feedbackMetrics: { total: 0, satisfied: 0, satisfactionRate: 0, responseRate: 0, avgRating: '0.0', pending: 0 }
+        };
+
+        // MODIFIED: Use only total_amount
+        function getPassengerAmount(p) {
+            if (p == null) return 0;
+            const ta = parseFloat(p.total_amount);
+            if (!isNaN(ta) && ta > 0) return ta;
+            return 0;
+        }
+
+        function getPassengerRoute(p) {
+            if (!p) return null;
+            if (p.bus && typeof p.bus === 'object') {
+                return p.bus.route || `Bus ${p.bus_id}`;
+            }
+            if (p.point_a && p.point_b) return `${p.point_a} → ${p.point_b}`;
+            return p.point_a || p.point_b || `Bus ${p.bus_id || 'Unknown'}`;
+        }
+
+        function getPassengerLabel(p) {
+            if (!p) return 'Unknown';
+            if (p.registration && typeof p.registration === 'object') {
+                return p.registration.fullname || p.registration.name || p.RFID;
+            }
+            return p.fullname || p.name || p.RFID || p.Transaction_No || 'Unknown';
+        }
+
+        function getPassengerDate(p) {
+            return p.created_at || p.updated_at || null;
+        }
+
+        function getPassengerRFID(p) {
+            if (!p) return null;
+            return p.RFID || p.rfid || null;
+        }
+
+        document.addEventListener('DOMContentLoaded', async () => {
+            try {
+                await waitForSupabaseAndAuth();
+                if (!checkPermissions()) { showPermissionDenied(); return; }
+
+                showAnalyticsContent();
+                initCharts();
+                await updateDashboard();
+
+                setupRealtimeSubscriptions();
+                startAutoRefresh(10000);
+            } catch (err) {
+                console.error('Init error:', err);
+                showToast('Failed to initialize: ' + err.message, 'error');
+            }
+        });
+
+        async function waitForSupabaseAndAuth(maxAttempts = 100) {
+            return new Promise((resolve, reject) => {
+                let attempts = 0;
+                const id = setInterval(() => {
+                    attempts++;
+                    if (window.supabaseClient && window.Auth) {
+                        clearInterval(id); resolve();
+                    } else if (attempts >= maxAttempts) {
+                        clearInterval(id);
+                        reject(new Error('Timeout waiting for Supabase / Auth'));
+                    }
+                }, 100);
+            });
+        }
+
+        function checkPermissions() {
+            if (!window.Auth) return false;
+            currentUser = window.Auth.getCurrentUser();
+            if (!currentUser) return false;
+            return ALLOWED_ROLES.includes(currentUser.role);
+        }
+
+        function showPermissionDenied() {
+            document.getElementById('permissionDenied').classList.add('show');
+            document.getElementById('analyticsContent').classList.add('hidden');
+        }
+
+        function showAnalyticsContent() {
+            document.getElementById('permissionDenied').classList.remove('show');
+            document.getElementById('analyticsContent').classList.remove('hidden');
+        }
+
+        function initCharts() {
+            // Main line chart - positioned at bottom of card
+            const salesCtx = document.getElementById('salesChart').getContext('2d');
+            salesChart = new Chart(salesCtx, {
+                type: 'line',
+                data: { labels: [], datasets: [] },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    animation: { duration: 0 },
+                    layout: {
+                        padding: { top: 10, right: 10, bottom: 0, left: 0 }
+                    },
+                    plugins: {
+                        legend: { display: false },
+                        tooltip: {
+                            backgroundColor: '#1e293b',
+                            titleFont: { family: 'Inter', size: 12, weight: '600' },
+                            bodyFont: { family: 'Inter', size: 11 },
+                            padding: 10,
+                            cornerRadius: 6,
+                            displayColors: true,
+                            callbacks: {
+                                label(ctx) {
+                                    const label = ctx.dataset.label || '';
+                                    const val = ctx.parsed.y;
+                                    if (label.includes('Revenue') || label.includes('₱'))
+                                        return ` ${label}: ₱${val.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+                                    return ` ${label}: ${val.toLocaleString()}`;
+                                }
+                            }
+                        }
+                    },
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            grid: { color: 'rgba(0,0,0,0.03)', drawBorder: false },
+                            ticks: {
+                                font: { family: 'Inter', size: 10 },
+                                callback: v => '₱' + v.toLocaleString()
+                            }
+                        },
+                        y1: {
+                            type: 'linear', display: false, position: 'right',
+                            beginAtZero: true,
+                            grid: { drawOnChartArea: false },
+                            ticks: { font: { family: 'Inter', size: 10 }, callback: v => v.toLocaleString() }
+                        },
+                        x: {
+                            grid: { display: false, drawBorder: false },
+                            ticks: { font: { family: 'Inter', size: 9 }, maxRotation: 0, autoSkip: true, maxTicksLimit: 8 }
+                        }
+                    }
+                }
+            });
+
+            // Satisfaction - Horizontal Bar Chart
+            const feedbackCtx = document.getElementById('feedbackChart').getContext('2d');
+            feedbackChart = new Chart(feedbackCtx, {
+                type: 'bar',
+                data: {
+                    labels: ['5★', '4★', '3★', '2★', '1★'],
+                    datasets: [{
+                        label: 'Count',
+                        data: [0, 0, 0, 0, 0],
+                        backgroundColor: ['#10b981', '#4f46e5', '#f59e0b', '#f97316', '#ef4444'],
+                        borderRadius: 4,
+                        barThickness: 12
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    indexAxis: 'y',
+                    animation: { duration: 0 },
+                    layout: {
+                        padding: { top: 0, right: 20, bottom: 0, left: 0 }
+                    },
+                    plugins: {
+                        legend: { display: false },
+                        tooltip: {
+                            backgroundColor: '#1e293b',
+                            titleFont: { family: 'Inter', size: 11, weight: '600' },
+                            bodyFont: { family: 'Inter', size: 11 },
+                            padding: 8,
+                            cornerRadius: 6,
+                            callbacks: {
+                                label(ctx) {
+                                    const total = ctx.dataset.data.reduce((a, b) => a + b, 0);
+                                    const pct = total > 0 ? Math.round((ctx.parsed.x / total) * 100) : 0;
+                                    return `${ctx.parsed.x} responses (${pct}%)`;
+                                }
+                            }
+                        }
+                    },
+                    scales: {
+                        x: {
+                            beginAtZero: true,
+                            grid: { color: 'rgba(0,0,0,0.03)', drawBorder: false },
+                            ticks: {
+                                font: { family: 'Inter', size: 9 },
+                                padding: 4
+                            }
+                        },
+                        y: {
+                            grid: { display: false, drawBorder: false },
+                            ticks: {
+                                font: { family: 'Inter', size: 11, weight: '600' },
+                                color: ['#10b981', '#4f46e5', '#f59e0b', '#f97316', '#ef4444']
+                            }
+                        }
+                    }
+                }
+            });
+        }
+
+        function updateCharts() {
+            console.log('Updating charts with data:', analyticsData.sales);
+
+            if (salesChart && analyticsData.sales.length > 0) {
+                salesChart.data.labels = analyticsData.sales.map(d => d.date);
+                salesChart.data.datasets = buildDatasets();
+
+                if (currentChartType === 'passengers') {
+                    salesChart.options.scales.y.ticks.callback = v => v.toLocaleString();
+                } else {
+                    salesChart.options.scales.y.ticks.callback = v => '₱' + v.toLocaleString();
+                }
+
+                salesChart.options.scales.y1.display = (currentChartType === 'both');
+                if (currentChartType === 'both') {
+                    salesChart.options.scales.y1.ticks.callback = v => v.toLocaleString();
+                }
+
+                salesChart.update('none');
+                updateChartLegend();
+                console.log('Chart updated successfully');
+            } else {
+                console.warn('Cannot update chart:', {
+                    salesChartExists: !!salesChart,
+                    salesDataLength: analyticsData.sales.length
+                });
+            }
+
+            if (feedbackChart && analyticsData.feedback.length > 0) {
+                const counts = [5, 4, 3, 2, 1].map(r =>
+                    analyticsData.feedback.filter(f => (f.rate || f.rating) === r).length
+                );
+                feedbackChart.data.datasets[0].data = counts;
+                feedbackChart.update('none');
+                document.getElementById('satisfactionRate').textContent =
+                    analyticsData.feedbackMetrics.satisfactionRate + '%';
+            }
+        }
+
+        function buildDatasets() {
+            const revenue = analyticsData.sales.map(d => d.revenue);
+            const passengerAmounts = analyticsData.sales.map(d => d.passengers); // This is now passenger total amount
+
+            const revDataset = {
+                label: 'Revenue (₱)',
+                data: revenue,
+                borderColor: '#4f46e5',
+                backgroundColor: 'rgba(79, 70, 229, 0.1)',
+                borderWidth: 2, fill: true, tension: 0.4,
+                pointRadius: 0, pointHoverRadius: 4,
+                pointBackgroundColor: '#4f46e5',
+                pointBorderColor: '#fff', pointBorderWidth: 2,
+                yAxisID: 'y'
+            };
+
+            const paxDataset = {
+                label: 'Passenger Total (₱)',
+                data: passengerAmounts,
+                borderColor: '#10b981',
+                backgroundColor: 'transparent',
+                borderWidth: 2, fill: false, tension: 0.4,
+                borderDash: [4, 4],
+                pointRadius: 0, pointHoverRadius: 4,
+                pointBackgroundColor: '#10b981',
+                pointBorderColor: '#fff', pointBorderWidth: 2,
+                yAxisID: 'y1'
+            };
+
+            if (currentChartType === 'revenue') return [revDataset];
+            if (currentChartType === 'passengers') return [{ ...paxDataset, yAxisID: 'y', borderDash: [] }];
+            return [revDataset, paxDataset];
+        }
+
+        function updateChartLegend() {
+            const bar = document.getElementById('chartLegendBar');
+            if (currentChartType === 'revenue') {
+                bar.innerHTML = `<div class="legend-item"><div class="legend-dot" style="background:#4f46e5;"></div>Revenue (₱)</div>`;
+            } else if (currentChartType === 'passengers') {
+                bar.innerHTML = `<div class="legend-item"><div class="legend-dot" style="background:#10b981;"></div>Passenger Total (₱)</div>`;
+            } else {
+                bar.innerHTML = `
+                    <div class="legend-item"><div class="legend-dot" style="background:#4f46e5;"></div>Revenue (₱)</div>
+                    <div class="legend-item"><div class="legend-dot" style="background:#10b981;"></div>Passenger Total (₱)</div>`;
+            }
+        }
+
+        // MODIFIED: Filter by created_by = 'Driver'
+        async function loadPassengersData() {
+            try {
+                // Load ALL passenger records
+                const { data, error } = await window.supabaseClient
+                    .from('passenger')
+                    .select('*');
+
+                if (error) throw error;
+
+                const allPassengers = data || [];
+
+                // Split: Driver records for revenue, non-Driver for unique passengers
+                analyticsData.passengers = allPassengers.filter(p => p.created_by === 'Driver');
+                analyticsData.tapInPassengers = allPassengers.filter(p => p.created_by !== 'Driver');
+
+                console.log('Driver passengers (revenue):', analyticsData.passengers.length);
+                console.log('Tap-in passengers (unique count):', analyticsData.tapInPassengers.length);
+
+            } catch (err) {
+                console.error('loadPassengersData error:', err);
+                analyticsData.passengers = [];
+                analyticsData.tapInPassengers = [];
+            }
+        }
+
+
+        async function loadFeedbackData() {
+            try {
+                if (!window.FeedbackAPI) {
+                    console.warn('FeedbackAPI not available, skipping feedback data');
+                    analyticsData.feedback = [];
+                    return;
+                }
+
+                const result = await window.FeedbackAPI.getAllFeedback();
+
+                if (result.success) {
+                    analyticsData.feedback = result.data || [];
+                } else {
+                    console.warn('FeedbackAPI returned error:', result.error);
+                    analyticsData.feedback = [];
+                }
+            } catch (err) {
+                console.error('loadFeedbackData error:', err);
+                analyticsData.feedback = []; // Set empty array as fallback
+            }
+        }
+
+        async function loadBusData() {
+            try {
+                if (!window.BusAPI) throw new Error('BusAPI not available');
+                const result = await window.BusAPI.getAllBuses();
+                if (result.success) analyticsData.buses = result.data || [];
+                else throw new Error(result.error || 'Failed');
+            } catch (err) {
+                console.error('loadBusData:', err);
+                analyticsData.buses = [];
+            }
+        }
+
+        // ============================================
+        // MODIFIED: Load Pending Approvals from admin_notifications
+        // Based on approve column being 'pending' or null
+        // ============================================
+        async function loadPendingApprovals() {
+            try {
+                const { data, error } = await window.supabaseClient
+                    .from('admin_notifications')
+                    .select('id')
+                    .is('approve', null);
+
+                if (error) throw error;
+
+                analyticsData.totals.pendingApprovals = (data || []).length;
+            } catch (err) {
+                console.error('loadPendingApprovals error:', err);
+                analyticsData.totals.pendingApprovals = 0;
+            }
+        }
+        // ============================================
+        // Load Top Routes based on passenger bus_id counts
+        // FIX: Changed .in('id', ...) to .in('bus_id', ...) to match actual column name
+        // ============================================
+        async function loadTopRoutes() {
+            try {
+                // Step 1: Get all passenger records with bus_id and total_amount
+                const { data: passengers, error: passengerError } = await window.supabaseClient
+                    .from('passenger')
+                    .select('bus_id, total_amount');
+
+                if (passengerError) throw passengerError;
+
+                // Step 2: Count occurrences of each bus_id and sum revenue
+                const busIdData = {};
+                passengers.forEach(p => {
+                    if (p.bus_id) {
+                        if (!busIdData[p.bus_id]) {
+                            busIdData[p.bus_id] = { count: 0, revenue: 0 };
+                        }
+                        busIdData[p.bus_id].count += 1;
+                        busIdData[p.bus_id].revenue += getPassengerAmount(p);
+                    }
+                });
+
+                // Step 3: Get unique bus_ids
+                const uniqueBusIds = Object.keys(busIdData).map(id => parseInt(id));
+
+                if (uniqueBusIds.length === 0) {
+                    analyticsData.routes = [];
+                    return;
+                }
+
+                // Step 4: Fetch bus details using bus_id (the actual primary key column name)
+                const { data: buses, error: busError } = await window.supabaseClient
+                    .from('bus')
+                    .select('bus_id, route')
+                    .in('bus_id', uniqueBusIds);  // FIX: was .in('id', ...) — column is bus_id
+
+                if (busError) throw busError;
+
+                // Step 5: Group by route (multiple buses can have same route)
+                const routeMap = {};
+
+                buses.forEach(bus => {
+                    const data = busIdData[bus.bus_id] || { count: 0, revenue: 0 };  // FIX: was bus.id
+                    const routeKey = bus.route || `Route ${bus.bus_id}`;             // FIX: was bus.id
+
+                    if (!routeMap[routeKey]) {
+                        routeMap[routeKey] = {
+                            name: routeKey,
+                            total_passengers: 0,
+                            total_revenue: 0,
+                            buses: []
+                        };
+                    }
+
+                    routeMap[routeKey].total_passengers += data.count;
+                    routeMap[routeKey].total_revenue += data.revenue;
+                    routeMap[routeKey].buses.push({
+                        bus_id: bus.bus_id,
+                    });
+                });
+
+                // Step 6: Convert to array and sort by passenger count (most ridden first)
+                analyticsData.routes = Object.values(routeMap)
+                    .sort((a, b) => b.total_passengers - a.total_passengers)
+                    .slice(0, 5);
+
+            } catch (err) {
+                console.error('loadTopRoutes error:', err);
+                analyticsData.routes = [];
+            }
+        }
+
+        async function loadActivityData(days) {
+            try {
+                const startDate = new Date();
+                startDate.setDate(startDate.getDate() - days);
+                const activities = [];
+
+                // Only show Feedback activities in Recent Activity
+                analyticsData.feedback
+                    .filter(f => {
+                        const d = f.created_at || f.updated_at;
+                        return d && new Date(d) >= startDate;
+                    })
+                    .slice(0, 10) // Show up to 10 recent feedback items
+                    .forEach(f => {
+                        const reply = f.reply;
+                        // Check if has reply (not null, not empty, not 'null' string)
+                        const hasReply = reply !== null && reply !== undefined && reply.trim() !== '' && reply.trim().toLowerCase() !== 'null';
+                        const statusIcon = hasReply ? 'fa-check-circle' : 'fa-comment-dots';
+                        const statusText = hasReply ? 'Replied' : 'New feedback';
+                        const rating = f.rate || f.rating || 0;
+
+                        activities.push({
+                            type: hasReply ? 'feedback' : 'alert',
+                            text: `${f.name || 'Anonymous'}: ${statusText} ${rating > 0 ? rating + '★' : ''}`,
+                            time: new Date(f.created_at || f.updated_at || Date.now()),
+                            icon: statusIcon
+                        });
+                    });
+
+                // Sort by most recent first
+                activities.sort((a, b) => b.time - a.time);
+                analyticsData.activity = activities.slice(0, 5); // Show top 5 in the list
+            } catch (err) {
+                console.error('loadActivityData:', err);
+                analyticsData.activity = [];
+            }
+        }
+
+        function processAnalyticsData(days) {
+            const endDate = new Date();
+            const startDate = new Date();
+            startDate.setDate(startDate.getDate() - days);
+            startDate.setHours(0, 0, 0, 0);
+            endDate.setHours(23, 59, 59, 999);
+
+            const dailyData = {};
+
+            for (let i = days - 1; i >= 0; i--) {
+                const d = new Date();
+                d.setDate(d.getDate() - i);
+                const key = d.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+                dailyData[key] = {
+                    revenue: 0,
+                    passengerAmount: 0, // Total amount from tap-in passengers (non-Driver)
+                    dateObj: new Date(d)
+                };
+            }
+
+            let totalRevenue = 0;
+            let totalPassengerAmount = 0; // Sum of total_amount from tap-in records
+            const passengerMap = {};
+
+            console.log('Processing', analyticsData.passengers.length, 'driver records for revenue');
+            console.log('Processing', analyticsData.tapInPassengers.length, 'tap-in records for passenger amount');
+
+            // Process driver records for REVENUE
+            analyticsData.passengers.forEach((p, index) => {
+                const amt = getPassengerAmount(p);
+                const dateStr = getPassengerDate(p);
+
+                totalRevenue += amt;
+
+                console.log(`Driver record ${index}:`, { amt, dateStr, id: p.Transaction_No || p.id });
+
+                if (dateStr) {
+                    try {
+                        const pDate = new Date(dateStr);
+                        if (!isNaN(pDate.getTime())) {
+                            const pDateKey = pDate.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+
+                            if (dailyData[pDateKey]) {
+                                dailyData[pDateKey].revenue += amt;
+                                console.log(`Matched date ${pDateKey} for revenue: +₱${amt}`);
+                            } else {
+                                console.log(`Date ${pDateKey} not in range`);
+                            }
+                        }
+                    } catch (e) {
+                        console.error('Date parsing error:', dateStr, e);
+                    }
+                } else {
+                    console.log('No date for driver record:', p);
+                }
+            });
+
+            // Process tap-in records for PASSENGER TOTAL AMOUNT (created_by != 'Driver')
+            analyticsData.tapInPassengers.forEach((p, index) => {
+                const amt = getPassengerAmount(p);
+                const dateStr = getPassengerDate(p);
+                const rfid = getPassengerRFID(p);
+
+                totalPassengerAmount += amt;
+
+                console.log(`Tap-in record ${index}:`, { amt, dateStr, rfid, id: p.Transaction_No || p.id });
+
+                if (dateStr) {
+                    try {
+                        const pDate = new Date(dateStr);
+                        if (!isNaN(pDate.getTime())) {
+                            const pDateKey = pDate.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+
+                            if (dailyData[pDateKey]) {
+                                dailyData[pDateKey].passengerAmount += amt;
+                                console.log(`Matched date ${pDateKey} for passenger amount: +₱${amt}`);
+                            }
+                        }
+                    } catch (e) {
+                        console.error('Date parsing error for tap-in:', dateStr, e);
+                    }
+                }
+
+                // Build passenger map from tap-in records
+                const passengerKey = rfid || getPassengerLabel(p);
+                if (!passengerMap[passengerKey]) {
+                    passengerMap[passengerKey] = {
+                        name: getPassengerLabel(p),
+                        rfid: rfid,
+                        total_trips: 0,
+                        total_spent: 0,
+                        registration: p.registration || null
+                    };
+                }
+                passengerMap[passengerKey].total_trips += 1;
+                passengerMap[passengerKey].total_spent += amt;
+            });
+
+            analyticsData.sales = Object.entries(dailyData)
+                .sort((a, b) => a[1].dateObj - b[1].dateObj)
+                .map(([date, v]) => ({
+                    date,
+                    revenue: v.revenue,
+                    passengers: v.passengerAmount // Now this is total amount, not count
+                }));
+
+            // Routes are now loaded by loadTopRoutes() instead
+            analyticsData.topPassengers = Object.values(passengerMap)
+                .sort((a, b) => b.total_spent - a.total_spent)
+                .slice(0, 5);
+
+            const tf = analyticsData.feedback.length;
+            const sat = analyticsData.feedback.filter(f => (f.rate || f.rating) >= 4).length;
+            const resp = analyticsData.feedback.filter(f => f.status === 'resolved' || f.reply).length;
+            const pend = analyticsData.feedback.filter(f => f.status !== 'resolved').length;
+            const avg = tf > 0 ? (analyticsData.feedback.reduce((s, f) => s + (f.rate || f.rating || 0), 0) / tf).toFixed(1) : '0.0';
+
+            analyticsData.feedbackMetrics = {
+                total: tf,
+                satisfied: sat,
+                satisfactionRate: tf > 0 ? Math.round(sat / tf * 100) : 0,
+                responseRate: tf > 0 ? Math.round(resp / tf * 100) : 0,
+                avgRating: avg,
+                pending: pend
+            };
+
+            analyticsData.totals = {
+                ...analyticsData.totals,
+                revenue: totalRevenue,
+                passengerTotalAmount: totalPassengerAmount,
+                activeBuses: analyticsData.buses.filter(b => b.status === 'active').length,
+                totalBuses: analyticsData.buses.length
+            };
+
+            console.log('Final sales data:', analyticsData.sales);
+            console.log('Total passenger amount (from tap-ins):', totalPassengerAmount);
+            console.log('Total driver trip records:', analyticsData.passengers.length);
+            console.log('Total tap-in records:', analyticsData.tapInPassengers.length);
+        }
+
+        function updateStatsCards() {
+            const t = analyticsData.totals;
+            const m = analyticsData.feedbackMetrics;
+            const days = parseInt(document.getElementById('dateRangeFilter').value);
+
+            document.getElementById('totalRevenue').textContent = '₱' + t.revenue.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+            // Display passenger total amount (from non-Driver records) as currency
+            document.getElementById('totalPassengers').textContent = '₱' + t.passengerTotalAmount.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+            document.getElementById('activeBuses').textContent = t.activeBuses;
+            document.getElementById('pendingApprovals').textContent = t.pendingApprovals.toLocaleString();
+
+            const pendingStatusEl = document.getElementById('pendingStatus');
+            if (t.pendingApprovals === 0) {
+                pendingStatusEl.innerHTML = '<i class="fas fa-check-circle" style="font-size:0.625rem;"></i> All caught up';
+                pendingStatusEl.className = 'stat-meta positive';
+            } else if (t.pendingApprovals === 1) {
+                pendingStatusEl.innerHTML = '<i class="fas fa-hourglass-half" style="font-size:0.625rem;"></i> 1 needs action';
+                pendingStatusEl.className = 'stat-meta';
+                pendingStatusEl.style.color = 'var(--purple)';
+            } else {
+                pendingStatusEl.innerHTML = `<i class="fas fa-hourglass-half" style="font-size:0.625rem;"></i> ${t.pendingApprovals} need action`;
+                pendingStatusEl.className = 'stat-meta';
+                pendingStatusEl.style.color = 'var(--purple)';
+            }
+
+            const util = t.totalBuses > 0 ? Math.round(t.activeBuses / t.totalBuses * 100) : 0;
+            document.getElementById('busUtilization').innerHTML = `<i class="fas fa-percentage" style="font-size:0.625rem;"></i> ${util}% utilization`;
+
+            const prevRev = calcPrevRevenue(days);
+            const revDelta = prevRev > 0 ? ((t.revenue - prevRev) / prevRev * 100).toFixed(1) : 0;
+            const revUp = revDelta >= 0;
+            document.getElementById('revenueChange').className = `stat-meta ${revUp ? 'positive' : 'negative'}`;
+            document.getElementById('revenueChange').innerHTML = `<i class="fas fa-arrow-${revUp ? 'up' : 'down'}" style="font-size:0.625rem;"></i> ${Math.abs(revDelta)}% vs last period`;
+
+            const prevPaxAmount = calcPrevPassengers(days);
+            const paxDelta = prevPaxAmount > 0 ? ((t.passengerTotalAmount - prevPaxAmount) / prevPaxAmount * 100).toFixed(1) : 0;
+            const paxUp = paxDelta >= 0;
+            document.getElementById('passengerChange').className = `stat-meta ${paxUp ? 'positive' : 'negative'}`;
+            document.getElementById('passengerChange').innerHTML = `<i class="fas fa-arrow-${paxUp ? 'up' : 'down'}" style="font-size:0.625rem;"></i> ${Math.abs(paxDelta)}% vs last period`;
+        }
+
+        function calcPrevRevenue(days) {
+            const end = new Date(); end.setDate(end.getDate() - days);
+            const start = new Date(); start.setDate(start.getDate() - days * 2);
+            return analyticsData.passengers.reduce((s, p) => {
+                const d = getPassengerDate(p);
+                if (!d) return s;
+                const dt = new Date(d);
+                return (dt >= start && dt < end) ? s + getPassengerAmount(p) : s;
+            }, 0);
+        }
+
+        function calcPrevPassengers(days) {
+            const end = new Date(); end.setDate(end.getDate() - days);
+            const start = new Date(); start.setDate(start.getDate() - days * 2);
+            let prevPeriodAmount = 0;
+
+            // Calculate total amount from tap-in records (created_by != 'Driver') for previous period
+            analyticsData.tapInPassengers.forEach(p => {
+                const d = getPassengerDate(p);
+                if (!d) return;
+                const dt = new Date(d);
+                if (dt >= start && dt < end) {
+                    prevPeriodAmount += getPassengerAmount(p);
+                }
+            });
+
+            return prevPeriodAmount;
+        }
+
+        function updateQuickSummary() {
+            const feedbackList = analyticsData.feedback || [];
+            const now = new Date();
+            const today = new Date(now.getFullYear(), now.getMonth(), now.getDate()); // Start of today
+
+            // Response Rate: % of feedback that has replies
+            const totalFeedback = feedbackList.length;
+            const respondedFeedback = feedbackList.filter(f => {
+                const reply = f.reply;
+                // Check if reply exists, is not null, not empty string, and not 'null' string
+                return reply !== null && reply !== undefined && reply.trim() !== '' && reply.trim().toLowerCase() !== 'null';
+            }).length;
+            const responseRate = totalFeedback > 0 ? Math.round((respondedFeedback / totalFeedback) * 100) : 0;
+
+            // Resolution Time: Average hours between creation and reply
+            let totalResolutionHours = 0;
+            let resolvedCount = 0;
+
+            feedbackList.forEach(f => {
+                const reply = f.reply;
+                // Check if reply exists and is valid
+                if (reply !== null && reply !== undefined && reply.trim() !== '' && reply.trim().toLowerCase() !== 'null') {
+                    const createdAt = new Date(f.created_at || f.date || f.timestamp);
+                    const repliedAt = new Date(f.updated_at || f.replied_at || f.reply_date || Date.now());
+                    if (!isNaN(createdAt.getTime()) && !isNaN(repliedAt.getTime())) {
+                        const diffMs = repliedAt - createdAt;
+                        const diffHours = diffMs / (1000 * 60 * 60);
+                        if (diffHours >= 0) {
+                            totalResolutionHours += diffHours;
+                            resolvedCount++;
+                        }
+                    }
+                }
+            });
+
+            const avgResolutionHours = resolvedCount > 0 ? (totalResolutionHours / resolvedCount).toFixed(1) : '0.0';
+
+            // NEW: Feedback created TODAY (since midnight today)
+            const newToday = feedbackList.filter(f => {
+                const createdAt = new Date(f.created_at || f.date || f.timestamp);
+                const createdDate = new Date(createdAt.getFullYear(), createdAt.getMonth(), createdAt.getDate());
+                return createdDate.getTime() === today.getTime();
+            }).length;
+
+            // PENDING: Feedback with NO reply AND created more than 24 hours ago
+            const pendingIssues = feedbackList.filter(f => {
+                return !f.status || f.status.trim() === '' || f.status.trim().toLowerCase() === 'null';
+            }).length;
+
+            document.getElementById('responseRate').textContent = responseRate + '%';
+            document.getElementById('resolutionTime').textContent = avgResolutionHours + 'h';
+            document.getElementById('newToday').textContent = newToday;
+            document.getElementById('pendingCount').textContent = pendingIssues;
+        }
+
+        async function updateDashboard() {
+            const days = parseInt(document.getElementById('dateRangeFilter').value);
+            showLoading(true);
+            try {
+                await Promise.all([
+                    loadPassengersData(),
+                    loadFeedbackData(),
+                    loadBusData(),
+                    loadPendingApprovals(),
+                    loadTopRoutes()
+                ]);
+
+                console.log('Passenger records loaded:', analyticsData.passengers.length);
+                console.log('Sample passenger record:', analyticsData.passengers[0]);
+
+                await loadActivityData(days);
+                processAnalyticsData(days);
+
+                console.log('Sales data after processing (unique per day):', analyticsData.sales);
+                console.log('Total unique passengers:', analyticsData.totals.passengers);
+
+                updateStatsCards();
+                updateCharts();
+                updateRoutesOrPassengersList();
+                updateActivityList();
+                updateQuickSummary();
+            } catch (err) {
+                console.error('Dashboard update error:', err);
+                showToast('Failed to load analytics data', 'error');
+            } finally {
+                showLoading(false);
+            }
+        }
+
+        function switchRoutesView(viewType, btn) {
+            currentRoutesView = viewType;
+            const buttons = btn.parentElement.querySelectorAll('.card-btn');
+            buttons.forEach(b => b.classList.remove('active'));
+            btn.classList.add('active');
+
+            const titleEl = document.getElementById('routesChartTitle');
+            if (viewType === 'passengers') {
+                titleEl.innerHTML = '<i class="fas fa-users"></i> Top Passengers';
+            } else {
+                titleEl.innerHTML = '<i class="fas fa-route"></i> Top Routes';
+            }
+
+            updateRoutesOrPassengersList();
+        }
+
+        function updateRoutesOrPassengersList() {
+            if (currentRoutesView === 'passengers') {
+                updateTopPassengersList();
+            } else {
+                updateRoutesList();
+            }
+        }
+
+        // Display routes with bus.route from database
+        function updateRoutesList() {
+            const list = document.getElementById('topRoutesList');
+            list.innerHTML = '';
+
+            if (!analyticsData.routes.length) {
+                list.innerHTML = `<div class="empty-state"><i class="fas fa-route"></i><h4>No route data available</h4></div>`;
+                return;
+            }
+
+            analyticsData.routes.forEach((route, i) => {
+                const item = document.createElement('div');
+                item.className = 'list-item';
+
+                // Show bus numbers if multiple buses on same route
+                let busInfo = '';
+                if (route.buses && route.buses.length > 0) {
+                    const busNumbers = route.buses.map(b => b.bus_id || `#${b.bus_id}`).join(', ');
+                    busInfo = `<div class="list-sub">Bus: ${busNumbers}</div>`;
+                }
+
+                item.innerHTML = `
+                    <div class="list-main">
+                        <div class="list-rank ${i < 3 ? 'top' : ''}">${i + 1}</div>
+                        <div class="list-info">
+                            <div class="list-title">${route.name}</div>
+                            <div class="list-sub">${route.total_passengers.toLocaleString()} passengers · ${route.buses.length} bus${route.buses.length > 1 ? 'es' : ''}</div>
+                            ${busInfo}
+                        </div>
+                    </div>
+                    <div class="list-value">₱${(route.total_revenue || 0).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</div>
+                `;
+                list.appendChild(item);
+            });
+        }
+
+        function updateTopPassengersList() {
+            const list = document.getElementById('topRoutesList');
+            list.innerHTML = '';
+
+            if (!analyticsData.topPassengers?.length) {
+                list.innerHTML = `<div class="empty-state"><i class="fas fa-users"></i><h4>No passenger data</h4></div>`;
+                return;
+            }
+
+            analyticsData.topPassengers.forEach((passenger, i) => {
+                const item = document.createElement('div');
+                item.className = 'list-item';
+                const regInfo = passenger.registration ? `<div class="list-sub">${passenger.registration.email || passenger.rfid}</div>` : `<div class="list-sub">${passenger.rfid || 'No RFID'}</div>`;
+                item.innerHTML = `
+                    <div class="list-main">
+                        <div class="list-rank ${i < 3 ? 'top' : ''}">${i + 1}</div>
+                        <div class="list-info">
+                            <div class="list-title">${passenger.name}</div>
+                            <div class="list-sub">${passenger.total_trips} trips · Total spent: ₱${passenger.total_spent.toFixed(2)}</div>
+                            ${regInfo}
+                        </div>
+                    </div>
+                    <div class="list-value">₱${passenger.total_spent.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</div>
+                `;
+                list.appendChild(item);
+            });
+        }
+
+        function updateActivityList() {
+            const list = document.getElementById('activityList');
+            list.innerHTML = '';
+
+            if (!analyticsData.activity.length) {
+                list.innerHTML = `<div class="empty-state" style="padding:0.5rem;"><i class="fas fa-bolt"></i><h4>No recent activity</h4></div>`;
+                return;
+            }
+
+            analyticsData.activity.forEach(a => {
+                const item = document.createElement('div');
+                item.className = 'activity-item';
+                item.innerHTML = `
+                    <div class="activity-icon ${a.type}"><i class="fas ${a.icon}"></i></div>
+                    <div class="activity-content">
+                        <div class="activity-text">${a.text}</div>
+                        <div class="activity-time">${getTimeAgo(a.time)}</div>
+                    </div>
+                `;
+                list.appendChild(item);
+            });
+        }
+
+        function getTimeAgo(date) {
+            const s = Math.floor((Date.now() - date) / 1000);
+            if (s < 60) return 'Just now';
+            const m = Math.floor(s / 60);
+            if (m < 60) return `${m}m ago`;
+            const h = Math.floor(m / 60);
+            if (h < 24) return `${h}h ago`;
+            return `${Math.floor(h / 24)}d ago`;
+        }
+
+        function switchChartType(type, btn) {
+            currentChartType = type;
+            btn.parentElement.querySelectorAll('.card-btn').forEach(b => b.classList.remove('active'));
+            btn.classList.add('active');
+            updateCharts();
+        }
+
+        function refreshActivity() {
+            const days = parseInt(document.getElementById('dateRangeFilter').value);
+            loadActivityData(days).then(() => { updateActivityList(); showToast('Activity refreshed', 'success'); });
+        }
+
+        function showLoading(show) {
+            const overlays = document.querySelectorAll('.loading-overlay');
+            overlays.forEach(el => {
+                if (show) {
+                    el.classList.add('active');
+                } else {
+                    el.classList.remove('active');
+                }
+            });
+            console.log('Loading overlay:', show ? 'shown' : 'hidden');
+        }
+
+        function setupRealtimeSubscriptions() {
+            if (!window.RealtimeManager) {
+                console.log('RealtimeManager not available, skipping realtime subscriptions');
+                return;
+            }
+
+            try {
+                window.RealtimeManager.subscribe('Passenger', payload => {
+                    const { eventType, new: nr, old: or } = payload;
+                    const isDriver = nr.created_by === 'Driver';
+
+                    if (eventType === 'INSERT') {
+                        if (isDriver) {
+                            // Driver record - affects revenue
+                            analyticsData.passengers.unshift(nr);
+                            analyticsData.totals.revenue += getPassengerAmount(nr);
+                            addActivityItem({ type: 'sale', text: `Trip completed — ₱${getPassengerAmount(nr).toFixed(2)}`, time: new Date(), icon: 'fa-bus' });
+                        } else {
+                            // Tap-in record - affects unique passenger count
+                            analyticsData.tapInPassengers.unshift(nr);
+                            addActivityItem({ type: 'sale', text: `${getPassengerLabel(nr)} tapped in`, time: new Date(), icon: 'fa-ticket-alt' });
+                        }
+                        refreshAllUI();
+                        if (isDriver) {
+                            showToast(`New trip: +₱${getPassengerAmount(nr).toFixed(2)}`, 'success');
+                        }
+                    } else if (eventType === 'UPDATE') {
+                        if (isDriver) {
+                            const idx = analyticsData.passengers.findIndex(p => p.Transaction_No === or.Transaction_No);
+                            if (idx !== -1) {
+                                const diff = getPassengerAmount(nr) - getPassengerAmount(analyticsData.passengers[idx]);
+                                analyticsData.totals.revenue += diff;
+                                analyticsData.passengers[idx] = nr;
+                                refreshAllUI();
+                            }
+                        } else {
+                            const idx = analyticsData.tapInPassengers.findIndex(p => p.Transaction_No === or.Transaction_No);
+                            if (idx !== -1) {
+                                analyticsData.tapInPassengers[idx] = nr;
+                                refreshAllUI();
+                            }
+                        }
+                    } else if (eventType === 'DELETE') {
+                        if (isDriver) {
+                            const idx = analyticsData.passengers.findIndex(p => p.Transaction_No === or.Transaction_No);
+                            if (idx !== -1) {
+                                analyticsData.totals.revenue -= getPassengerAmount(analyticsData.passengers[idx]);
+                                analyticsData.passengers.splice(idx, 1);
+                                refreshAllUI();
+                            }
+                        } else {
+                            const idx = analyticsData.tapInPassengers.findIndex(p => p.Transaction_No === or.Transaction_No);
+                            if (idx !== -1) {
+                                analyticsData.tapInPassengers.splice(idx, 1);
+                                refreshAllUI();
+                            }
+                        }
+                    }
+                });
+
+                window.RealtimeManager.subscribe('Feedback', payload => {
+                    const { eventType, new: nr, old: or } = payload;
+                    if (eventType === 'INSERT') {
+                        analyticsData.feedback.unshift(nr);
+                    } else if (eventType === 'UPDATE') {
+                        const idx = analyticsData.feedback.findIndex(f => f.id === or.id);
+                        if (idx !== -1) analyticsData.feedback[idx] = nr;
+                    } else if (eventType === 'DELETE') {
+                        const idx = analyticsData.feedback.findIndex(f => f.id === or.id);
+                        if (idx !== -1) analyticsData.feedback.splice(idx, 1);
+                    }
+                    recalcFeedback();
+                    updateStatsCards(); updateCharts(); updateQuickSummary();
+                });
+
+                window.RealtimeManager.subscribe('bus', () => {
+                    loadBusData().then(() => {
+                        loadTopRoutes().then(() => {
+                            updateRoutesOrPassengersList();
+                            updateStatsCards();
+                        });
+                    });
+                });
+
+                // ============================================
+                // MODIFIED: Realtime subscription for admin_notifications
+                // Only refresh when approve status changes to/from pending/null
+                // ============================================
+
+                window.RealtimeManager.subscribe('admin_notifications', payload => {
+                    const newRecord = payload.new;
+                    const oldRecord = payload.old;
+
+                    // Count only when approve is null (pending)
+                    const wasPending = oldRecord?.approve === null;
+                    const isPending = newRecord?.approve === null;
+
+                    // Only refresh if pending status changed
+                    if (wasPending !== isPending || payload.eventType === 'INSERT' || payload.eventType === 'DELETE') {
+                        loadPendingApprovals().then(() => { updateStatsCards(); });
+                    }
+                });
+            } catch (err) {
+                console.error('Realtime subscription setup error:', err);
+            }
+        }
+
+        function refreshAllUI() {
+            const days = parseInt(document.getElementById('dateRangeFilter').value);
+            processAnalyticsData(days);
+            updateStatsCards();
+            updateCharts();
+            updateRoutesOrPassengersList();
+            updateActivityList();
+            updateQuickSummary();
+        }
+
+        function startAutoRefresh(ms = 10000) {
+            if (autoRefreshInterval) clearInterval(autoRefreshInterval);
+            autoRefreshInterval = setInterval(async () => {
+                if (isRefreshing) return;
+                isRefreshing = true;
+                try {
+                    // Use supabaseClient directly instead of Auth.getAllPassengers
+                    const { data, error } = await window.supabaseClient
+                        .from('passenger')
+                        .select('*');
+
+                    if (error) throw error;
+
+                    if (data) {
+                        const driverCount = data.filter(p => p.created_by === 'Driver').length;
+                        const tapInCount = data.filter(p => p.created_by !== 'Driver').length;
+
+                        const currentDriverCount = analyticsData.passengers.length;
+                        const currentTapInCount = analyticsData.tapInPassengers.length;
+
+                        if (driverCount !== currentDriverCount || tapInCount !== currentTapInCount) {
+                            analyticsData.passengers = data.filter(p => p.created_by === 'Driver');
+                            analyticsData.tapInPassengers = data.filter(p => p.created_by !== 'Driver');
+
+                            // Also refresh top routes on data change
+                            await loadTopRoutes();
+                            refreshAllUI();
+                            console.log('Auto-refresh: Data updated', { driverCount, tapInCount });
+                        }
+                    }
+
+                    // ============================================
+                    // MODIFIED: Also refresh pending approvals in auto-refresh
+                    // ============================================
+                    await loadPendingApprovals();
+                    updateStatsCards();
+                } catch (e) {
+                    console.error('Auto-refresh error:', e);
+                }
+                finally { isRefreshing = false; }
+            }, ms);
+        }
+
+        document.addEventListener('visibilitychange', () => {
+            if (document.visibilityState === 'visible') updateDashboard();
+        });
+
+        function addActivityItem(item) {
+            analyticsData.activity.unshift(item);
+            if (analyticsData.activity.length > 10) analyticsData.activity.pop();
+        }
+
+        function recalcFeedback() {
+            const tf = analyticsData.feedback.length;
+            const sat = analyticsData.feedback.filter(f => (f.rate || f.rating) >= 4).length;
+            const resp = analyticsData.feedback.filter(f => f.status === 'resolved' || f.reply).length;
+            const pend = analyticsData.feedback.filter(f => f.status !== 'resolved').length;
+            const avg = tf > 0 ? (analyticsData.feedback.reduce((s, f) => s + (f.rate || f.rating || 0), 0) / tf).toFixed(1) : '0.0';
+            analyticsData.feedbackMetrics = {
+                total: tf,
+                satisfied: sat,
+                satisfactionRate: tf > 0 ? Math.round(sat / tf * 100) : 0,
+                responseRate: tf > 0 ? Math.round(resp / tf * 100) : 0,
+                avgRating: avg,
+                pending: pend
+            };
+        }
+
+        function showToast(message, type = 'success') {
+            const toast = document.getElementById('toast');
+            document.getElementById('toastMessage').textContent = message;
+            toast.className = `toast ${type} show`;
+            toast.querySelector('i').className = type === 'error' ? 'fas fa-exclamation-circle' : 'fas fa-check-circle';
+            setTimeout(() => toast.classList.remove('show'), 3000);
+        }
+
+        let _rt;
+        window.addEventListener('resize', () => {
+            clearTimeout(_rt);
+            _rt = setTimeout(() => { salesChart?.resize(); feedbackChart?.resize(); }, 250);
+        });
+        (function notifyParent() {
+            const filename = window.location.pathname.split('/').pop();
+            const pageMap = {
+                'child_dashboard.html': 'dashboard',
+                'child_tracking.html': 'live-tracking',
+                'child_analytics.html': 'analytics',
+                'child_feedback.html': 'feedback',
+                'child_bus_information.html': 'bus-info',
+                'child_bus_schedule.html': 'schedule',
+                'child_load.html': 'load',
+                'child_top_up_reference.html': 'top-up-reference',
+                'child_account_management.html': 'accounts',
+                'child_finance.html': 'finance',
+                'child_settings.html': 'settings',
+                'child_developer_logs.html': 'developer-logs'
+            };
+
+            const pageName = pageMap[filename];
+            if (pageName && window.parent !== window) {
+                window.parent.postMessage({
+                    type: 'pageLoaded',
+                    page: pageName
+                }, '*');
+            }
+        })();
+    </script>
+</body>
+
+</html>

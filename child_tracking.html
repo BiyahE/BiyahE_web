@@ -1,0 +1,2099 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>BIYAHE - Live GPS Tracking</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
+    <style>
+        :root {
+            --primary-color: #3b82f6;
+            --success: #10b981;
+            --warning: #f59e0b;
+            --danger: #ef4444;
+            --bg-light: #f8fafc;
+            --text-primary: #0f172a;
+            --text-secondary: #64748b;
+            --border-color: #e2e8f0;
+            --white: #ffffff;
+            --inactive: #9ca3af;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        html,
+        body {
+            height: 100%;
+            overflow: hidden;
+            font-family: 'Inter', sans-serif;
+            background: linear-gradient(135deg, #e5e7eb 0%, #fef3c7 100%);
+        }
+
+        .tracking-container {
+            width: 100%;
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+            padding: 0.75rem;
+        }
+
+        .card {
+            background: var(--white);
+            border-radius: 1rem;
+            border: 1px solid var(--border-color);
+            box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+            flex: 1;
+        }
+
+        .card-header {
+            padding: 0.875rem;
+            border-bottom: 1px solid var(--border-color);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            flex-shrink: 0;
+            background: var(--white);
+            z-index: 100;
+        }
+
+        .card-title {
+            font-size: 0.9375rem;
+            font-weight: 700;
+            color: var(--text-primary);
+        }
+
+        .card-body {
+            flex: 1;
+            overflow: hidden;
+            position: relative;
+            display: flex;
+        }
+
+        .map-wrapper {
+            flex: 1;
+            position: relative;
+            display: flex;
+        }
+
+        #trackingMap {
+            flex: 1;
+            width: 100%;
+            height: 100%;
+            z-index: 1;
+        }
+
+        .status-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            padding: 6px 12px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 600;
+        }
+
+        .status-badge.connected {
+            background: #dcfce7;
+            color: #166534;
+        }
+
+        .status-badge.last-seen {
+            background: #e0e7ff;
+            color: #3730a3;
+        }
+
+        .status-badge.offline {
+            background: #fee2e2;
+            color: #991b1b;
+        }
+
+        .status-badge.inactive {
+            background: #f3f4f6;
+            color: #6b7280;
+        }
+
+        .bus-sidebar {
+            width: 320px;
+            background: var(--white);
+            border-left: 1px solid var(--border-color);
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+            z-index: 10;
+        }
+
+        .sidebar-header {
+            padding: 0.875rem;
+            border-bottom: 1px solid var(--border-color);
+            background: var(--bg-light);
+        }
+
+        .sidebar-title {
+            font-size: 0.875rem;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .bus-list {
+            overflow-y: auto;
+            flex: 1;
+            padding: 0.5rem;
+        }
+
+        .bus-item {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            padding: 0.75rem;
+            border-radius: 0.75rem;
+            cursor: pointer;
+            transition: all 0.2s;
+            border: 1px solid transparent;
+            margin-bottom: 0.5rem;
+        }
+
+        .bus-item:hover {
+            background: var(--bg-light);
+            border-color: var(--border-color);
+        }
+
+        .bus-item.active {
+            background: rgba(59, 130, 246, 0.05);
+            border-color: rgba(59, 130, 246, 0.2);
+        }
+
+        .bus-item.gps-live {
+            border-left: 3px solid var(--success);
+        }
+
+        .bus-item.last-seen {
+            border-left: 3px solid var(--primary-color);
+        }
+
+        .bus-item.offline {
+            border-left: 3px solid var(--danger);
+            opacity: 0.7;
+        }
+
+        .bus-item.inactive {
+            border-left: 3px solid var(--inactive);
+            opacity: 0.6;
+            background: #f9fafb;
+        }
+
+        .bus-item-icon {
+            width: 40px;
+            height: 40px;
+            background: linear-gradient(135deg, #242553 0%, #3b82f6 100%);
+            border-radius: 0.5rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 1rem;
+            position: relative;
+        }
+
+        .bus-item-icon.gps-live {
+            background: linear-gradient(135deg, var(--success) 0%, #059669 100%);
+            animation: pulse 2s infinite;
+        }
+
+        .bus-item-icon.last-seen {
+            background: linear-gradient(135deg, var(--primary-color) 0%, #2563eb 100%);
+        }
+
+        .bus-item-icon.offline {
+            background: linear-gradient(135deg, #6b7280 0%, #4b5563 100%);
+        }
+
+        .bus-item-icon.inactive {
+            background: linear-gradient(135deg, #9ca3af 0%, #6b7280 100%);
+        }
+
+        .status-indicator {
+            position: absolute;
+            bottom: -2px;
+            right: -2px;
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            border: 2px solid white;
+            background: var(--text-secondary);
+        }
+
+        .status-indicator.gps-live {
+            background: var(--success);
+            animation: blink 1s infinite;
+        }
+
+        .status-indicator.last-seen {
+            background: var(--primary-color);
+        }
+
+        .status-indicator.offline {
+            background: var(--danger);
+        }
+
+        .status-indicator.inactive {
+            background: var(--inactive);
+        }
+
+        @keyframes pulse {
+
+            0%,
+            100% {
+                box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.7);
+            }
+
+            50% {
+                box-shadow: 0 0 0 10px rgba(16, 185, 129, 0);
+            }
+        }
+
+        @keyframes blink {
+
+            0%,
+            100% {
+                opacity: 1;
+            }
+
+            50% {
+                opacity: 0.3;
+            }
+        }
+
+        .bus-item-info {
+            flex: 1;
+            min-width: 0;
+        }
+
+        .bus-item-id {
+            font-weight: 600;
+            font-size: 0.875rem;
+            color: var(--text-primary);
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .bus-item-route {
+            font-size: 0.75rem;
+            color: var(--text-secondary);
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .gps-info {
+            font-size: 0.625rem;
+            margin-top: 0.25rem;
+            display: flex;
+            align-items: center;
+            gap: 0.25rem;
+        }
+
+        .gps-info.live {
+            color: var(--success);
+        }
+
+        .gps-info.last-seen {
+            color: var(--primary-color);
+        }
+
+        .gps-info.offline {
+            color: var(--danger);
+        }
+
+        .gps-info.inactive {
+            color: var(--inactive);
+        }
+
+        .last-update {
+            font-size: 0.625rem;
+            color: var(--text-secondary);
+            margin-top: 2px;
+        }
+
+        .hours-ago {
+            font-size: 0.625rem;
+            color: var(--danger);
+            font-weight: 600;
+            margin-top: 2px;
+        }
+
+        .reload-btn {
+            background: var(--primary-color);
+            color: white;
+            border: none;
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-size: 11px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 4px;
+            margin-left: auto;
+        }
+
+        .reload-btn:hover {
+            background: #2563eb;
+        }
+
+        .cloud-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+            padding: 2px 6px;
+            background: #dbeafe;
+            color: #1e40af;
+            border-radius: 4px;
+            font-size: 10px;
+            font-weight: 500;
+            margin-left: 6px;
+        }
+
+        .inactive-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+            padding: 2px 6px;
+            background: #f3f4f6;
+            color: #6b7280;
+            border-radius: 4px;
+            font-size: 10px;
+            font-weight: 500;
+            margin-left: 6px;
+            border: 1px solid #e5e7eb;
+        }
+
+        /* Error banner */
+        .error-banner {
+            background: #fee2e2;
+            border: 1px solid #ef4444;
+            color: #991b1b;
+            padding: 8px 12px;
+            border-radius: 6px;
+            font-size: 12px;
+            margin: 0 0.875rem;
+            margin-top: 8px;
+            display: none;
+        }
+
+        .error-banner.show {
+            display: block;
+        }
+
+        /* Realtime status indicator */
+        .realtime-status {
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+            padding: 2px 8px;
+            background: rgba(16, 185, 129, 0.1);
+            border: 1px solid rgba(16, 185, 129, 0.2);
+            border-radius: 12px;
+            font-size: 10px;
+            color: #059669;
+            margin-left: 8px;
+        }
+
+        .realtime-status.offline {
+            background: rgba(239, 68, 68, 0.1);
+            border-color: rgba(239, 68, 68, 0.2);
+            color: #dc2626;
+        }
+
+        .realtime-status i {
+            font-size: 6px;
+        }
+
+        /* Compact Custom Popup Styles */
+        .custom-popup .leaflet-popup-content-wrapper {
+            background: rgba(255, 255, 255, 0.98);
+            backdrop-filter: blur(10px);
+            border-radius: 12px;
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+            border: 1px solid rgba(0, 0, 0, 0.05);
+            overflow: visible;
+            padding: 0;
+            position: relative;
+        }
+
+        .custom-popup .leaflet-popup-content {
+            margin: 0;
+            padding: 0;
+            width: 220px !important;
+        }
+
+        .custom-popup .leaflet-popup-tip {
+            background: rgba(255, 255, 255, 0.98);
+            backdrop-filter: blur(10px);
+            width: 12px;
+            height: 12px;
+        }
+
+        /* Hide default close button */
+        .custom-popup .leaflet-popup-close-button {
+            display: none !important;
+        }
+
+        .bus-popup {
+            font-family: 'Inter', sans-serif;
+            position: relative;
+        }
+
+        /* Custom Close Button - Outside on top */
+        .popup-close-btn {
+            position: absolute;
+            top: -12px;
+            right: -12px;
+            width: 28px;
+            height: 28px;
+            background: #ef4444;
+            border-radius: 50%;
+            color: white;
+            font-size: 14px;
+            border: 3px solid white;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 1000;
+            transition: all 0.2s ease;
+        }
+
+        .popup-close-btn:hover {
+            background: #dc2626;
+            transform: scale(1.1);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+        }
+
+        .popup-close-btn:active {
+            transform: scale(0.95);
+        }
+
+        .popup-header {
+            padding: 12px 14px;
+            color: white;
+            position: relative;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            border-radius: 12px 12px 0 0;
+        }
+
+        .popup-header.live {
+            background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+        }
+
+        .popup-header.recent {
+            background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
+        }
+
+        .popup-header.inactive {
+            background: linear-gradient(135deg, #9ca3af 0%, #6b7280 100%);
+        }
+
+        .popup-header.offline {
+            background: linear-gradient(135deg, #6b7280 0%, #4b5563 100%);
+        }
+
+        .popup-bus-info {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .popup-bus-icon {
+            width: 32px;
+            height: 32px;
+            background: rgba(255, 255, 255, 0.2);
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 14px;
+            border: 1px solid rgba(255, 255, 255, 0.3);
+        }
+
+        .popup-bus-title {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .popup-bus-id {
+            font-size: 14px;
+            font-weight: 700;
+            letter-spacing: -0.3px;
+            line-height: 1.2;
+        }
+
+        .popup-bus-route {
+            font-size: 10px;
+            opacity: 0.9;
+            font-weight: 500;
+        }
+
+        .popup-status-badge {
+            padding: 3px 8px;
+            background: rgba(255, 255, 255, 0.25);
+            border-radius: 12px;
+            font-size: 9px;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            border: 1px solid rgba(255, 255, 255, 0.3);
+        }
+
+        .popup-body {
+            padding: 12px 14px;
+        }
+
+        .popup-info-row {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin-bottom: 8px;
+            font-size: 11px;
+        }
+
+        .popup-info-row:last-child {
+            margin-bottom: 0;
+        }
+
+        .popup-info-icon {
+            width: 24px;
+            height: 24px;
+            background: var(--bg-light);
+            border-radius: 6px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: var(--text-secondary);
+            font-size: 10px;
+            flex-shrink: 0;
+        }
+
+        .popup-info-content {
+            flex: 1;
+            min-width: 0;
+        }
+
+        .popup-info-label {
+            font-size: 9px;
+            color: var(--text-secondary);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            font-weight: 600;
+            margin-bottom: 1px;
+        }
+
+        .popup-info-value {
+            font-size: 11px;
+            font-weight: 600;
+            color: var(--text-primary);
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .popup-coordinates {
+            background: var(--bg-light);
+            padding: 6px 10px;
+            border-radius: 6px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin: 10px 0;
+        }
+
+        .popup-coords-text {
+            font-family: 'SF Mono', monospace;
+            font-size: 9px;
+            color: var(--text-secondary);
+            letter-spacing: 0.3px;
+        }
+
+        .popup-coords-copy {
+            background: white;
+            border: 1px solid var(--border-color);
+            padding: 3px 6px;
+            border-radius: 4px;
+            font-size: 9px;
+            color: var(--text-secondary);
+            cursor: pointer;
+            transition: all 0.2s;
+            display: flex;
+            align-items: center;
+            gap: 3px;
+        }
+
+        .popup-coords-copy:hover {
+            background: var(--primary-color);
+            color: white;
+            border-color: var(--primary-color);
+        }
+
+        .popup-footer {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding-top: 10px;
+            border-top: 1px solid var(--border-color);
+            margin-top: 8px;
+        }
+
+        .popup-timestamp {
+            font-size: 10px;
+            color: var(--text-secondary);
+            display: flex;
+            align-items: center;
+            gap: 4px;
+        }
+
+        .popup-timestamp i {
+            font-size: 8px;
+        }
+
+        .popup-actions {
+            display: flex;
+            gap: 6px;
+        }
+
+        .popup-btn {
+            padding: 5px 10px;
+            border-radius: 6px;
+            font-size: 10px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+            display: flex;
+            align-items: center;
+            gap: 4px;
+            border: none;
+        }
+
+        .popup-btn-primary {
+            background: var(--primary-color);
+            color: white;
+        }
+
+        .popup-btn-primary:hover {
+            background: #2563eb;
+        }
+
+        .popup-btn-icon {
+            width: 26px;
+            height: 26px;
+            padding: 0;
+            background: var(--bg-light);
+            color: var(--text-secondary);
+            border: 1px solid var(--border-color);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .popup-btn-icon:hover {
+            background: var(--border-color);
+            color: var(--text-primary);
+        }
+
+        @media (max-width: 768px) {
+            .bus-sidebar {
+                position: absolute;
+                bottom: 0;
+                left: 0;
+                right: 0;
+                width: 100%;
+                height: 200px;
+                border-left: none;
+                border-top: 1px solid var(--border-color);
+                z-index: 100;
+            }
+
+            .custom-popup .leaflet-popup-content {
+                width: 200px !important;
+            }
+
+            .popup-close-btn {
+                top: -10px;
+                right: -10px;
+                width: 26px;
+                height: 26px;
+                font-size: 12px;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <div class="tracking-container">
+        <div class="card">
+            <div class="card-header">
+                <div style="display: flex; align-items: center; gap: 0.625rem;">
+                    <div
+                        style="width: 36px; height: 36px; background: linear-gradient(135deg, #10b981 0%, #059669 100%); border-radius: 0.5rem; display: flex; align-items: center; justify-content: center; color: white;">
+                        <i class="fas fa-satellite-dish"></i>
+                    </div>
+                    <div>
+                        <h3 class="card-title">Live GPS Tracking</h3>
+                        <p style="font-size: 0.75rem; color: var(--text-secondary);">
+                            Cloud GPS monitoring via Supabase (12hr inactivity threshold)
+                            <span class="realtime-status" id="realtimeStatus">
+                                <i class="fas fa-circle"></i> Realtime
+                            </span>
+                        </p>
+                    </div>
+                </div>
+                <div style="display: flex; align-items: center; gap: 0.5rem;">
+                    <span id="connStatus" class="status-badge last-seen">
+                        <i class="fas fa-cloud" style="font-size: 8px;"></i> Connecting
+                    </span>
+                    <button class="reload-btn" onclick="location.reload()" title="Reload Page">
+                        <i class="fas fa-sync-alt"></i> Reload
+                    </button>
+                </div>
+            </div>
+
+            <!-- Error Banner -->
+            <div id="errorBanner" class="error-banner">
+                <i class="fas fa-exclamation-triangle"></i>
+                <strong>Database Error:</strong> <span id="errorText">Check console for details</span>
+            </div>
+
+            <div class="card-body">
+                <div class="map-wrapper">
+                    <div id="trackingMap"></div>
+
+                    <!-- Bus Sidebar -->
+                    <div class="bus-sidebar">
+                        <div class="sidebar-header">
+                            <div class="sidebar-title">
+                                <i class="fas fa-bus"></i>
+                                Active Buses
+                            </div>
+                            <div style="font-size: 0.75rem; color: var(--text-secondary); margin-top: 0.25rem;"
+                                id="activeBusCount">Loading...</div>
+                        </div>
+                        <div class="bus-list" id="busList"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Add this BEFORE any other scripts -->
+    <script src="js/logger.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="js/auth.js"></script>
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+
+    <script>
+        // ==========================================
+        // GPS TRACKING WITH 12-HOUR INACTIVITY LOGIC
+        // ==========================================
+
+        let map = null;
+        let markers = {};
+        let busData = [];
+        let lastGpsUpdate = {};
+        let currentUser = null;
+        let realtimeChannel = null;
+        let pollingInterval = null;
+
+        const DEFAULT_CENTER = [9.65230775907483, 123.86304581776072];
+        const DEFAULT_ZOOM = 12.3;
+        const INACTIVE_THRESHOLD_HOURS = 12; // 12 hours threshold
+        const INACTIVE_THRESHOLD_MS = INACTIVE_THRESHOLD_HOURS * 60 * 60 * 1000;
+        const CACHE_KEY = 'biyahe_gps_cache_v4';
+        const POLLING_INTERVAL_MS = 10000; // 10 seconds fallback polling
+
+        // ==========================================
+        // AUTHENTICATION CHECK
+        // ==========================================
+
+        function checkCustomAuth() {
+            try {
+                const userData = localStorage.getItem('currentUser');
+                if (userData) {
+                    currentUser = JSON.parse(userData);
+                    console.log('✅ User authenticated:', currentUser.email);
+                    return true;
+                }
+                return false;
+            } catch (e) {
+                console.error('Auth check error:', e);
+                return false;
+            }
+        }
+
+        // ==========================================
+        // ERROR HANDLING
+        // ==========================================
+
+        function showError(message) {
+            const banner = document.getElementById('errorBanner');
+            const text = document.getElementById('errorText');
+            if (banner && text) {
+                text.textContent = message;
+                banner.classList.add('show');
+            }
+            console.error('GPS Tracking Error:', message);
+        }
+
+        function hideError() {
+            const banner = document.getElementById('errorBanner');
+            if (banner) banner.classList.remove('show');
+        }
+
+        function updateRealtimeStatus(connected) {
+            const statusEl = document.getElementById('realtimeStatus');
+            if (statusEl) {
+                if (connected) {
+                    statusEl.classList.remove('offline');
+                    statusEl.innerHTML = '<i class="fas fa-circle"></i> Realtime';
+                } else {
+                    statusEl.classList.add('offline');
+                    statusEl.innerHTML = '<i class="fas fa-circle"></i> Polling';
+                }
+            }
+        }
+
+        // ==========================================
+        // CACHE FUNCTIONS
+        // ==========================================
+
+        function loadCachedGpsData() {
+            try {
+                const cached = localStorage.getItem(CACHE_KEY);
+                if (cached) {
+                    return JSON.parse(cached);
+                }
+            } catch (e) {
+                console.error('Error loading cached GPS data:', e);
+            }
+            return {};
+        }
+
+        function saveCachedGpsData(busId, data) {
+            try {
+                const cached = loadCachedGpsData();
+                cached[busId] = {
+                    ...data,
+                    cachedAt: new Date().toISOString()
+                };
+                localStorage.setItem(CACHE_KEY, JSON.stringify(cached));
+            } catch (e) {
+                console.error('Error saving cached GPS data:', e);
+            }
+        }
+
+        function getCachedPosition(busId) {
+            const cached = loadCachedGpsData();
+            return cached[busId] || null;
+        }
+
+        function formatLastUpdate(timestamp) {
+            if (!timestamp) return 'Never';
+            const date = new Date(timestamp);
+            const now = new Date();
+            const diffMs = now - date;
+            const diffSecs = Math.floor(diffMs / 1000);
+            const diffMins = Math.floor(diffMs / 60000);
+            const diffHours = Math.floor(diffMs / 3600000);
+
+            if (diffSecs < 10) return 'Just now';
+            if (diffSecs < 60) return `${diffSecs}s ago`;
+            if (diffMins < 60) return `${diffMins}m ago`;
+            if (diffHours < 24) return `${diffHours}h ago`;
+            return date.toLocaleDateString();
+        }
+
+        function getHoursSince(timestamp) {
+            if (!timestamp) return Infinity;
+            const now = Date.now();
+            const then = new Date(timestamp).getTime();
+            return (now - then) / (1000 * 60 * 60);
+        }
+
+        // ==========================================
+        // REAL-TIME SUBSCRIPTION
+        // ==========================================
+
+        function subscribeToAllGpsUpdates() {
+            const supabase = window.supabase;
+
+            if (!supabase) {
+                console.error('❌ Supabase not initialized');
+                startPollingFallback();
+                return;
+            }
+
+            try {
+                console.log('🔔 Setting up real-time subscription for bus_gps...');
+
+                realtimeChannel = supabase
+                    .channel('bus_gps_changes')
+                    .on('postgres_changes',
+                        {
+                            event: 'INSERT',
+                            schema: 'public',
+                            table: 'bus_gps'
+                        },
+                        (payload) => {
+                            console.log('📡 Real-time INSERT received:', payload.new);
+                            handleRealtimeGpsUpdate(payload.new);
+                        }
+                    )
+                    .on('postgres_changes',
+                        {
+                            event: 'UPDATE',
+                            schema: 'public',
+                            table: 'bus_gps'
+                        },
+                        (payload) => {
+                            console.log('📡 Real-time UPDATE received:', payload.new);
+                            handleRealtimeGpsUpdate(payload.new);
+                        }
+                    )
+                    .subscribe((status, err) => {
+                        console.log('Realtime status:', status);
+
+                        if (status === 'SUBSCRIBED') {
+                            console.log('✅ Real-time subscription active');
+                            updateRealtimeStatus(true);
+                            hideError();
+                            if (pollingInterval) {
+                                clearInterval(pollingInterval);
+                                pollingInterval = null;
+                            }
+                        } else if (status === 'CHANNEL_ERROR') {
+                            console.error('❌ Real-time error:', err);
+                            updateRealtimeStatus(false);
+                            startPollingFallback();
+                        } else if (status === 'CLOSED' || status === 'TIMED_OUT') {
+                            console.warn('⚠️ Real-time closed, starting polling fallback');
+                            updateRealtimeStatus(false);
+                            startPollingFallback();
+                        }
+                    });
+
+            } catch (error) {
+                console.error('Error setting up real-time:', error);
+                updateRealtimeStatus(false);
+                startPollingFallback();
+            }
+        }
+
+        function handleRealtimeGpsUpdate(data) {
+            if (!data || !data.bus_id) {
+                console.warn('⚠️ Invalid real-time data:', data);
+                return;
+            }
+
+            const busId = String(data.bus_id);
+
+            if (data.latitude == null || data.longitude == null) {
+                console.warn(`⚠️ Missing coordinates for bus ${busId}`);
+                return;
+            }
+
+            // Match actual schema: stats (not sats), no active_trips
+            const gpsData = {
+                lat: parseFloat(data.latitude),
+                lng: parseFloat(data.longitude),
+                speed: parseFloat(data.speed) || 0,
+                stats: data.stats || 'Unknown', // GPS stats/status
+                fix: data.fix !== null ? data.fix : true,
+                timestamp: data.created_at || new Date().toISOString(),
+                isCloud: true
+            };
+
+            // Validate coordinates
+            if (isNaN(gpsData.lat) || isNaN(gpsData.lng) ||
+                gpsData.lat < -90 || gpsData.lat > 90 ||
+                gpsData.lng < -180 || gpsData.lng > 180) {
+                console.warn(`⚠️ Invalid coordinates for bus ${busId}:`, gpsData);
+                return;
+            }
+
+            // Update tracking
+            lastGpsUpdate[busId] = new Date();
+            saveCachedGpsData(busId, gpsData);
+
+            // Update UI - bus becomes active again with new GPS data
+            const bus = busData.find(b => b.id === busId);
+            if (bus) {
+                updateBusPosition(busId, gpsData, false);
+                // Check if within 12 hours to determine status
+                const hoursSince = getHoursSince(gpsData.timestamp);
+                if (hoursSince <= INACTIVE_THRESHOLD_HOURS) {
+                    updateBusUi(busId, 'connected');
+                } else {
+                    updateBusUi(busId, 'inactive');
+                }
+                updateConnectionStatus();
+                console.log(`✅ Bus ${busId} updated: ${gpsData.lat.toFixed(6)}, ${gpsData.lng.toFixed(6)} (${hoursSince.toFixed(1)}h ago)`);
+            } else {
+                console.log(`ℹ️ GPS received for unknown bus ${busId}`);
+            }
+        }
+
+        // ==========================================
+        // POLLING FALLBACK
+        // ==========================================
+
+        function startPollingFallback() {
+            if (pollingInterval) return;
+
+            console.log('🔄 Starting polling fallback...');
+            updateRealtimeStatus(false);
+
+            pollAllGpsData();
+            pollingInterval = setInterval(pollAllGpsData, POLLING_INTERVAL_MS);
+        }
+
+        async function pollAllGpsData() {
+            if (!window.supabase || busData.length === 0) return;
+
+            console.log('🔄 Polling GPS data...');
+
+            for (const bus of busData) {
+                try {
+                    // Use correct column names from schema
+                    const { data, error } = await window.supabase
+                        .from('bus_gps')
+                        .select('bus_id,latitude,longitude,speed,stats,fix,created_at')
+                        .eq('bus_id', bus.id)
+                        .order('created_at', { ascending: false })
+                        .limit(1)
+                        .maybeSingle();
+
+                    if (error) {
+                        console.warn(`Poll error for ${bus.id}:`, error.message);
+                        continue;
+                    }
+
+                    if (data) {
+                        const existing = getCachedPosition(bus.id);
+                        const newTime = new Date(data.created_at).getTime();
+                        const existingTime = existing ? new Date(existing.timestamp).getTime() : 0;
+
+                        if (newTime > existingTime) {
+                            handleRealtimeGpsUpdate(data);
+                        }
+                    }
+                } catch (e) {
+                    console.error(`Poll failed for ${bus.id}:`, e);
+                }
+            }
+        }
+
+        // ==========================================
+        // GPS DATA FETCHING (Initial Load from bus_gps table)
+        // ==========================================
+
+        async function fetchGpsDataFromSupabase(busId) {
+            try {
+                if (!window.supabase) {
+                    throw new Error('Supabase not initialized');
+                }
+
+                // Fetch latest GPS coordinates from bus_gps table with correct columns
+                const { data, error } = await window.supabase
+                    .from('bus_gps')
+                    .select('bus_id,latitude,longitude,speed,stats,fix,created_at')
+                    .eq('bus_id', busId)
+                    .order('created_at', { ascending: false })
+                    .limit(1)
+                    .maybeSingle();
+
+                if (error) {
+                    console.error('Supabase query error:', error);
+                    return getCachedPosition(busId);
+                }
+
+                if (!data) {
+                    return getCachedPosition(busId);
+                }
+
+                return {
+                    lat: parseFloat(data.latitude),
+                    lng: parseFloat(data.longitude),
+                    speed: parseFloat(data.speed) || 0,
+                    stats: data.stats || 'Unknown',
+                    fix: data.fix !== null ? data.fix : true,
+                    timestamp: data.created_at,
+                    isCloud: true
+                };
+
+            } catch (error) {
+                console.warn(`GPS fetch error for ${busId}:`, error.message);
+                return getCachedPosition(busId);
+            }
+        }
+
+        // ==========================================
+        // GPS TRACKING MANAGEMENT
+        // ==========================================
+
+        async function startGpsTracking(busId) {
+            console.log(`Starting GPS tracking for bus ${busId}`);
+
+            const cached = getCachedPosition(busId);
+            if (cached) {
+                updateBusPosition(busId, cached, true);
+                const hoursSince = getHoursSince(cached.timestamp);
+                if (hoursSince > INACTIVE_THRESHOLD_HOURS) {
+                    updateBusUi(busId, 'inactive');
+                } else {
+                    updateBusUi(busId, 'last-seen');
+                }
+            } else {
+                updateBusUi(busId, 'connecting');
+            }
+
+            // Fetch initial data from bus_gps table
+            try {
+                const data = await fetchGpsDataFromSupabase(busId);
+                if (data) {
+                    lastGpsUpdate[busId] = new Date(data.timestamp || Date.now());
+                    updateBusPosition(busId, data, false);
+
+                    const hoursSince = getHoursSince(data.timestamp);
+                    if (hoursSince > INACTIVE_THRESHOLD_HOURS) {
+                        updateBusUi(busId, 'inactive');
+                    } else if (hoursSince <= INACTIVE_THRESHOLD_HOURS) {
+                        updateBusUi(busId, 'connected');
+                        hideError();
+                    }
+                }
+            } catch (error) {
+                console.error('Failed to fetch initial GPS data:', error);
+            }
+        }
+
+        function checkBusStatus(busId) {
+            const lastUpdate = lastGpsUpdate[busId];
+            const cached = getCachedPosition(busId);
+
+            if (!lastUpdate && !cached) {
+                updateBusUi(busId, 'offline');
+                return;
+            }
+
+            const timestamp = lastUpdate || (cached ? new Date(cached.timestamp) : null);
+            const hoursSince = getHoursSince(timestamp);
+
+            if (hoursSince > INACTIVE_THRESHOLD_HOURS) {
+                updateBusUi(busId, 'inactive');
+            } else if (hoursSince > 0.5) { // 30 minutes
+                updateBusUi(busId, 'last-seen');
+            } else {
+                updateBusUi(busId, 'connected');
+            }
+
+            updateConnectionStatus();
+        }
+
+        function updateBusPosition(busId, gpsData, isCached = false) {
+            const bus = busData.find(b => b.id === busId);
+            if (!bus) return;
+
+            bus.lat = gpsData.lat;
+            bus.lng = gpsData.lng;
+            bus.speed = gpsData.speed > 0 ? `${gpsData.speed.toFixed(1)} km/h` : '0 km/h';
+            bus.stats = gpsData.stats;
+            bus.gpsFix = gpsData.fix;
+            bus.lastUpdate = formatLastUpdate(gpsData.timestamp || gpsData.cachedAt);
+            bus.isCloud = gpsData.isCloud;
+            bus.isCached = isCached;
+            bus.hoursSince = getHoursSince(gpsData.timestamp || gpsData.cachedAt);
+
+            const marker = markers[busId];
+            if (marker) {
+                marker.setLatLng([gpsData.lat, gpsData.lng]);
+                const hoursSince = getHoursSince(gpsData.timestamp || gpsData.cachedAt);
+                let status = 'offline';
+                if (hoursSince <= INACTIVE_THRESHOLD_HOURS) {
+                    status = isCached ? 'last-seen' : 'connected';
+                } else {
+                    status = 'inactive';
+                }
+                const newIcon = createBusIcon(status);
+                marker.setIcon(newIcon);
+                if (marker.isPopupOpen()) {
+                    marker.setPopupContent(createPopupContent(bus, status === 'connected', isCached));
+                }
+            }
+
+            if (window.followedBusId === busId) {
+                map.panTo([gpsData.lat, gpsData.lng], { animate: true, duration: 0.5 });
+            }
+        }
+
+        // ==========================================
+        // UI UPDATES
+        // ==========================================
+
+        function updateConnectionStatus() {
+            const badge = document.getElementById('connStatus');
+            if (!badge) return;
+
+            const now = Date.now();
+            let liveCount = 0;
+            let inactiveCount = 0;
+            let offlineCount = 0;
+
+            busData.forEach(bus => {
+                const lastUpdate = lastGpsUpdate[bus.id];
+                const cached = getCachedPosition(bus.id);
+                const timestamp = lastUpdate || (cached ? new Date(cached.timestamp) : null);
+
+                if (timestamp) {
+                    const hoursSince = getHoursSince(timestamp);
+                    if (hoursSince <= INACTIVE_THRESHOLD_HOURS) {
+                        liveCount++;
+                    } else {
+                        inactiveCount++;
+                    }
+                } else {
+                    offlineCount++;
+                }
+            });
+
+            const total = busData.length;
+
+            if (liveCount === total && total > 0) {
+                badge.className = 'status-badge connected';
+                badge.innerHTML = '<i class="fas fa-cloud" style="font-size: 8px;"></i> All Active';
+            } else if (liveCount > 0) {
+                badge.className = 'status-badge last-seen';
+                badge.innerHTML = `<i class="fas fa-cloud" style="font-size: 8px;"></i> ${liveCount}/${total} Active`;
+            } else if (inactiveCount > 0) {
+                badge.className = 'status-badge inactive';
+                badge.innerHTML = '<i class="fas fa-moon" style="font-size: 8px;"></i> Inactive';
+            } else {
+                badge.className = 'status-badge offline';
+                badge.innerHTML = '<i class="fas fa-times-circle" style="font-size: 8px;"></i> Offline';
+            }
+        }
+
+        function updateBusUi(busId, status) {
+            const busItem = document.querySelector(`.bus-item[data-bus-id="${busId}"]`);
+            if (!busItem) return;
+
+            const icon = busItem.querySelector('.bus-item-icon');
+            const indicator = busItem.querySelector('.status-indicator');
+            const gpsInfo = busItem.querySelector('.gps-info');
+            const lastUpdateEl = busItem.querySelector('.last-update');
+            const hoursAgoEl = busItem.querySelector('.hours-ago');
+
+            busItem.classList.remove('gps-live', 'last-seen', 'offline', 'connecting', 'inactive');
+            icon.classList.remove('gps-live', 'last-seen', 'offline', 'inactive');
+            indicator.classList.remove('gps-live', 'last-seen', 'offline', 'inactive');
+
+            const cached = getCachedPosition(busId);
+            const hoursSince = cached ? getHoursSince(cached.timestamp) : 0;
+
+            switch (status) {
+                case 'connected':
+                    busItem.classList.add('gps-live');
+                    icon.classList.add('gps-live');
+                    indicator.classList.add('gps-live');
+                    if (gpsInfo) {
+                        gpsInfo.className = 'gps-info live';
+                        gpsInfo.innerHTML = '<i class="fas fa-bolt"></i> Live (Realtime)';
+                    }
+                    if (lastUpdateEl) lastUpdateEl.textContent = '';
+                    if (hoursAgoEl) hoursAgoEl.style.display = 'none';
+                    break;
+
+                case 'last-seen':
+                    busItem.classList.add('last-seen');
+                    icon.classList.add('last-seen');
+                    indicator.classList.add('last-seen');
+                    if (gpsInfo) {
+                        gpsInfo.className = 'gps-info last-seen';
+                        gpsInfo.innerHTML = '<i class="fas fa-history"></i> Last Seen';
+                    }
+                    if (lastUpdateEl && cached) {
+                        lastUpdateEl.textContent = formatLastUpdate(cached.cachedAt);
+                    }
+                    if (hoursAgoEl) {
+                        hoursAgoEl.textContent = `${hoursSince.toFixed(1)}h ago`;
+                        hoursAgoEl.style.display = hoursSince > 1 ? 'block' : 'none';
+                    }
+                    break;
+
+                case 'inactive':
+                    busItem.classList.add('inactive');
+                    icon.classList.add('inactive');
+                    indicator.classList.add('inactive');
+                    if (gpsInfo) {
+                        gpsInfo.className = 'gps-info inactive';
+                        gpsInfo.innerHTML = '<i class="fas fa-moon"></i> Inactive (>12h)';
+                    }
+                    if (lastUpdateEl && cached) {
+                        lastUpdateEl.textContent = formatLastUpdate(cached.cachedAt);
+                    }
+                    if (hoursAgoEl) {
+                        hoursAgoEl.textContent = `${hoursSince.toFixed(1)}h ago`;
+                        hoursAgoEl.style.display = 'block';
+                    }
+                    break;
+
+                case 'offline':
+                    busItem.classList.add('offline');
+                    icon.classList.add('offline');
+                    indicator.classList.add('offline');
+                    if (gpsInfo) {
+                        gpsInfo.className = 'gps-info offline';
+                        gpsInfo.innerHTML = '<i class="fas fa-times-circle"></i> Offline';
+                    }
+                    if (lastUpdateEl && cached) {
+                        lastUpdateEl.textContent = `Last: ${formatLastUpdate(cached.cachedAt)}`;
+                    }
+                    if (hoursAgoEl) hoursAgoEl.style.display = 'none';
+                    break;
+
+                case 'connecting':
+                    if (gpsInfo) {
+                        gpsInfo.className = 'gps-info';
+                        gpsInfo.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Connecting...';
+                    }
+                    if (hoursAgoEl) hoursAgoEl.style.display = 'none';
+                    break;
+            }
+        }
+
+        // ==========================================
+        // MAP FUNCTIONS
+        // ==========================================
+
+        function initMap() {
+            map = L.map('trackingMap').setView(DEFAULT_CENTER, DEFAULT_ZOOM);
+            L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                attribution: '© OpenStreetMap contributors',
+                maxZoom: 19
+            }).addTo(map);
+        }
+
+        function createBusIcon(status) {
+            let color, pulseColor;
+
+            switch (status) {
+                case 'connected':
+                    color = 'linear-gradient(135deg, #10b981 0%, #059669 100%)';
+                    pulseColor = 'rgba(16, 185, 129, 0.3)';
+                    break;
+                case 'last-seen':
+                    color = 'linear-gradient(135deg, #3b82f6 0%, #2563eb 100%)';
+                    pulseColor = 'rgba(59, 130, 246, 0.3)';
+                    break;
+                case 'inactive':
+                    color = 'linear-gradient(135deg, #9ca3af 0%, #6b7280 100%)';
+                    pulseColor = 'rgba(156, 163, 175, 0.3)';
+                    break;
+                default:
+                    color = 'linear-gradient(135deg, #6b7280 0%, #4b5563 100%)';
+                    pulseColor = 'rgba(107, 114, 128, 0.3)';
+            }
+
+            const showPulse = status === 'connected';
+
+            return L.divIcon({
+                className: 'custom-bus-icon',
+                html: `
+            <div style="position: relative; width: 40px; height: 40px;">
+                ${showPulse ? `<div style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); width: 40px; height: 40px; background: ${pulseColor}; border-radius: 50%; animation: pulse 2s infinite;"></div>` : ''}
+                <div style="width: 36px; height: 36px; background: ${color}; border-radius: 50%; display: flex; align-items: center; justify-content: center; color: white; border: 3px solid white; box-shadow: 0 4px 12px rgba(0,0,0,0.3); position: relative; z-index: 2;">
+                    <i class="fas fa-bus"></i>
+                </div>
+                ${status === 'inactive' ? '<div style="position: absolute; top: -4px; right: -4px; background: #9ca3af; color: white; width: 16px; height: 16px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 8px; border: 2px solid white; z-index: 3;"><i class="fas fa-moon"></i></div>' : ''}
+                ${status === 'last-seen' ? '<div style="position: absolute; top: -4px; right: -4px; background: #3b82f6; color: white; width: 16px; height: 16px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 8px; border: 2px solid white; z-index: 3;"><i class="fas fa-history"></i></div>' : ''}
+            </div>
+        `,
+                iconSize: [40, 40],
+                iconAnchor: [20, 20],
+                popupAnchor: [0, -20]
+            });
+        }
+
+
+        function addBusMarker(bus, status = 'offline') {
+            const customIcon = createBusIcon(status);
+            const marker = L.marker([bus.lat, bus.lng], {
+                icon: customIcon,
+                title: bus.id
+            })
+                .addTo(map)
+                .bindPopup(createPopupContent(bus, status === 'connected', status === 'last-seen'), {
+                    className: 'custom-popup',
+                    closeButton: false,
+                    offset: [0, -10]
+                });
+
+            marker.on('click', () => {
+                highlightBusInList(bus.id);
+            });
+
+            markers[bus.id] = marker;
+        }
+
+        function createPopupContent(bus, isLive = false, isCached = false) {
+            const hoursSince = bus.hoursSince || getHoursSince(bus.timestamp);
+            let statusClass, statusText, statusIcon;
+
+            if (hoursSince > INACTIVE_THRESHOLD_HOURS) {
+                statusClass = 'inactive';
+                statusText = 'Inactive';
+                statusIcon = 'fa-moon';
+            } else if (isLive) {
+                statusClass = 'live';
+                statusText = 'Live';
+                statusIcon = 'fa-bolt';
+            } else if (isCached) {
+                statusClass = 'recent';
+                statusText = 'Recent';
+                statusIcon = 'fa-history';
+            } else {
+                statusClass = 'offline';
+                statusText = 'Offline';
+                statusIcon = 'fa-times-circle';
+            }
+
+            const cached = getCachedPosition(bus.id);
+            const hoursText = hoursSince > INACTIVE_THRESHOLD_HOURS ?
+                `${hoursSince.toFixed(1)}h ago` :
+                (hoursSince <= 0.5 ? 'Just now' : `${hoursSince.toFixed(1)}h ago`);
+
+            return `
+        <div class="bus-popup">
+            <button class="popup-close-btn" onclick="window.closeBusPopup('${bus.id}')" title="Close">
+                <i class="fas fa-times"></i>
+            </button>
+            
+            <div class="popup-header ${statusClass}">
+                <div class="popup-bus-info">
+                    <div class="popup-bus-icon">
+                        <i class="fas fa-bus"></i>
+                    </div>
+                    <div class="popup-bus-title">
+                        <div class="popup-bus-id">${bus.id}</div>
+                        <div class="popup-bus-route">${bus.route}</div>
+                    </div>
+                </div>
+                <div class="popup-status-badge">${statusText}</div>
+            </div>
+            
+            <div class="popup-body">
+                <div class="popup-info-row">
+                    <div class="popup-info-icon">
+                        <i class="fas fa-user"></i>
+                    </div>
+                    <div class="popup-info-content">
+                        <div class="popup-info-label">Driver</div>
+                        <div class="popup-info-value">${bus.driver}</div>
+                    </div>
+                </div>
+
+                <div class="popup-info-row">
+                    <div class="popup-info-icon">
+                        <i class="fas fa-tachometer-alt"></i>
+                    </div>
+                    <div class="popup-info-content">
+                        <div class="popup-info-label">Speed</div>
+                        <div class="popup-info-value">${bus.speed || '0 km/h'}</div>
+                    </div>
+                </div>
+
+                <div class="popup-coordinates">
+                    <span class="popup-coords-text">${bus.lat.toFixed(6)}, ${bus.lng.toFixed(6)}</span>
+                    <button class="popup-coords-copy" onclick="navigator.clipboard.writeText('${bus.lat.toFixed(6)}, ${bus.lng.toFixed(6)}'); this.innerHTML='<i class=\\'fas fa-check\\'></i>'; setTimeout(() => this.innerHTML='<i class=\\'fas fa-copy\\'></i>', 1500)">
+                        <i class="fas fa-copy"></i>
+                    </button>
+                </div>
+
+                <div class="popup-footer">
+                    <div class="popup-timestamp">
+                        <i class="fas fa-clock"></i>
+                        <span>${hoursText}</span>
+                    </div>
+                    <div class="popup-actions">
+                    
+                    </div>
+                </div>
+            </div>
+        </div>
+    `;
+        }
+
+        // Global functions for popup buttons
+        window.closeBusPopup = function (busId) {
+            const marker = markers[busId];
+            if (marker) {
+                marker.closePopup();
+            }
+        };
+
+        window.followBus = function (busId) {
+            window.followedBusId = busId;
+            const bus = busData.find(b => b.id === busId);
+            if (bus && map) {
+                map.flyTo([bus.lat, bus.lng], 18, {
+                    duration: 1.5
+                });
+            }
+            Object.values(markers).forEach(marker => marker.closePopup());
+        };
+
+        window.showBusDetails = function (busId) {
+            const bus = busData.find(b => b.id === busId);
+            if (bus) {
+                showToast(`Bus ${busId} - ${bus.driver}`, 'success');
+            }
+        };
+
+        // ==========================================
+        // BUS LIST FUNCTIONS
+        // ==========================================
+
+        function renderBusList() {
+            const list = document.getElementById('busList');
+            if (!list) return;
+
+            list.innerHTML = '';
+
+            if (busData.length === 0) {
+                list.innerHTML = '<div style="padding: 2rem; text-align: center; color: #64748b;">No buses available</div>';
+                return;
+            }
+
+            busData.forEach((bus, index) => {
+                const item = document.createElement('div');
+                item.className = 'bus-item';
+                item.dataset.busId = bus.id;
+                item.style.animationDelay = `${index * 0.05}s`;
+
+                item.onclick = () => focusOnBus(bus.id);
+
+                const cached = getCachedPosition(bus.id);
+                const lastUpdate = lastGpsUpdate[bus.id];
+                const timestamp = lastUpdate || (cached ? new Date(cached.timestamp) : null);
+                const hoursSince = timestamp ? getHoursSince(timestamp) : Infinity;
+
+                let status = 'offline';
+                if (timestamp) {
+                    if (hoursSince > INACTIVE_THRESHOLD_HOURS) {
+                        status = 'inactive';
+                    } else if (hoursSince <= 0.5) { // 30 minutes
+                        status = 'connected';
+                    } else {
+                        status = 'last-seen';
+                    }
+                } else if (cached) {
+                    status = 'inactive';
+                }
+
+                let gpsStatusHtml = '';
+                let lastUpdateHtml = '';
+                let badgeHtml = '';
+                let hoursAgoHtml = '';
+
+                switch (status) {
+                    case 'connected':
+                        gpsStatusHtml = `<div class="gps-info live"><i class="fas fa-bolt"></i> Realtime Live</div>`;
+                        badgeHtml = '<span class="cloud-badge"><i class="fas fa-satellite-dish"></i> Live</span>';
+                        break;
+                    case 'last-seen':
+                        gpsStatusHtml = `<div class="gps-info last-seen"><i class="fas fa-history"></i> Last Seen</div>`;
+                        lastUpdateHtml = `<div class="last-update">${cached ? formatLastUpdate(cached.cachedAt) : ''}</div>`;
+                        hoursAgoHtml = `<div class="hours-ago" style="display: ${hoursSince > 1 ? 'block' : 'none'}">${hoursSince.toFixed(1)}h ago</div>`;
+                        badgeHtml = '<span class="cloud-badge"><i class="fas fa-history"></i> Recent</span>';
+                        break;
+                    case 'inactive':
+                        gpsStatusHtml = `<div class="gps-info inactive"><i class="fas fa-moon"></i> Inactive (>12h)</div>`;
+                        lastUpdateHtml = `<div class="last-update">${cached ? formatLastUpdate(cached.cachedAt) : ''}</div>`;
+                        hoursAgoHtml = `<div class="hours-ago">${hoursSince.toFixed(1)}h ago</div>`;
+                        badgeHtml = '<span class="inactive-badge"><i class="fas fa-moon"></i> Inactive</span>';
+                        break;
+                    default:
+                        gpsStatusHtml = '<div class="gps-info offline"><i class="fas fa-times-circle"></i> Offline</div>';
+                        badgeHtml = '<span class="cloud-badge"><i class="fas fa-cloud"></i> Cloud</span>';
+                }
+
+                const iconClass = status;
+                const indicatorClass = status === 'connected' ? 'gps-live' :
+                    (status === 'last-seen' ? 'last-seen' :
+                        (status === 'inactive' ? 'inactive' : 'offline'));
+
+                item.innerHTML = `
+            <div class="bus-item-icon ${iconClass}">
+                <i class="fas fa-bus"></i>
+                <div class="status-indicator ${indicatorClass}"></div>
+            </div>
+            <div class="bus-item-info">
+                <div class="bus-item-id">
+                    ${bus.id}
+                    ${badgeHtml}
+                </div>
+                <div class="bus-item-route">${bus.route}</div>
+                ${gpsStatusHtml}
+                ${lastUpdateHtml}
+                ${hoursAgoHtml}
+            </div>
+        `;
+
+                list.appendChild(item);
+            });
+
+            updateActiveCount();
+        }
+
+        function focusOnBus(busId) {
+            const bus = busData.find(b => b.id === busId);
+            if (!bus || !map) return;
+
+            highlightBusInList(busId);
+
+            map.flyTo([bus.lat, bus.lng], 17, {
+                duration: 1.5
+            });
+
+            const marker = markers[busId];
+            if (marker) {
+                setTimeout(() => marker.openPopup(), 800);
+            }
+        }
+
+        function highlightBusInList(busId) {
+            document.querySelectorAll('.bus-item').forEach(item => {
+                item.classList.toggle('active', item.dataset.busId === busId);
+            });
+        }
+
+        function updateActiveCount() {
+            let liveCount = 0;
+            let inactiveCount = 0;
+            let offlineCount = 0;
+
+            busData.forEach(bus => {
+                const lastUpdate = lastGpsUpdate[bus.id];
+                const cached = getCachedPosition(bus.id);
+                const timestamp = lastUpdate || (cached ? new Date(cached.timestamp) : null);
+
+                if (timestamp) {
+                    const hoursSince = getHoursSince(timestamp);
+                    if (hoursSince <= INACTIVE_THRESHOLD_HOURS) {
+                        liveCount++;
+                    } else {
+                        inactiveCount++;
+                    }
+                } else {
+                    offlineCount++;
+                }
+            });
+
+            const countEl = document.getElementById('activeBusCount');
+            if (countEl) {
+                let statusText = `${busData.length} total`;
+                if (liveCount > 0) statusText += ` • ${liveCount} active`;
+                if (inactiveCount > 0) statusText += ` • ${inactiveCount} inactive`;
+                if (offlineCount > 0) statusText += ` • ${offlineCount} offline`;
+
+                countEl.textContent = statusText;
+            }
+        }
+
+        // ==========================================
+        // DATA FETCHING
+        // ==========================================
+
+        async function fetchBusData() {
+            try {
+                if (!window.supabase) {
+                    console.warn('Supabase not initialized');
+                    busData = getSampleData();
+                    return;
+                }
+
+                console.log('Fetching bus data from Supabase...');
+                const { data, error } = await window.supabase
+                    .from('bus')
+                    .select('bus_id, driver, route, status')
+                    .order('bus_id', { ascending: true });
+
+                if (error) {
+                    console.error('Error fetching bus data:', error);
+                    busData = getSampleData();
+                    return;
+                }
+
+                if (!data || data.length === 0) {
+                    busData = getSampleData();
+                    return;
+                }
+
+                // Fetch latest GPS position for each bus from bus_gps table with correct columns
+                busData = await Promise.all(data.map(async (bus) => {
+                    const cached = getCachedPosition(bus.bus_id);
+                    const gpsData = await fetchGpsDataFromSupabase(bus.bus_id);
+
+                    const baseLat = gpsData ? gpsData.lat : (cached ? cached.lat : DEFAULT_CENTER[0] + (Math.random() - 0.5) * 0.01);
+                    const baseLng = gpsData ? gpsData.lng : (cached ? cached.lng : DEFAULT_CENTER[1] + (Math.random() - 0.5) * 0.01);
+
+                    if (gpsData) {
+                        lastGpsUpdate[bus.bus_id] = new Date(gpsData.timestamp || Date.now());
+                    }
+
+                    const hoursSince = gpsData ? getHoursSince(gpsData.timestamp) : (cached ? getHoursSince(cached.timestamp) : Infinity);
+
+                    return {
+                        id: bus.bus_id,
+                        lat: baseLat,
+                        lng: baseLng,
+                        driver: bus.driver || 'Unknown Driver',
+                        route: bus.route || 'Unknown Route',
+                        status: (bus.status || 'active').toLowerCase(),
+                        speed: gpsData ? (gpsData.speed > 0 ? `${gpsData.speed.toFixed(1)} km/h` : '0 km/h') : (cached ? `${cached.speed.toFixed(1)} km/h` : '0 km/h'),
+                        stats: gpsData ? gpsData.stats : (cached ? cached.stats : 'Unknown'),
+                        lastUpdate: gpsData ? formatLastUpdate(gpsData.timestamp) : (cached ? formatLastUpdate(cached.cachedAt) : 'Never'),
+                        hoursSince: hoursSince,
+                        isCloud: !!gpsData,
+                        isCached: !gpsData && !!cached
+                    };
+                }));
+
+                console.log(`Loaded ${busData.length} buses from database`);
+
+            } catch (error) {
+                console.error('Fetch bus data error:', error);
+                busData = getSampleData();
+            }
+        }
+
+        function getSampleData() {
+            const cached = getCachedPosition('220');
+            const hoursSince = cached ? getHoursSince(cached.timestamp) : Infinity;
+            return [
+                {
+                    id: '220',
+                    lat: cached ? cached.lat : 9.6520,
+                    lng: cached ? cached.lng : 123.8620,
+                    driver: 'Mike Torres',
+                    route: 'Downtown - Airport',
+                    status: 'active',
+                    speed: cached ? (cached.speed > 0 ? `${cached.speed.toFixed(1)} km/h` : '0 km/h') : '0 km/h',
+                    stats: cached ? cached.stats : 'Unknown',
+                    lastUpdate: cached ? formatLastUpdate(cached.cachedAt) : 'Never',
+                    hoursSince: hoursSince,
+                    isCloud: false,
+                    isCached: !!cached
+                }
+            ];
+        }
+
+        // ==========================================
+        // INITIALIZATION
+        // ==========================================
+
+        document.addEventListener('DOMContentLoaded', async function () {
+            initMap();
+
+            // Check auth
+            checkCustomAuth();
+
+            // Wait for Supabase with retry
+            let retries = 0;
+            const maxRetries = 20;
+
+            while (!window.supabase && retries < maxRetries) {
+                await new Promise(r => setTimeout(r, 100));
+                retries++;
+            }
+
+            if (!window.supabase) {
+                showError('Supabase failed to load. Check auth.js.');
+                return;
+            }
+
+            console.log('✅ Supabase ready');
+
+            await fetchBusData();
+
+            busData.forEach(bus => {
+                const cached = getCachedPosition(bus.id);
+                const hasRecentUpdate = lastGpsUpdate[bus.id];
+                const hoursSince = hasRecentUpdate ? getHoursSince(lastGpsUpdate[bus.id]) : (cached ? getHoursSince(cached.timestamp) : Infinity);
+
+                let initialStatus = 'offline';
+                if (hoursSince <= INACTIVE_THRESHOLD_HOURS) {
+                    if (hasRecentUpdate && hoursSince <= 0.5) {
+                        initialStatus = 'connected';
+                    } else {
+                        initialStatus = 'last-seen';
+                    }
+                } else if (cached || hasRecentUpdate) {
+                    initialStatus = 'inactive';
+                }
+
+                addBusMarker(bus, initialStatus);
+            });
+
+            renderBusList();
+
+            // Start GPS tracking for all buses
+            console.log('Auto-starting GPS tracking...');
+            busData.forEach(bus => {
+                startGpsTracking(bus.id);
+            });
+
+            // Setup real-time subscription
+            console.log('🔔 Setting up real-time subscriptions...');
+            subscribeToAllGpsUpdates();
+
+            // Start status checker (every 30 seconds)
+            setInterval(() => {
+                busData.forEach(bus => checkBusStatus(bus.id));
+                updateActiveCount();
+            }, 30000);
+        });
+
+        window.addEventListener('beforeunload', () => {
+            if (realtimeChannel) {
+                window.supabase.removeChannel(realtimeChannel);
+            }
+            if (pollingInterval) {
+                clearInterval(pollingInterval);
+            }
+        });
+
+        // Public API
+        window.TrackingAPI = {
+            startGpsTracking,
+            subscribeToAllGpsUpdates,
+            focusOnBus,
+            getConnections: () => lastGpsUpdate,
+            getCachedData: () => loadCachedGpsData(),
+            clearCache: () => {
+                localStorage.removeItem(CACHE_KEY);
+            },
+            getInactiveThreshold: () => INACTIVE_THRESHOLD_HOURS
+        };
+
+        // ==========================================
+        // CHILD PAGE ROLE INTEGRATION
+        // ==========================================
+
+        let currentRole = null;
+        let canModify = false;
+        let isReadOnly = false;
+
+        // Listen for role info from parent
+        window.addEventListener('message', (event) => {
+            if (event.data.type === 'roleInfo') {
+                currentRole = event.data.role;
+                canModify = event.data.canModify;
+                isReadOnly = event.data.isReadOnly;
+
+                console.log('Role info received:', currentRole, 'Can modify:', canModify, 'Read only:', isReadOnly);
+
+                applyRoleBasedUI();
+            }
+        });
+
+        // Request role info from parent on load
+        window.addEventListener('DOMContentLoaded', () => {
+            window.parent.postMessage({
+                type: 'requestRoleInfo',
+                page: getPageName()
+            }, '*');
+
+            // Also check URL parameters as fallback
+            const urlParams = new URLSearchParams(window.location.search);
+            if (urlParams.get('readonly') === 'true') {
+                isReadOnly = true;
+                applyRoleBasedUI();
+            }
+            if (urlParams.get('canmodify') === 'false') {
+                canModify = false;
+                applyRoleBasedUI();
+            }
+            const roleParam = urlParams.get('role');
+            if (roleParam) {
+                currentRole = roleParam;
+            }
+        });
+
+        function getPageName() {
+            const path = window.location.pathname;
+            const filename = path.split('/').pop().replace('child_', '').replace('.html', '');
+
+            const mapping = {
+                'dashboard': 'dashboard',
+                'tracking': 'live-tracking',
+                'analytics': 'analytics',
+                'feedback': 'feedback',
+                'bus_information': 'bus-info',
+                'bus_schedule': 'schedule',
+                'load': 'load',
+                'account_management': 'accounts',
+                'finance': 'finance'
+            };
+
+            return mapping[filename] || filename;
+        }
+
+        function applyRoleBasedUI() {
+            console.log('Applying UI for role:', currentRole, 'canModify:', canModify, 'isReadOnly:', isReadOnly);
+
+            // Hide/show add buttons based on permissions
+            const addButtons = document.querySelectorAll('.btn-add, #addAccountBtnHeader, #addPassengerBtn, .add-btn, .btn-primary');
+            addButtons.forEach(btn => {
+                if (btn.textContent.toLowerCase().includes('add') ||
+                    btn.textContent.toLowerCase().includes('create') ||
+                    btn.textContent.toLowerCase().includes('new')) {
+                    btn.style.display = canModify ? 'inline-flex' : 'none';
+                }
+            });
+
+            // Handle edit buttons
+            const editButtons = document.querySelectorAll('.btn-edit, .edit-btn, .btn-icon.edit');
+            editButtons.forEach(btn => {
+                if (isReadOnly || !canModify) {
+                    btn.disabled = true;
+                    btn.style.opacity = '0.5';
+                    btn.style.cursor = 'not-allowed';
+                    btn.title = 'View only - editing not permitted';
+                    btn.onclick = (e) => {
+                        e.preventDefault();
+                        e.stopPropagation();
+                        showToast('You do not have permission to edit', 'error');
+                        return false;
+                    };
+                }
+            });
+
+            // Hide delete buttons if read-only
+            if (isReadOnly || !canModify) {
+                const deleteButtons = document.querySelectorAll('.btn-delete, .delete-btn, .btn-icon.delete, .btn-danger');
+                deleteButtons.forEach(btn => {
+                    if (btn.textContent.toLowerCase().includes('delete') ||
+                        btn.classList.contains('delete') ||
+                        btn.getAttribute('onclick')?.includes('delete')) {
+                        btn.style.display = 'none';
+                    }
+                });
+            }
+
+            // Disable form inputs if read-only
+            if (isReadOnly) {
+                const forms = document.querySelectorAll('form');
+                forms.forEach(form => {
+                    // Don't disable forms in modals that are for viewing only
+                    if (form.closest('.modal') && !form.closest('.modal').querySelector('.btn-primary')) {
+                        return;
+                    }
+
+                    const inputs = form.querySelectorAll('input, select, textarea');
+                    inputs.forEach(input => {
+                        if (input.type !== 'hidden') {
+                            input.disabled = true;
+                            input.style.backgroundColor = '#f1f5f9';
+                        }
+                    });
+
+                    // Disable submit buttons
+                    const submitBtns = form.querySelectorAll('button[type="submit"], .btn-primary');
+                    submitBtns.forEach(btn => {
+                        btn.disabled = true;
+                        btn.style.opacity = '0.5';
+                        btn.style.cursor = 'not-allowed';
+                    });
+                });
+
+                // Show read-only banner
+                showReadOnlyBanner();
+            }
+        }
+
+        function showToast(message, type = 'success') {
+            let toast = document.getElementById('childToast');
+            if (!toast) {
+                toast = document.createElement('div');
+                toast.id = 'childToast';
+                toast.style.cssText = `
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            padding: 1rem 1.5rem;
+            background: ${type === 'error' ? '#ef4444' : '#10b981'};
+            color: white;
+            border-radius: 0.5rem;
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+            z-index: 9999;
+            opacity: 0;
+            transform: translateY(20px);
+            transition: all 0.3s ease;
+            font-family: 'Inter', sans-serif;
+            font-size: 0.875rem;
+            font-weight: 500;
+        `;
+                document.body.appendChild(toast);
+            }
+
+            toast.textContent = message;
+            toast.style.background = type === 'error' ? '#ef4444' : '#10b981';
+            toast.style.opacity = '1';
+            toast.style.transform = 'translateY(0)';
+
+            setTimeout(() => {
+                toast.style.opacity = '0';
+                toast.style.transform = 'translateY(20px)';
+            }, 3000);
+        }
+        (function notifyParent() {
+            const filename = window.location.pathname.split('/').pop();
+            const pageMap = {
+                'child_dashboard.html': 'dashboard',
+                'child_tracking.html': 'live-tracking',
+                'child_analytics.html': 'analytics',
+                'child_feedback.html': 'feedback',
+                'child_bus_information.html': 'bus-info',
+                'child_bus_schedule.html': 'schedule',
+                'child_load.html': 'load',
+                'child_top_up_reference.html': 'top-up-reference',
+                'child_account_management.html': 'accounts',
+                'child_finance.html': 'finance',
+                'child_settings.html': 'settings',
+                'child_developer_logs.html': 'developer-logs'
+            };
+
+            const pageName = pageMap[filename];
+            if (pageName && window.parent !== window) {
+                window.parent.postMessage({
+                    type: 'pageLoaded',
+                    page: pageName
+                }, '*');
+            }
+        })();
+    </script>
+</body>
+
+</html>
