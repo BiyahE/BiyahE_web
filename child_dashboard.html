@@ -1,0 +1,3172 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>BIYAHE - Dashboard Content</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
+
+    <style>
+        :root {
+            --primary-color: #3b82f6;
+            --primary-hover: #242553;
+            --primary-dark: #1e40af;
+            --bg-light: #f8fafc;
+            --bg-gradient-start: #f1f5f9;
+            --bg-gradient-end: #e2e8f0;
+            --text-primary: #0f172a;
+            --text-secondary: #64748b;
+            --text-muted: #94a3b8;
+            --border-color: #e2e8f0;
+            --white: #ffffff;
+            --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+            --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+            --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+            --radius-sm: 0.5rem;
+            --radius-md: 1rem;
+            --radius-lg: 1.5rem;
+            --radius-xl: 2rem;
+            --radius-full: 9999px;
+            --success: #10b981;
+            --inactive: #9ca3af;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        html,
+        body {
+            height: 100%;
+            overflow: hidden;
+            font-family: 'Inter', sans-serif;
+            background: linear-gradient(135deg, #e5e7eb 0%, #fef3c7 100%);
+            color: var(--text-primary);
+        }
+
+        .dashboard-container {
+            width: 100%;
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+            padding: 0.75rem;
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 0.75rem;
+            margin-bottom: 0.75rem;
+            flex-shrink: 0;
+        }
+
+        .stat-card {
+            background: var(--white);
+            border-radius: var(--radius-md);
+            padding: 0.875rem;
+            display: flex;
+            align-items: center;
+            gap: 0.625rem;
+            box-shadow: var(--shadow-sm);
+            border: 1px solid var(--border-color);
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .stat-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 3px;
+            height: 100%;
+            background: var(--primary-color);
+            opacity: 0;
+            transition: opacity 0.3s ease;
+        }
+
+        .stat-card:hover::before {
+            opacity: 1;
+        }
+
+        .stat-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 16px rgba(36, 37, 83, 0.12);
+            border-color: rgba(36, 37, 83, 0.2);
+        }
+
+        .stat-icon {
+            width: 40px;
+            height: 40px;
+            border-radius: var(--radius-sm);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.125rem;
+            transition: all 0.3s ease;
+            flex-shrink: 0;
+        }
+
+        .stat-icon.blue {
+            background: rgba(59, 130, 246, 0.1);
+            color: var(--primary-color);
+        }
+
+        .stat-icon.green {
+            background: rgba(16, 185, 129, 0.1);
+            color: #10b981;
+        }
+
+        .stat-icon.purple {
+            background: rgba(139, 92, 246, 0.1);
+            color: #8b5cf6;
+        }
+
+        .stat-icon.orange {
+            background: rgba(249, 115, 22, 0.1);
+            color: #f97316;
+        }
+
+        .stat-content h3 {
+            font-size: 1.375rem;
+            font-weight: 700;
+            color: var(--text-primary);
+            margin: 0;
+            transition: all 0.3s ease;
+            line-height: 1;
+        }
+
+        .stat-card:hover h3 {
+            color: #242553;
+            transform: scale(1.05);
+        }
+
+        .stat-content p {
+            font-size: 0.75rem;
+            color: var(--text-secondary);
+            font-weight: 500;
+            margin: 0;
+        }
+
+        .stat-trend {
+            display: flex;
+            align-items: center;
+            gap: 0.25rem;
+            font-size: 0.625rem;
+            margin-top: 0.25rem;
+            font-weight: 600;
+        }
+
+        .stat-trend.up {
+            color: #10b981;
+        }
+
+        .stat-progress {
+            margin-top: 0.25rem;
+            width: 100%;
+        }
+
+        .progress-bar {
+            width: 100%;
+            height: 3px;
+            background: rgba(36, 37, 83, 0.1);
+            border-radius: 2px;
+            overflow: hidden;
+            margin-bottom: 0.25rem;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #242553 0%, #3b82f6 100%);
+            border-radius: 2px;
+            transition: width 1s ease-out;
+            position: relative;
+        }
+
+        .progress-fill::after {
+            content: '';
+            position: absolute;
+            top: 0;
+            right: 0;
+            bottom: 0;
+            width: 20px;
+            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.3));
+            animation: shimmer 2s infinite;
+        }
+
+        @keyframes shimmer {
+            0% {
+                transform: translateX(-20px);
+            }
+
+            100% {
+                transform: translateX(20px);
+            }
+        }
+
+        .progress-fill.green {
+            background: linear-gradient(90deg, #242553 0%, #10b981 100%);
+        }
+
+        .progress-fill.orange {
+            background: linear-gradient(90deg, #242553 0%, #f97316 100%);
+        }
+
+        .progress-fill.purple {
+            background: linear-gradient(90deg, #242553 0%, #8b5cf6 100%);
+        }
+
+        .progress-text {
+            font-size: 0.625rem;
+            color: var(--text-muted);
+            font-weight: 500;
+        }
+
+        .dashboard-bottom {
+            display: grid;
+            grid-template-columns: 1.5fr 1fr;
+            gap: 0.75rem;
+            flex: 1;
+            min-height: 0;
+            overflow: hidden;
+        }
+
+        .card {
+            background: var(--white);
+            border-radius: var(--radius-md);
+            border: 1px solid var(--border-color);
+            box-shadow: var(--shadow-sm);
+            overflow: hidden;
+            transition: all 0.3s ease;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .card:hover {
+            box-shadow: var(--shadow-md);
+        }
+
+        .card-header {
+            padding: 0.875rem;
+            border-bottom: 1px solid var(--border-color);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            flex-shrink: 0;
+        }
+
+        .card-title {
+            font-size: 0.9375rem;
+            font-weight: 700;
+            color: var(--text-primary);
+            margin-bottom: 0.125rem;
+        }
+
+        .card-subtitle {
+            font-size: 0.75rem;
+            color: var(--text-secondary);
+        }
+
+        .card-body {
+            padding: 0.875rem;
+            flex: 1;
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .map-container {
+            flex: 1;
+            border-radius: var(--radius-sm);
+            overflow: hidden;
+            background: var(--bg-light);
+            transition: all 0.3s ease;
+            border: 2px solid transparent;
+            min-height: 0;
+        }
+
+        .map-container:hover {
+            border-color: rgba(36, 37, 83, 0.2);
+        }
+
+        .data-table {
+            width: 100%;
+            border-collapse: separate;
+            border-spacing: 0;
+            font-size: 0.8125rem;
+        }
+
+        .data-table th {
+            background: var(--bg-light);
+            padding: 0.5rem 0.625rem;
+            font-size: 0.625rem;
+            font-weight: 600;
+            color: var(--text-secondary);
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            border-bottom: 2px solid var(--border-color);
+            cursor: pointer;
+            user-select: none;
+            transition: all 0.2s;
+            text-align: left;
+        }
+
+        .data-table th:hover {
+            background: rgba(36, 37, 83, 0.05);
+            color: #242553;
+        }
+
+        .data-table td {
+            padding: 0.5rem 0.625rem;
+            font-size: 0.8125rem;
+            color: var(--text-primary);
+            border-bottom: 1px solid var(--border-color);
+            transition: all 0.2s;
+        }
+
+        .data-table tbody tr {
+            transition: all 0.2s;
+        }
+
+        .data-table tbody tr:hover {
+            background: rgba(36, 37, 83, 0.02);
+        }
+
+        .data-table tbody tr:hover td {
+            color: #242553;
+        }
+
+        .btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.375rem;
+            padding: 0.5rem 1rem;
+            border-radius: var(--radius-full);
+            font-weight: 600;
+            font-size: 0.8125rem;
+            cursor: pointer;
+            transition: all 0.2s;
+            border: none;
+            font-family: inherit;
+            text-decoration: none;
+        }
+
+        .btn-primary {
+            background: var(--primary-color);
+            color: var(--white);
+            box-shadow: 0 4px 6px rgba(59, 130, 246, 0.2);
+        }
+
+        .btn-primary:hover {
+            background: var(--primary-hover);
+            transform: translateY(-1px);
+            box-shadow: 0 6px 12px rgba(59, 130, 246, 0.3);
+        }
+
+        .btn-secondary {
+            background: var(--bg-light);
+            color: var(--text-secondary);
+            border: 1px solid var(--border-color);
+        }
+
+        .btn-secondary:hover {
+            background: var(--border-color);
+            color: var(--text-primary);
+        }
+
+        .btn-sm {
+            padding: 0.375rem 0.75rem;
+            font-size: 0.75rem;
+        }
+
+        .status-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.25rem;
+            padding: 0.25rem 0.625rem;
+            border-radius: var(--radius-full);
+            font-size: 0.6875rem;
+            font-weight: 600;
+        }
+
+        .status-badge.active {
+            background: rgba(16, 185, 129, 0.1);
+            color: #059669;
+            border: 1px solid rgba(16, 185, 129, 0.2);
+        }
+
+        .status-badge.maintenance {
+            background: rgba(245, 158, 11, 0.1);
+            color: #d97706;
+            border: 1px solid rgba(245, 158, 11, 0.2);
+        }
+
+        .status-badge.idle {
+            background: rgba(107, 114, 128, 0.1);
+            color: #4b5563;
+            border: 1px solid rgba(107, 114, 128, 0.2);
+        }
+
+        .table-wrapper {
+            overflow-y: auto;
+            flex: 1;
+            -webkit-overflow-scrolling: touch;
+        }
+
+        .table-wrapper::-webkit-scrollbar {
+            width: 6px;
+        }
+
+        .table-wrapper::-webkit-scrollbar-track {
+            background: transparent;
+        }
+
+        .table-wrapper::-webkit-scrollbar-thumb {
+            background: var(--border-color);
+            border-radius: 3px;
+        }
+
+        .table-wrapper::-webkit-scrollbar-thumb:hover {
+            background: var(--text-muted);
+        }
+
+        .card-header-left {
+            display: flex;
+            align-items: center;
+            gap: 0.625rem;
+        }
+
+        .header-icon {
+            width: 36px;
+            height: 36px;
+            background: linear-gradient(135deg, #242553 0%, #3b82f6 100%);
+            border-radius: var(--radius-sm);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 0.875rem;
+            box-shadow: 0 4px 12px rgba(36, 37, 83, 0.3);
+            flex-shrink: 0;
+        }
+
+        .card-actions {
+            display: flex;
+            gap: 0.5rem;
+        }
+
+        .table-filters {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 0.625rem;
+            gap: 0.625rem;
+            flex-wrap: wrap;
+            flex-shrink: 0;
+        }
+
+        .filter-group {
+            display: flex;
+            gap: 0.25rem;
+            background: var(--bg-light);
+            padding: 0.25rem;
+            border-radius: var(--radius-full);
+        }
+
+        .filter-btn {
+            padding: 0.375rem 0.75rem;
+            border: none;
+            background: transparent;
+            color: var(--text-secondary);
+            font-size: 0.75rem;
+            font-weight: 500;
+            border-radius: var(--radius-full);
+            cursor: pointer;
+            transition: all 0.2s;
+            display: flex;
+            align-items: center;
+            gap: 0.375rem;
+        }
+
+        .filter-btn:hover {
+            background: var(--white);
+            color: var(--text-primary);
+        }
+
+        .filter-btn.active {
+            background: var(--white);
+            color: #242553;
+            box-shadow: var(--shadow-sm);
+            font-weight: 600;
+        }
+
+        .filter-dot {
+            width: 6px;
+            height: 6px;
+            border-radius: 50%;
+            display: inline-block;
+        }
+
+        .filter-dot.active {
+            background: #10b981;
+        }
+
+        .filter-dot.maintenance {
+            background: #f59e0b;
+        }
+
+        .filter-dot.idle {
+            background: #6b7280;
+        }
+
+        .search-box {
+            position: relative;
+            display: flex;
+            align-items: center;
+        }
+
+        .search-box i {
+            position: absolute;
+            left: 0.75rem;
+            color: var(--text-muted);
+            font-size: 0.875rem;
+        }
+
+        .search-box input {
+            padding: 0.5rem 0.75rem 0.5rem 2rem;
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius-full);
+            font-size: 0.75rem;
+            width: 160px;
+            transition: all 0.2s;
+            background: var(--white);
+        }
+
+        .search-box input:focus {
+            outline: none;
+            border-color: #242553;
+            box-shadow: 0 0 0 3px rgba(36, 37, 83, 0.1);
+            width: 180px;
+        }
+
+        .th-content {
+            display: flex;
+            align-items: center;
+            gap: 0.375rem;
+        }
+
+        .bus-id-cell {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .bus-icon {
+            width: 28px;
+            height: 28px;
+            background: linear-gradient(135deg, #242553 0%, #3b82f6 100%);
+            border-radius: var(--radius-sm);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 0.75rem;
+            flex-shrink: 0;
+        }
+
+        .driver-cell {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            min-width: 0;
+        }
+
+        .driver-cell span {
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            max-width: 120px;
+        }
+
+        .driver-avatar {
+            width: 28px;
+            height: 28px;
+            border-radius: 50%;
+            object-fit: cover;
+            border: 2px solid var(--border-color);
+        }
+
+        .route-cell {
+            display: flex;
+            align-items: center;
+            gap: 0.375rem;
+            color: var(--text-secondary);
+        }
+
+        .route-cell i {
+            color: #242553;
+            font-size: 0.75rem;
+        }
+
+        .time-cell {
+            color: var(--text-muted);
+            font-size: 0.75rem;
+        }
+
+        .table-footer {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-top: 0.625rem;
+            padding-top: 0.625rem;
+            border-top: 1px solid var(--border-color);
+            flex-shrink: 0;
+        }
+
+        .pagination {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .page-btn {
+            width: 32px;
+            height: 32px;
+            border: 1px solid var(--border-color);
+            background: var(--white);
+            border-radius: var(--radius-md);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: all 0.2s;
+            color: var(--text-secondary);
+        }
+
+        .page-btn:hover {
+            background: #242553;
+            color: white;
+            border-color: #242553;
+        }
+
+        .page-numbers {
+            font-size: 0.8125rem;
+            color: var(--text-secondary);
+            font-weight: 500;
+        }
+
+        .map-card {
+            border-radius: var(--radius-md);
+            overflow: hidden;
+        }
+
+        .map-legend {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+        }
+
+        .legend-item {
+            display: flex;
+            align-items: center;
+            gap: 0.375rem;
+            font-size: 0.75rem;
+            color: var(--text-secondary);
+        }
+
+        .legend-dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            display: inline-block;
+        }
+
+        .legend-dot.gps-live {
+            background: #10b981;
+            box-shadow: 0 0 0 3px rgba(16, 185, 129, 0.3);
+            animation: pulse 2s infinite;
+        }
+
+        .legend-dot.last-seen {
+            background: #3b82f6;
+            box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.3);
+        }
+
+        .legend-dot.inactive {
+            background: #9ca3af;
+            box-shadow: 0 0 0 3px rgba(156, 163, 175, 0.3);
+        }
+
+        .map-stats-bar {
+            display: flex;
+            gap: 1.5rem;
+            padding: 0.625rem 0.875rem;
+            background: linear-gradient(135deg, #242553 0%, #1a1a3e 100%);
+            color: white;
+            font-size: 0.8125rem;
+            flex-shrink: 0;
+        }
+
+        .map-stat {
+            display: flex;
+            align-items: center;
+            gap: 0.375rem;
+            font-weight: 500;
+        }
+
+        .map-stat i {
+            color: #fde68a;
+        }
+
+        .map-stat span {
+            font-weight: 700;
+            color: #fde68a;
+        }
+
+        .custom-bus-marker {
+            position: relative;
+            width: 40px;
+            height: 40px;
+        }
+
+        .bus-marker-inner {
+            width: 36px;
+            height: 36px;
+            background: linear-gradient(135deg, #242553 0%, #3b82f6 100%);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 14px;
+            border: 3px solid white;
+            box-shadow: 0 4px 12px rgba(36, 37, 83, 0.4);
+            position: relative;
+            z-index: 2;
+            transition: all 0.3s ease;
+        }
+
+        .bus-marker-pulse {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 40px;
+            height: 40px;
+            background: rgba(36, 37, 83, 0.3);
+            border-radius: 50%;
+            animation: markerPulse 2s ease-out infinite;
+            z-index: 1;
+        }
+
+        .bus-marker-pulse:nth-child(2) {
+            animation-delay: 0.5s;
+        }
+
+        .bus-marker-pulse:nth-child(3) {
+            animation-delay: 1s;
+        }
+
+        @keyframes markerPulse {
+            0% {
+                transform: translate(-50%, -50%) scale(1);
+                opacity: 0.6;
+            }
+
+            100% {
+                transform: translate(-50%, -50%) scale(2);
+                opacity: 0;
+            }
+        }
+
+        .bus-marker-inner.gps-live {
+            background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+        }
+
+        .bus-marker-inner.last-seen {
+            background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
+        }
+
+        .bus-marker-inner.inactive {
+            background: linear-gradient(135deg, #9ca3af 0%, #6b7280 100%);
+        }
+
+        .bus-marker-inner:hover {
+            transform: scale(1.1);
+            box-shadow: 0 6px 20px rgba(36, 37, 83, 0.5);
+        }
+
+        .leaflet-popup-content-wrapper {
+            border-radius: var(--radius-md);
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);
+            padding: 0;
+            overflow: hidden;
+        }
+
+        .leaflet-popup-content {
+            margin: 0;
+            padding: 0.875rem;
+            font-family: 'Inter', sans-serif;
+        }
+
+        .bus-popup-header {
+            background: linear-gradient(135deg, #242553 0%, #3b82f6 100%);
+            color: white;
+            padding: 0.625rem 0.875rem;
+            margin: -0.875rem -0.875rem 0.875rem -0.875rem;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .bus-popup-info {
+            display: grid;
+            gap: 0.5rem;
+        }
+
+        .bus-popup-row {
+            display: flex;
+            justify-content: space-between;
+            font-size: 0.875rem;
+        }
+
+        .bus-popup-label {
+            color: var(--text-muted);
+        }
+
+        .bus-popup-value {
+            font-weight: 600;
+            color: var(--text-primary);
+        }
+
+        .leaflet-container {
+            font-family: 'Inter', sans-serif;
+        }
+
+        @media (max-width: 1200px) {
+            .stats-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+
+            .dashboard-bottom {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        @media (max-width: 768px) {
+            .dashboard-container {
+                padding: 0.5rem;
+            }
+
+            .stats-grid {
+                grid-template-columns: 1fr;
+                gap: 0.5rem;
+            }
+
+            .stat-card {
+                padding: 0.75rem;
+            }
+
+            .card-header,
+            .card-body {
+                padding: 0.75rem;
+            }
+
+            .map-container {
+                min-height: 200px;
+            }
+        }
+
+        @keyframes countUp {
+            from {
+                opacity: 0;
+                transform: translateY(10px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .stat-number-animate {
+            animation: countUp 0.6s ease-out;
+        }
+
+        @keyframes pulse {
+
+            0%,
+            100% {
+                opacity: 1;
+            }
+
+            50% {
+                opacity: 0.5;
+            }
+        }
+
+        .stat-loading {
+            color: var(--text-muted);
+            font-size: 0.875rem;
+        }
+
+        .stat-error {
+            color: #ef4444;
+            font-size: 0.75rem;
+        }
+
+        .auth-error-banner {
+            background: linear-gradient(135deg, #fef3c7 0%, #fde68a 100%);
+            border: 1px solid #f59e0b;
+            color: #92400e;
+            padding: 0.75rem 1rem;
+            border-radius: var(--radius-md);
+            margin-bottom: 0.75rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            font-size: 0.875rem;
+            font-weight: 500;
+        }
+
+        .auth-error-banner i {
+            color: #f59e0b;
+        }
+
+        .stat-card.error {
+            border-left: 3px solid #ef4444;
+        }
+
+        .stat-card.error .stat-icon {
+            background: rgba(239, 68, 68, 0.1);
+            color: #ef4444;
+        }
+
+        .capacity-cell,
+        .fare-cell,
+        .schedule-cell {
+            display: flex;
+            align-items: center;
+            white-space: nowrap;
+        }
+
+        .fare-cell span {
+            background: rgba(16, 185, 129, 0.1);
+            padding: 2px 8px;
+            border-radius: 12px;
+            font-size: 0.75rem;
+        }
+
+        /* No data state styling */
+        .no-data-state {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 3rem 2rem;
+            color: var(--text-muted);
+            text-align: center;
+        }
+
+        .no-data-state i {
+            font-size: 2.5rem;
+            margin-bottom: 0.75rem;
+            opacity: 0.4;
+            color: var(--text-secondary);
+        }
+
+        .no-data-state .no-data-title {
+            font-size: 0.9375rem;
+            font-weight: 600;
+            color: var(--text-secondary);
+            margin-bottom: 0.25rem;
+        }
+
+        .no-data-state .no-data-subtitle {
+            font-size: 0.75rem;
+            color: var(--text-muted);
+            max-width: 200px;
+        }
+
+        /* Table empty state override */
+        .data-table tbody tr.empty-state td {
+            border-bottom: none;
+            padding: 0;
+        }
+
+        .data-table tbody tr.empty-state:hover {
+            background: transparent;
+        }
+
+        /* GPS Status Indicator in popup */
+        .gps-status-indicator {
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+            padding: 2px 8px;
+            border-radius: 12px;
+            font-size: 10px;
+            font-weight: 600;
+        }
+
+        .gps-status-indicator.live {
+            background: rgba(16, 185, 129, 0.1);
+            color: #059669;
+        }
+
+        .gps-status-indicator.last-seen {
+            background: rgba(59, 130, 246, 0.1);
+            color: #2563eb;
+        }
+
+        .gps-status-indicator.inactive {
+            background: rgba(156, 163, 175, 0.1);
+            color: #6b7280;
+        }
+
+        /* ==========================================
+           MODERN POPUP STYLES - From child_tracking.html
+           ========================================== */
+
+        /* Custom Popup Container */
+        .custom-popup .leaflet-popup-content-wrapper {
+            background: rgba(255, 255, 255, 0.98);
+            backdrop-filter: blur(10px);
+            border-radius: 12px;
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+            border: 1px solid rgba(0, 0, 0, 0.05);
+            overflow: visible;
+            padding: 0;
+            position: relative;
+        }
+
+        .custom-popup .leaflet-popup-content {
+            margin: 0;
+            padding: 0;
+            width: 220px !important;
+        }
+
+        .custom-popup .leaflet-popup-tip {
+            background: rgba(255, 255, 255, 0.98);
+            backdrop-filter: blur(10px);
+            width: 12px;
+            height: 12px;
+        }
+
+        /* Hide default close button */
+        .custom-popup .leaflet-popup-close-button {
+            display: none !important;
+        }
+
+        .bus-popup {
+            font-family: 'Inter', sans-serif;
+            position: relative;
+        }
+
+        /* Custom Close Button - Outside on top */
+        .popup-close-btn {
+            position: absolute;
+            top: -12px;
+            right: -12px;
+            width: 28px;
+            height: 28px;
+            background: #ef4444;
+            border-radius: 50%;
+            color: white;
+            font-size: 14px;
+            border: 3px solid white;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 1000;
+            transition: all 0.2s ease;
+        }
+
+        .popup-close-btn:hover {
+            background: #dc2626;
+            transform: scale(1.1);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+        }
+
+        .popup-close-btn:active {
+            transform: scale(0.95);
+        }
+
+        .popup-header {
+            padding: 12px 14px;
+            color: white;
+            position: relative;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            border-radius: 12px 12px 0 0;
+        }
+
+        .popup-header.live {
+            background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+        }
+
+        .popup-header.recent {
+            background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
+        }
+
+        .popup-header.inactive {
+            background: linear-gradient(135deg, #9ca3af 0%, #6b7280 100%);
+        }
+
+        .popup-header.offline {
+            background: linear-gradient(135deg, #6b7280 0%, #4b5563 100%);
+        }
+
+        .popup-bus-info {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .popup-bus-icon {
+            width: 32px;
+            height: 32px;
+            background: rgba(255, 255, 255, 0.2);
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 14px;
+            border: 1px solid rgba(255, 255, 255, 0.3);
+        }
+
+        .popup-bus-title {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .popup-bus-id {
+            font-size: 14px;
+            font-weight: 700;
+            letter-spacing: -0.3px;
+            line-height: 1.2;
+        }
+
+        .popup-bus-route {
+            font-size: 10px;
+            opacity: 0.9;
+            font-weight: 500;
+        }
+
+        .popup-status-badge {
+            padding: 3px 8px;
+            background: rgba(255, 255, 255, 0.25);
+            border-radius: 12px;
+            font-size: 9px;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            border: 1px solid rgba(255, 255, 255, 0.3);
+        }
+
+        .popup-body {
+            padding: 12px 14px;
+        }
+
+        .popup-info-row {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin-bottom: 8px;
+            font-size: 11px;
+        }
+
+        .popup-info-row:last-child {
+            margin-bottom: 0;
+        }
+
+        .popup-info-icon {
+            width: 24px;
+            height: 24px;
+            background: var(--bg-light);
+            border-radius: 6px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: var(--text-secondary);
+            font-size: 10px;
+            flex-shrink: 0;
+        }
+
+        .popup-info-content {
+            flex: 1;
+            min-width: 0;
+        }
+
+        .popup-info-label {
+            font-size: 9px;
+            color: var(--text-secondary);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            font-weight: 600;
+            margin-bottom: 1px;
+        }
+
+        .popup-info-value {
+            font-size: 11px;
+            font-weight: 600;
+            color: var(--text-primary);
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .popup-coordinates {
+            background: var(--bg-light);
+            padding: 6px 10px;
+            border-radius: 6px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin: 10px 0;
+        }
+
+        .popup-coords-text {
+            font-family: 'SF Mono', monospace;
+            font-size: 9px;
+            color: var(--text-secondary);
+            letter-spacing: 0.3px;
+        }
+
+        .popup-coords-copy {
+            background: white;
+            border: 1px solid var(--border-color);
+            padding: 3px 6px;
+            border-radius: 4px;
+            font-size: 9px;
+            color: var(--text-secondary);
+            cursor: pointer;
+            transition: all 0.2s;
+            display: flex;
+            align-items: center;
+            gap: 3px;
+        }
+
+        .popup-coords-copy:hover {
+            background: var(--primary-color);
+            color: white;
+            border-color: var(--primary-color);
+        }
+
+        .popup-footer {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding-top: 10px;
+            border-top: 1px solid var(--border-color);
+            margin-top: 8px;
+        }
+
+        .popup-timestamp {
+            font-size: 10px;
+            color: var(--text-secondary);
+            display: flex;
+            align-items: center;
+            gap: 4px;
+        }
+
+        .popup-timestamp i {
+            font-size: 8px;
+        }
+
+        .popup-actions {
+            display: flex;
+            gap: 6px;
+        }
+
+        .popup-btn {
+            padding: 5px 10px;
+            border-radius: 6px;
+            font-size: 10px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+            display: flex;
+            align-items: center;
+            gap: 4px;
+            border: none;
+        }
+
+        .popup-btn-primary {
+            background: var(--primary-color);
+            color: white;
+        }
+
+        .popup-btn-primary:hover {
+            background: #2563eb;
+        }
+
+        .popup-btn-icon {
+            width: 26px;
+            height: 26px;
+            padding: 0;
+            background: var(--bg-light);
+            color: var(--text-secondary);
+            border: 1px solid var(--border-color);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .popup-btn-icon:hover {
+            background: var(--border-color);
+            color: var(--text-primary);
+        }
+
+        @media (max-width: 768px) {
+            .custom-popup .leaflet-popup-content {
+                width: 200px !important;
+            }
+
+            .popup-close-btn {
+                top: -10px;
+                right: -10px;
+                width: 26px;
+                height: 26px;
+                font-size: 12px;
+            }
+        }
+    </style>
+    <base target="_blank">
+    <base target="_blank">
+</head>
+
+<body>
+    <div class="dashboard-container">
+        <div id="authErrorBanner" class="auth-error-banner" style="display: none;">
+            <i class="fas fa-exclamation-triangle"></i>
+            <span>Authentication required. Please <a href="login.html" target="_top"
+                    style="color: #92400e; text-decoration: underline;">login</a> to view dashboard data.</span>
+        </div>
+
+        <div class="stats-grid">
+            <div class="stat-card" id="statTotalBuses">
+                <div class="stat-icon blue">
+                    <i class="fas fa-bus"></i>
+                </div>
+                <div class="stat-content">
+                    <h3 id="totalBuses">--</h3>
+                    <p>Total Buses</p>
+                    <div class="stat-trend up">
+                        <i class="fas fa-arrow-up"></i>
+                        <span id="totalBusesTrend">Loading...</span>
+                    </div>
+                    <div class="stat-progress">
+                        <div class="progress-bar">
+                            <div class="progress-fill" id="totalBusesProgress" style="width: 0%"></div>
+                        </div>
+                        <span class="progress-text">Fleet Capacity</span>
+                    </div>
+                </div>
+            </div>
+            <div class="stat-card" id="statActiveBuses">
+                <div class="stat-icon green">
+                    <i class="fas fa-satellite-dish"></i>
+                </div>
+                <div class="stat-content">
+                    <h3 id="activeBuses">--</h3>
+                    <p>GPS Active Buses</p>
+                    <div class="stat-trend up">
+                        <i class="fas fa-circle" style="font-size: 8px; animation: pulse 2s infinite;"></i>
+                        <span id="gpsLiveCount">Live tracking</span>
+                    </div>
+                    <div class="stat-progress">
+                        <div class="progress-bar">
+                            <div class="progress-fill green" id="activeBusesProgress" style="width: 0%"></div>
+                        </div>
+                        <span class="progress-text" id="activeBusesPercent">--% Active</span>
+                    </div>
+                </div>
+            </div>
+            <div class="stat-card" id="statTotalStaff">
+                <div class="stat-icon orange">
+                    <i class="fas fa-users"></i>
+                </div>
+                <div class="stat-content">
+                    <h3 id="totalStaff">--</h3>
+                    <p>Total Staff</p>
+                    <div class="stat-trend up">
+                        <i class="fas fa-user-check"></i>
+                        <span id="staffOnDuty">Loading...</span>
+                    </div>
+                    <div class="stat-progress">
+                        <div class="progress-bar">
+                            <div class="progress-fill orange" id="staffProgress" style="width: 0%"></div>
+                        </div>
+                        <span class="progress-text">Staff Availability</span>
+                    </div>
+                </div>
+            </div>
+            <div class="stat-card" id="statFeedback">
+                <div class="stat-icon purple">
+                    <i class="fas fa-comments"></i>
+                </div>
+                <div class="stat-content">
+                    <h3 id="totalFeedback">--</h3>
+                    <p>Feedback</p>
+                    <div class="stat-trend up">
+                        <i class="fas fa-arrow-up"></i>
+                        <span id="feedbackNew">Loading...</span>
+                    </div>
+                    <div class="stat-progress">
+                        <div class="progress-bar">
+                            <div class="progress-fill purple" id="feedbackProgress" style="width: 0%"></div>
+                        </div>
+                        <span class="progress-text" id="feedbackResponseRate">Response Rate</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="dashboard-bottom">
+            <div class="card map-card">
+                <div class="card-header">
+                    <div class="card-header-left">
+                        <div class="header-icon" style="background: linear-gradient(135deg, #10b981 0%, #059669 100%);">
+                            <i class="fas fa-map-marked-alt"></i>
+                        </div>
+                        <div>
+                            <h3 class="card-title">Live Bus Locations</h3>
+                            <p class="card-subtitle">Real-time GPS tracking from bus_gps</p>
+                        </div>
+                    </div>
+                    <div class="map-legend">
+                        <div class="legend-item">
+                            <span class="legend-dot gps-live"></span>
+                            <span>Live</span>
+                        </div>
+                        <div class="legend-item">
+                            <span class="legend-dot last-seen"></span>
+                            <span>Recent</span>
+                        </div>
+                        <div class="legend-item">
+                            <span class="legend-dot inactive"></span>
+                            <span>Inactive</span>
+                        </div>
+                        <button class="btn btn-sm btn-primary" id="expandMap">
+                            <i class="fas fa-expand"></i>
+                            Full View
+                        </button>
+                    </div>
+                </div>
+                <div class="card-body" style="padding: 0;">
+                    <div class="map-container" id="dashboardMap"></div>
+                </div>
+            </div>
+
+            <div class="card activity-card">
+                <div class="card-header">
+                    <div class="card-header-left">
+                        <div class="header-icon">
+                            <i class="fas fa-list-alt"></i>
+                        </div>
+                        <div>
+                            <h3 class="card-title">Fleet Activity</h3>
+                            <p class="card-subtitle">Real-time bus status</p>
+                        </div>
+                    </div>
+                    <div class="card-actions">
+                        <button class="btn btn-sm btn-secondary" id="refreshTable">
+                            <i class="fas fa-sync-alt"></i>
+                            Refresh
+                        </button>
+                    </div>
+                </div>
+                <div class="card-body">
+                    <div class="table-filters">
+                        <div class="filter-group">
+                            <button class="filter-btn active" data-filter="all">All</button>
+                            <button class="filter-btn" data-filter="active">
+                                <span class="filter-dot active"></span>Active
+                            </button>
+                            <button class="filter-btn" data-filter="maintenance">
+                                <span class="filter-dot maintenance"></span>Maintenance
+                            </button>
+                            <button class="filter-btn" data-filter="idle">
+                                <span class="filter-dot idle"></span>Idle
+                            </button>
+                        </div>
+                        <div class="search-box">
+                            <i class="fas fa-search"></i>
+                            <input type="text" placeholder="Search buses..." id="searchBuses">
+                        </div>
+                    </div>
+                    <div class="table-wrapper">
+                        <table class="data-table" id="activityTable">
+                            <thead>
+                                <tr>
+                                    <th>Bus ID</th>
+                                    <th>Driver</th>
+                                    <th>Route</th>
+                                    <th>Capacity</th>
+                                    <th>Fare</th>
+                                    <th>Schedule</th>
+                                    <th>Status</th>
+                                </tr>
+                            </thead>
+                            <tbody id="recentActivityTable">
+                                <!-- Dynamic content -->
+                            </tbody>
+                        </table>
+                    </div>
+                    <div class="table-footer">
+                        <span id="showingText">Showing 5 of -- buses</span>
+                        <div class="pagination">
+                            <button class="page-btn" id="prevPage"><i class="fas fa-chevron-left"></i></button>
+                            <span class="page-numbers" id="pageNumbers">1 of --</span>
+                            <button class="page-btn" id="nextPage"><i class="fas fa-chevron-right"></i></button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+
+    <!-- Add this BEFORE any other scripts -->
+    <script src="js/logger.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+
+    <script>
+        // Dashboard JavaScript with GPS Integration from child_tracking.html
+        let mapInstance = null;
+        let busMarkers = {};
+        let updateInterval = null;
+        let isMapInitialized = false;
+        let gpsRealtimeChannel = null;
+        let lastGpsUpdate = {};
+
+        // GPS Constants from child_tracking.html
+        const INACTIVE_THRESHOLD_HOURS = 12;
+        const INACTIVE_THRESHOLD_MS = INACTIVE_THRESHOLD_HOURS * 60 * 60 * 1000;
+        const CACHE_KEY = 'biyahe_gps_cache_v4';
+        const DEFAULT_CENTER = [9.65230775907483, 123.86304581776072];
+        const DEFAULT_ZOOM = 12.3;
+
+        let dashboardStats = {
+            totalBuses: 0,
+            activeBuses: 0,
+            gpsLiveBuses: 0,
+            totalStaff: 0,
+            activeStaff: 0,
+            totalFeedback: 0,
+            pendingFeedback: 0
+        };
+
+        const SUPABASE_URL = 'https://musiimheammasnmegnnt.supabase.co';
+        const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im11c2lpbWhlYW1tYXNubWVnbm50Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTgwMTIwMTcsImV4cCI6MjA3MzU4ODAxN30.KH2Pckv8CM9iTbYRBIzSSxt7rZFCRDhhxIf06655mm8';
+
+        let supabaseClient = null;
+        let supabaseInitAttempts = 0;
+        const MAX_INIT_ATTEMPTS = 50;
+
+        // ==========================================
+        // GPS CACHE FUNCTIONS (from child_tracking.html)
+        // ==========================================
+
+        function loadCachedGpsData() {
+            try {
+                const cached = localStorage.getItem(CACHE_KEY);
+                if (cached) {
+                    return JSON.parse(cached);
+                }
+            } catch (e) {
+                console.error('Error loading cached GPS data:', e);
+            }
+            return {};
+        }
+
+        function saveCachedGpsData(busId, data) {
+            try {
+                const cached = loadCachedGpsData();
+                cached[busId] = {
+                    ...data,
+                    cachedAt: new Date().toISOString()
+                };
+                localStorage.setItem(CACHE_KEY, JSON.stringify(cached));
+            } catch (e) {
+                console.error('Error saving cached GPS data:', e);
+            }
+        }
+
+        function getCachedPosition(busId) {
+            const cached = loadCachedGpsData();
+            return cached[busId] || null;
+        }
+
+        function getHoursSince(timestamp) {
+            if (!timestamp) return Infinity;
+            const now = Date.now();
+            const then = new Date(timestamp).getTime();
+            return (now - then) / (1000 * 60 * 60);
+        }
+
+        function formatLastUpdate(timestamp) {
+            if (!timestamp) return 'Never';
+            const date = new Date(timestamp);
+            const now = new Date();
+            const diffMs = now - date;
+            const diffSecs = Math.floor(diffMs / 1000);
+            const diffMins = Math.floor(diffMs / 60000);
+            const diffHours = Math.floor(diffMs / 3600000);
+
+            if (diffSecs < 10) return 'Just now';
+            if (diffSecs < 60) return `${diffSecs}s ago`;
+            if (diffMins < 60) return `${diffMins}m ago`;
+            if (diffHours < 24) return `${diffHours}h ago`;
+            return date.toLocaleDateString();
+        }
+
+        // ==========================================
+        // SUPABASE INITIALIZATION
+        // ==========================================
+
+        function initSupabase() {
+            if (supabaseClient !== null) return true;
+            if (typeof supabase === 'undefined') {
+                console.log('Supabase library not loaded yet (attempt ' + (supabaseInitAttempts + 1) + ')');
+                return false;
+            }
+            if (!supabase.createClient) {
+                console.log('supabase.createClient not available (attempt ' + (supabaseInitAttempts + 1) + ')');
+                return false;
+            }
+
+            try {
+                supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+                console.log('Supabase client initialized successfully');
+                window.supabaseClient = supabaseClient;
+                window.supabase = supabaseClient;
+                return true;
+            } catch (error) {
+                console.error('Failed to initialize Supabase:', error);
+                return false;
+            }
+        }
+
+        async function waitForSupabase() {
+            return new Promise((resolve) => {
+                const checkInterval = setInterval(() => {
+                    supabaseInitAttempts++;
+                    if (initSupabase()) {
+                        clearInterval(checkInterval);
+                        resolve(true);
+                        return;
+                    }
+                    if (supabaseInitAttempts >= MAX_INIT_ATTEMPTS) {
+                        clearInterval(checkInterval);
+                        console.error('Failed to initialize Supabase after ' + MAX_INIT_ATTEMPTS + ' attempts');
+                        resolve(false);
+                    }
+                }, 100);
+
+                setTimeout(() => {
+                    clearInterval(checkInterval);
+                    if (!supabaseClient) {
+                        console.error('Supabase initialization timeout');
+                        resolve(false);
+                    }
+                }, 5000);
+            });
+        }
+
+        function getSupabaseClient() {
+            if (window.supabaseClient && window.supabaseClient.from) {
+                supabaseClient = window.supabaseClient;
+                return supabaseClient;
+            }
+            if (window.Auth && window.Auth.ensureSupabase) {
+                console.log('Using auth.js Supabase client');
+                return window.supabaseClient || null;
+            }
+            if (supabaseClient !== null && supabaseClient.from) return supabaseClient;
+            if (window.supabase && window.supabase.from) {
+                supabaseClient = window.supabase;
+                return supabaseClient;
+            }
+            if (initSupabase()) return supabaseClient;
+            return null;
+        }
+
+        function checkLocalAuth() {
+            if (window.Auth && window.Auth.getCurrentUser) {
+                const authUser = window.Auth.getCurrentUser();
+                if (authUser) {
+                    console.log('User authenticated via auth.js:', authUser.email, 'Role:', authUser.role);
+                    return authUser;
+                }
+            }
+
+            const userJson = localStorage.getItem('currentUser');
+            if (!userJson) {
+                console.warn('No user in localStorage - not logged in');
+                return null;
+            }
+            try {
+                const user = JSON.parse(userJson);
+                console.log('User authenticated via localStorage:', user.email, 'Role:', user.role);
+                return user;
+            } catch (e) {
+                console.error('Error parsing user data:', e);
+                return null;
+            }
+        }
+
+        function showAuthError() {
+            const banner = document.getElementById('authErrorBanner');
+            if (banner) banner.style.display = 'flex';
+
+            const totalBusesEl = document.getElementById('totalBuses');
+            const totalBusesTrendEl = document.getElementById('totalBusesTrend');
+            const totalBusesCardEl = document.getElementById('statTotalBuses');
+
+            if (totalBusesEl) {
+                totalBusesEl.textContent = '--';
+                totalBusesEl.style.color = '';
+            }
+            if (totalBusesTrendEl) {
+                totalBusesTrendEl.textContent = 'Authentication required';
+                totalBusesTrendEl.style.color = '';
+            }
+            if (totalBusesCardEl) {
+                totalBusesCardEl.classList.remove('empty-state');
+                totalBusesCardEl.classList.add('error');
+            }
+
+            setEmptyState('activeBuses', 'statActiveBuses', '--', 'Access denied');
+            setEmptyState('totalStaff', 'statTotalStaff', '--', 'Access denied');
+            setEmptyState('totalFeedback', 'statFeedback', '--', 'Access denied');
+
+            document.getElementById('recentActivityTable').innerHTML = `
+        <tr class="empty-state">
+            <td colspan="7">
+                <div class="no-data-state">
+                    <i class="fas fa-lock"></i>
+                    <div class="no-data-title">Authentication Required</div>
+                    <div class="no-data-subtitle">Please login to view fleet data</div>
+                </div>
+            </td>
+        </tr>
+    `;
+
+            document.querySelectorAll('.stat-card').forEach(card => {
+                if (card.id !== 'statTotalBuses') {
+                    card.classList.add('error');
+                }
+            });
+
+            const mapContainer = document.getElementById('dashboardMap');
+            if (mapContainer) {
+                mapContainer.innerHTML = `
+            <div class="map-auth-error">
+                <i class="fas fa-map-marked-alt"></i>
+                <div>Map unavailable - Authentication required</div>
+            </div>
+        `;
+            }
+        }
+
+        function setEmptyState(numberId, cardId, number, trendText) {
+            const numberEl = document.getElementById(numberId);
+            const trendEl = document.getElementById(numberId === 'totalBuses' ? 'totalBusesTrend' :
+                numberId === 'activeBuses' ? 'gpsLiveCount' :
+                    numberId === 'totalStaff' ? 'staffOnDuty' : 'feedbackNew');
+            const cardEl = document.getElementById(cardId);
+
+            if (numberEl) {
+                numberEl.textContent = number;
+                numberEl.style.color = 'var(--text-muted)';
+            }
+
+            if (trendEl) {
+                trendEl.textContent = trendText;
+                trendEl.style.color = 'var(--text-muted)';
+            }
+
+            if (cardEl) {
+                cardEl.classList.add('empty-state');
+            }
+
+            const progressId = numberId === 'totalBuses' ? 'totalBusesProgress' :
+                numberId === 'activeBuses' ? 'activeBusesProgress' :
+                    numberId === 'totalStaff' ? 'staffProgress' : 'feedbackProgress';
+            const progressEl = document.getElementById(progressId);
+            if (progressEl) {
+                progressEl.style.width = '0%';
+                progressEl.style.background = 'linear-gradient(90deg, #cbd5e1 0%, #94a3b8 100%)';
+                progressEl.style.opacity = '0.3';
+            }
+        }
+
+        function setNormalState(numberId, cardId, number, trendText, trendColor) {
+            const numberEl = document.getElementById(numberId);
+            const trendEl = document.getElementById(numberId === 'totalBuses' ? 'totalBusesTrend' :
+                numberId === 'activeBuses' ? 'gpsLiveCount' :
+                    numberId === 'totalStaff' ? 'staffOnDuty' : 'feedbackNew');
+            const cardEl = document.getElementById(cardId);
+
+            if (numberEl) {
+                numberEl.textContent = number;
+                numberEl.style.color = 'var(--text-primary)';
+            }
+
+            if (trendEl) {
+                trendEl.textContent = trendText;
+                trendEl.style.color = trendColor || 'var(--text-secondary)';
+            }
+
+            if (cardEl) {
+                cardEl.classList.remove('empty-state');
+            }
+        }
+
+        // ==========================================
+        // MAP INITIALIZATION
+        // ==========================================
+
+        function initMap() {
+            if (isMapInitialized) return;
+
+            mapInstance = L.map('dashboardMap', {
+                center: DEFAULT_CENTER,
+                zoom: DEFAULT_ZOOM,
+                minZoom: 12
+            }).setView(DEFAULT_CENTER, DEFAULT_ZOOM);
+
+            L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                attribution: '© OpenStreetMap contributors',
+                maxZoom: 19
+            }).addTo(mapInstance);
+
+            isMapInitialized = true;
+        }
+
+        // ==========================================
+        // GPS DATA FETCHING (from child_tracking.html)
+        // ==========================================
+
+        async function fetchGpsDataFromSupabase(busId) {
+            try {
+                const client = getSupabaseClient();
+                if (!client) {
+                    throw new Error('Supabase not initialized');
+                }
+
+                const { data, error } = await client
+                    .from('bus_gps')
+                    .select('bus_id,latitude,longitude,speed,stats,fix,created_at')
+                    .eq('bus_id', busId)
+                    .order('created_at', { ascending: false })
+                    .limit(1)
+                    .maybeSingle();
+
+                if (error) {
+                    console.error('Supabase query error:', error);
+                    return getCachedPosition(busId);
+                }
+
+                if (!data) {
+                    return getCachedPosition(busId);
+                }
+
+                return {
+                    lat: parseFloat(data.latitude),
+                    lng: parseFloat(data.longitude),
+                    speed: parseFloat(data.speed) || 0,
+                    stats: data.stats || 'Unknown',
+                    fix: data.fix !== null ? data.fix : true,
+                    timestamp: data.created_at,
+                    isCloud: true
+                };
+
+            } catch (error) {
+                console.warn(`GPS fetch error for ${busId}:`, error.message);
+                return getCachedPosition(busId);
+            }
+        }
+
+        // ==========================================
+        // GPS REAL-TIME SUBSCRIPTION (from child_tracking.html)
+        // ==========================================
+
+        function subscribeToGpsUpdates() {
+            const client = getSupabaseClient();
+            if (!client) {
+                console.error('❌ Supabase not initialized for GPS subscription');
+                return;
+            }
+
+            try {
+                console.log('🔔 Setting up GPS real-time subscription...');
+
+                gpsRealtimeChannel = client
+                    .channel('dashboard_bus_gps_changes')
+                    .on('postgres_changes',
+                        {
+                            event: 'INSERT',
+                            schema: 'public',
+                            table: 'bus_gps'
+                        },
+                        (payload) => {
+                            console.log('📡 GPS INSERT received:', payload.new);
+                            handleRealtimeGpsUpdate(payload.new);
+                        }
+                    )
+                    .on('postgres_changes',
+                        {
+                            event: 'UPDATE',
+                            schema: 'public',
+                            table: 'bus_gps'
+                        },
+                        (payload) => {
+                            console.log('📡 GPS UPDATE received:', payload.new);
+                            handleRealtimeGpsUpdate(payload.new);
+                        }
+                    )
+                    .subscribe((status, err) => {
+                        console.log('GPS Realtime status:', status);
+                        if (status === 'SUBSCRIBED') {
+                            console.log('✅ GPS real-time subscription active');
+                        } else if (status === 'CHANNEL_ERROR') {
+                            console.error('❌ GPS real-time error:', err);
+                        }
+                    });
+
+            } catch (error) {
+                console.error('Error setting up GPS real-time:', error);
+            }
+        }
+
+        function handleRealtimeGpsUpdate(data) {
+            if (!data || !data.bus_id) {
+                console.warn('⚠️ Invalid GPS data:', data);
+                return;
+            }
+
+            const busId = String(data.bus_id);
+
+            if (data.latitude == null || data.longitude == null) {
+                console.warn(`⚠️ Missing coordinates for bus ${busId}`);
+                return;
+            }
+
+            const gpsData = {
+                lat: parseFloat(data.latitude),
+                lng: parseFloat(data.longitude),
+                speed: parseFloat(data.speed) || 0,
+                stats: data.stats || 'Unknown',
+                fix: data.fix !== null ? data.fix : true,
+                timestamp: data.created_at || new Date().toISOString(),
+                isCloud: true
+            };
+
+            if (isNaN(gpsData.lat) || isNaN(gpsData.lng) ||
+                gpsData.lat < -90 || gpsData.lat > 90 ||
+                gpsData.lng < -180 || gpsData.lng > 180) {
+                console.warn(`⚠️ Invalid coordinates for bus ${busId}:`, gpsData);
+                return;
+            }
+
+            // Update tracking
+            lastGpsUpdate[busId] = new Date();
+            saveCachedGpsData(busId, gpsData);
+
+            // Update marker if it exists
+            if (busMarkers[busId]) {
+                const hoursSince = getHoursSince(gpsData.timestamp);
+                let gpsStatus = 'inactive';
+                if (hoursSince <= 0.5) {
+                    gpsStatus = 'gps-live';
+                } else if (hoursSince <= INACTIVE_THRESHOLD_HOURS) {
+                    gpsStatus = 'last-seen';
+                }
+
+                updateBusMarker(busId, gpsData.lat, gpsData.lng, gpsStatus, gpsData);
+                console.log(`✅ Bus ${busId} GPS updated: ${gpsData.lat.toFixed(6)}, ${gpsData.lng.toFixed(6)}`);
+            }
+
+            // Update GPS stats
+            updateGpsStats();
+        }
+
+        // ==========================================
+        // BUS MARKER MANAGEMENT (Updated for GPS)
+        // ==========================================
+
+        function createBusMarker(busId, lat, lng, gpsStatus, gpsData) {
+            const statusColors = {
+                'gps-live': { bg: 'linear-gradient(135deg, #10b981 0%, #059669 100%)', pulse: 'rgba(16, 185, 129, 0.4)' },
+                'last-seen': { bg: 'linear-gradient(135deg, #3b82f6 0%, #2563eb 100%)', pulse: 'rgba(59, 130, 246, 0.4)' },
+                'inactive': { bg: 'linear-gradient(135deg, #9ca3af 0%, #6b7280 100%)', pulse: 'rgba(156, 163, 175, 0.4)' }
+            };
+
+            const colors = statusColors[gpsStatus] || statusColors['inactive'];
+
+            const busIconHtml = `
+        <div class="custom-bus-marker">
+            <div class="bus-marker-pulse" style="background: ${colors.pulse}"></div>
+            <div class="bus-marker-pulse" style="background: ${colors.pulse}; animation-delay: 0.5s"></div>
+            <div class="bus-marker-pulse" style="background: ${colors.pulse}; animation-delay: 1s"></div>
+            <div class="bus-marker-inner ${gpsStatus}" style="background: ${colors.bg}">
+                <i class="fas fa-bus"></i>
+            </div>
+        </div>
+    `;
+
+            const busIcon = L.divIcon({
+                className: 'custom-bus-icon',
+                html: busIconHtml,
+                iconSize: [40, 40],
+                iconAnchor: [20, 20],
+                popupAnchor: [0, -20]
+            });
+
+            const marker = L.marker([lat, lng], {
+                icon: busIcon,
+                title: `${busId} - ${gpsStatus}`
+            }).addTo(mapInstance);
+
+            // Store GPS data on marker
+            marker.gpsData = gpsData;
+            marker.gpsStatus = gpsStatus;
+            marker.busId = busId;
+
+            // Add popup with custom class
+            marker.bindPopup(createBusPopup(busId, gpsStatus, gpsData), {
+                closeButton: false,
+                className: 'custom-popup',
+                offset: [0, -10]
+            });
+
+            // Click event
+            marker.on('click', function () {
+                highlightBusInTable(busId);
+            });
+
+            return marker;
+        }
+
+        function updateBusMarker(busId, lat, lng, gpsStatus, gpsData) {
+            const marker = busMarkers[busId];
+            if (!marker) return;
+
+            marker.setLatLng([lat, lng]);
+
+            const statusColors = {
+                'gps-live': { bg: 'linear-gradient(135deg, #10b981 0%, #059669 100%)', pulse: 'rgba(16, 185, 129, 0.4)' },
+                'last-seen': { bg: 'linear-gradient(135deg, #3b82f6 0%, #2563eb 100%)', pulse: 'rgba(59, 130, 246, 0.4)' },
+                'inactive': { bg: 'linear-gradient(135deg, #9ca3af 0%, #6b7280 100%)', pulse: 'rgba(156, 163, 175, 0.4)' }
+            };
+
+            const colors = statusColors[gpsStatus] || statusColors['inactive'];
+
+            const newIconHtml = `
+        <div class="custom-bus-marker">
+            <div class="bus-marker-pulse" style="background: ${colors.pulse}"></div>
+            <div class="bus-marker-pulse" style="background: ${colors.pulse}; animation-delay: 0.5s"></div>
+            <div class="bus-marker-pulse" style="background: ${colors.pulse}; animation-delay: 1s"></div>
+            <div class="bus-marker-inner ${gpsStatus}" style="background: ${colors.bg}">
+                <i class="fas fa-bus"></i>
+            </div>
+        </div>
+    `;
+
+            const newIcon = L.divIcon({
+                className: 'custom-bus-icon',
+                html: newIconHtml,
+                iconSize: [40, 40],
+                iconAnchor: [20, 20],
+                popupAnchor: [0, -20]
+            });
+
+            marker.setIcon(newIcon);
+            marker.setPopupContent(createBusPopup(busId, gpsStatus, gpsData));
+            marker.gpsData = gpsData;
+            marker.gpsStatus = gpsStatus;
+        }
+
+        // ==========================================
+        // MODERN POPUP CREATION - From child_tracking.html
+        // ==========================================
+
+        function createBusPopup(busId, gpsStatus, gpsData) {
+            const hoursSince = gpsData ? getHoursSince(gpsData.timestamp) : Infinity;
+
+            // Determine status configuration
+            let statusClass, statusText, statusIcon;
+            if (hoursSince <= 0.5) {
+                statusClass = 'live';
+                statusText = 'Live';
+                statusIcon = 'fa-bolt';
+            } else if (hoursSince <= INACTIVE_THRESHOLD_HOURS) {
+                statusClass = 'recent';
+                statusText = 'Recent';
+                statusIcon = 'fa-history';
+            } else {
+                statusClass = 'inactive';
+                statusText = 'Inactive';
+                statusIcon = 'fa-moon';
+            }
+
+            const lastUpdateText = gpsData ? formatLastUpdate(gpsData.timestamp) : 'Unknown';
+            const hoursText = hoursSince !== Infinity ? `(${hoursSince.toFixed(1)}h ago)` : '';
+
+            // Get bus data from table data if available
+            const busInfo = allBusData.find(b => b.bus_id === busId) || {};
+            const driver = busInfo.driver || 'Unknown Driver';
+            const route = busInfo.route || 'Unknown Route';
+
+            return `
+                <div class="bus-popup">
+                    <button class="popup-close-btn" onclick="window.closeBusPopup('${busId}')" title="Close">
+                        <i class="fas fa-times"></i>
+                    </button>
+                    
+                    <div class="popup-header ${statusClass}">
+                        <div class="popup-bus-info">
+                            <div class="popup-bus-icon">
+                                <i class="fas fa-bus"></i>
+                            </div>
+                            <div class="popup-bus-title">
+                                <div class="popup-bus-id">${busId}</div>
+                                <div class="popup-bus-route">${route}</div>
+                            </div>
+                        </div>
+                        <div class="popup-status-badge">${statusText}</div>
+                    </div>
+                    
+                    <div class="popup-body">
+                        <div class="popup-info-row">
+                            <div class="popup-info-icon">
+                                <i class="fas fa-user"></i>
+                            </div>
+                            <div class="popup-info-content">
+                                <div class="popup-info-label">Driver</div>
+                                <div class="popup-info-value">${driver}</div>
+                            </div>
+                        </div>
+
+                        <div class="popup-info-row">
+                            <div class="popup-info-icon">
+                                <i class="fas fa-tachometer-alt"></i>
+                            </div>
+                            <div class="popup-info-content">
+                                <div class="popup-info-label">Speed</div>
+                                <div class="popup-info-value">${gpsData && gpsData.speed > 0 ? gpsData.speed.toFixed(1) + ' km/h' : '0 km/h'}</div>
+                            </div>
+                        </div>
+
+                        <div class="popup-coordinates">
+                            <span class="popup-coords-text">${gpsData ? gpsData.lat.toFixed(6) + ', ' + gpsData.lng.toFixed(6) : 'Unknown'}</span>
+                            <button class="popup-coords-copy" onclick="navigator.clipboard.writeText('${gpsData ? gpsData.lat.toFixed(6) + ', ' + gpsData.lng.toFixed(6) : ''}'); this.innerHTML='<i class=\\'fas fa-check\\'></i>'; setTimeout(() => this.innerHTML='<i class=\\'fas fa-copy\\'></i>', 1500)">
+                                <i class="fas fa-copy"></i>
+                            </button>
+                        </div>
+
+                        <div class="popup-footer">
+                            <div class="popup-timestamp">
+                                <i class="fas fa-clock"></i>
+                                <span>${lastUpdateText} ${hoursText}</span>
+                            </div>
+                            <div class="popup-actions">
+                                <button class="popup-btn popup-btn-icon" onclick="window.followBus('${busId}')" title="Follow Bus">
+                                    <i class="fas fa-crosshairs"></i>
+                                </button>
+                                <button class="popup-btn popup-btn-primary" onclick="window.showBusDetails('${busId}')">
+                                    <i class="fas fa-info-circle"></i> Details
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            `;
+        }
+
+        // ==========================================
+        // GLOBAL POPUP FUNCTIONS
+        // ==========================================
+
+        // Global function to close bus popup
+        window.closeBusPopup = function (busId) {
+            const marker = busMarkers[busId];
+            if (marker) {
+                marker.closePopup();
+            }
+        };
+
+        // Global function to follow bus
+        window.followBus = function (busId) {
+            window.followedBusId = busId;
+            const marker = busMarkers[busId];
+            if (marker && mapInstance) {
+                const latLng = marker.getLatLng();
+                mapInstance.flyTo([latLng.lat, latLng.lng], 18, {
+                    duration: 1.5
+                });
+            }
+            Object.values(busMarkers).forEach(m => m.closePopup());
+        };
+
+        // Global function to show bus details
+        window.showBusDetails = function (busId) {
+            const bus = allBusData.find(b => b.bus_id === busId);
+            if (bus) {
+                showToast(`Bus ${busId} - Driver: ${bus.driver}`, 'success');
+            }
+            window.closeBusPopup(busId);
+        };
+
+        // ==========================================
+        // MAIN DATA FETCHING (Updated with GPS)
+        // ==========================================
+
+        async function fetchAndUpdateBuses() {
+            try {
+                const client = getSupabaseClient();
+                if (!client || !client.from) {
+                    console.log('Supabase client not ready, skipping update');
+                    return;
+                }
+
+                // Fetch all buses
+                const { data: buses, error: busError } = await client
+                    .from('bus')
+                    .select('*')
+                    .order('bus_id', { ascending: true });
+
+                if (busError) {
+                    console.error('Error fetching bus data:', busError);
+                    if (busError.code === '42501' || busError.message.includes('row-level security')) {
+                        showAuthError();
+                    }
+                    return;
+                }
+
+                if (!buses) {
+                    showNoBusesOnMap();
+                    updateStatsWithEmptyState();
+                    return;
+                }
+
+                console.log('Fetched', buses.length, 'buses, updating GPS positions...');
+
+                // Fetch GPS data for each bus
+                const busesWithGps = await Promise.all(buses.map(async (bus) => {
+                    const gpsData = await fetchGpsDataFromSupabase(bus.bus_id);
+
+                    if (gpsData) {
+                        lastGpsUpdate[bus.bus_id] = new Date();
+                        return {
+                            ...bus,
+                            gpsLat: gpsData.lat,
+                            gpsLng: gpsData.lng,
+                            gpsData: gpsData,
+                            hasGps: true
+                        };
+                    } else {
+                        // No GPS data - use default position
+                        return {
+                            ...bus,
+                            gpsLat: DEFAULT_CENTER[0] + (Math.random() - 0.5) * 0.01,
+                            gpsLng: DEFAULT_CENTER[1] + (Math.random() - 0.5) * 0.01,
+                            gpsData: null,
+                            hasGps: false
+                        };
+                    }
+                }));
+
+                // Update markers
+                updateBusMarkersOnMap(busesWithGps);
+
+                // Sync table
+                syncTableWithMap(busesWithGps);
+
+                // Update GPS stats
+                updateGpsStats();
+
+            } catch (error) {
+                console.error('Real-time update error:', error);
+            }
+        }
+
+        function updateBusMarkersOnMap(buses) {
+            // Hide empty state overlay if it exists
+            const emptyOverlay = document.getElementById('mapEmptyState');
+            if (emptyOverlay) {
+                emptyOverlay.style.display = 'none';
+            }
+
+            const currentIds = new Set(buses.map(b => b.bus_id));
+
+            // Remove markers for buses that no longer exist
+            Object.keys(busMarkers).forEach(id => {
+                if (!currentIds.has(id)) {
+                    mapInstance.removeLayer(busMarkers[id]);
+                    delete busMarkers[id];
+                }
+            });
+
+            // Update or create markers
+            buses.forEach((bus) => {
+                const busId = bus.bus_id;
+                const hasGps = bus.hasGps && bus.gpsData;
+
+                let gpsStatus = 'inactive';
+                let lat = bus.gpsLat || DEFAULT_CENTER[0];
+                let lng = bus.gpsLng || DEFAULT_CENTER[1];
+
+                if (hasGps && bus.gpsData) {
+                    const hoursSince = getHoursSince(bus.gpsData.timestamp);
+                    if (hoursSince <= 0.5) {
+                        gpsStatus = 'gps-live';
+                    } else if (hoursSince <= INACTIVE_THRESHOLD_HOURS) {
+                        gpsStatus = 'last-seen';
+                    }
+                    lat = bus.gpsData.lat;
+                    lng = bus.gpsData.lng;
+                }
+
+                if (busMarkers[busId]) {
+                    // Update existing marker
+                    updateBusMarker(busId, lat, lng, gpsStatus, bus.gpsData);
+                } else {
+                    // Create new marker
+                    busMarkers[busId] = createBusMarker(busId, lat, lng, gpsStatus, bus.gpsData);
+                }
+            });
+        }
+
+        function updateGpsStats() {
+            const buses = Object.values(busMarkers);
+            let liveCount = 0;
+            let recentCount = 0;
+            let inactiveCount = 0;
+
+            buses.forEach(marker => {
+                if (marker.gpsStatus === 'gps-live') {
+                    liveCount++;
+                } else if (marker.gpsStatus === 'last-seen') {
+                    recentCount++;
+                } else {
+                    inactiveCount++;
+                }
+            });
+
+            const totalWithGps = liveCount + recentCount;
+            dashboardStats.gpsLiveBuses = liveCount;
+
+            // Update the Active Buses stat card to show GPS status
+            const activeBusesEl = document.getElementById('activeBuses');
+            const gpsLiveCountEl = document.getElementById('gpsLiveCount');
+            const activeBusesProgressEl = document.getElementById('activeBusesProgress');
+            const activeBusesPercentEl = document.getElementById('activeBusesPercent');
+
+            if (activeBusesEl) {
+                activeBusesEl.textContent = totalWithGps;
+            }
+
+            if (gpsLiveCountEl) {
+                if (liveCount > 0) {
+                    gpsLiveCountEl.innerHTML = `<i class="fas fa-bolt" style="color: #f59e0b;"></i> ${liveCount} Live, ${recentCount} Recent`;
+                    gpsLiveCountEl.style.color = '#10b981';
+                } else if (recentCount > 0) {
+                    gpsLiveCountEl.textContent = `${recentCount} Recent GPS`;
+                    gpsLiveCountEl.style.color = '#3b82f6';
+                } else {
+                    gpsLiveCountEl.textContent = 'No GPS data';
+                    gpsLiveCountEl.style.color = 'var(--text-muted)';
+                }
+            }
+
+            if (activeBusesProgressEl && buses.length > 0) {
+                const percent = Math.round((totalWithGps / buses.length) * 100);
+                activeBusesProgressEl.style.width = percent + '%';
+            }
+
+            if (activeBusesPercentEl) {
+                const percent = buses.length > 0 ? Math.round((totalWithGps / buses.length) * 100) : 0;
+                activeBusesPercentEl.textContent = `${percent}% GPS Active`;
+            }
+        }
+
+        function syncTableWithMap(buses) {
+            allBusData = buses.map(bus => ({
+                bus_id: bus.bus_id,
+                driver: bus.driver || 'Unknown Driver',
+                route: bus.route || 'Unknown Route',
+                status: (bus.status || 'active').toLowerCase(),
+                capacity: bus.capacity || 0,
+                standing: bus.standing || 0,
+                maxium_capacity: bus.maxium_capacity,
+                minimum_fare: bus.minimum_fare || 0,
+                departure: bus.departure,
+                arrival: bus.arrival,
+                frequency: bus.frequency,
+                hasGps: bus.hasGps,
+                gpsStatus: bus.hasGps ? (getHoursSince(bus.gpsData.timestamp) <= 0.5 ? 'live' :
+                    getHoursSince(bus.gpsData.timestamp) <= INACTIVE_THRESHOLD_HOURS ? 'recent' : 'inactive') : 'none'
+            }));
+
+            applyFilter();
+            updateStats();
+        }
+
+        function showNoBusesOnMap() {
+            Object.values(busMarkers).forEach(marker => mapInstance.removeLayer(marker));
+            busMarkers = {};
+
+            const mapContainer = document.getElementById('dashboardMap');
+            let emptyOverlay = document.getElementById('mapEmptyState');
+
+            if (!emptyOverlay) {
+                emptyOverlay = document.createElement('div');
+                emptyOverlay.id = 'mapEmptyState';
+                emptyOverlay.className = 'map-empty-state';
+                emptyOverlay.innerHTML = `
+            <i class="fas fa-bus"></i>
+            <div class="empty-title">No buses available</div>
+            <div class="empty-subtitle">Fleet is currently empty</div>
+        `;
+                emptyOverlay.style.position = 'absolute';
+                emptyOverlay.style.top = '0';
+                emptyOverlay.style.left = '0';
+                emptyOverlay.style.right = '0';
+                emptyOverlay.style.bottom = '0';
+                emptyOverlay.style.zIndex = '400';
+                emptyOverlay.style.display = 'flex';
+                emptyOverlay.style.flexDirection = 'column';
+                emptyOverlay.style.alignItems = 'center';
+                emptyOverlay.style.justifyContent = 'center';
+                emptyOverlay.style.background = 'rgba(248, 250, 252, 0.95)';
+                emptyOverlay.style.color = '#64748b';
+                emptyOverlay.style.fontSize = '1rem';
+                emptyOverlay.style.gap = '0.75rem';
+                mapContainer.appendChild(emptyOverlay);
+            } else {
+                emptyOverlay.style.display = 'flex';
+            }
+
+            mapInstance.setView(DEFAULT_CENTER, DEFAULT_ZOOM);
+        }
+
+        // ==========================================
+        // STATS & UI FUNCTIONS
+        // ==========================================
+
+        async function startRealTimeUpdates() {
+            await fetchAndUpdateBuses();
+            updateInterval = setInterval(fetchAndUpdateBuses, 10000); // 10 second updates
+        }
+
+        async function loadAllStats() {
+            await Promise.all([
+                fetchBusStats(),
+                fetchStaffStats(),
+                fetchFeedbackStats()
+            ]);
+        }
+
+        async function fetchBusStats() {
+            try {
+                const client = getSupabaseClient();
+                if (!client || !client.from) return;
+
+                const { data: busData, error: busError } = await client.from('bus').select('*');
+                if (busError) {
+                    console.error('Error fetching bus data:', busError);
+                    return;
+                }
+
+                const totalBuses = busData ? busData.length : 0;
+                const activeBuses = busData ? busData.filter(b => (b.status || '').toLowerCase() === 'active').length : 0;
+
+                dashboardStats.totalBuses = totalBuses;
+                dashboardStats.activeBuses = activeBuses;
+
+                if (totalBuses === 0) {
+                    setEmptyState('totalBuses', 'statTotalBuses', '0', 'No buses available');
+                    document.getElementById('totalBusesProgress').style.width = '0%';
+                } else {
+                    animateNumber('totalBuses', totalBuses);
+                    setNormalState('totalBuses', 'statTotalBuses', totalBuses, totalBuses + ' in fleet', '#10b981');
+                    const totalProgress = Math.min((totalBuses / 30) * 100, 100);
+                    document.getElementById('totalBusesProgress').style.width = totalProgress + '%';
+                    document.getElementById('totalBusesProgress').style.background = 'linear-gradient(90deg, #242553 0%, #3b82f6 100%)';
+                    document.getElementById('totalBusesProgress').style.opacity = '1';
+                }
+
+            } catch (error) {
+                console.error('Bus stats error:', error);
+            }
+        }
+
+        async function fetchStaffStats() {
+            try {
+                const client = getSupabaseClient();
+                if (!client || !client.from) return;
+
+                const { data: staffData, error: staffError } = await client.from('Staff_Account').select('*');
+                if (staffError) {
+                    console.error('Error fetching staff data:', staffError);
+                    return;
+                }
+
+                const totalStaff = staffData ? staffData.length : 0;
+                const activeStaff = staffData ? staffData.filter(s => {
+                    const status = (s.status || '').toString().trim().toLowerCase();
+                    const isInactive = status === 'inactive' || status === 'disabled' || status === 'terminated' || status === 'off';
+                    return !isInactive;
+                }).length : 0;
+
+                dashboardStats.totalStaff = totalStaff;
+                dashboardStats.activeStaff = activeStaff;
+
+                if (totalStaff === 0) {
+                    setEmptyState('totalStaff', 'statTotalStaff', '0', 'No staff available');
+                    document.getElementById('staffProgress').style.width = '0%';
+                } else {
+                    animateNumber('totalStaff', totalStaff);
+                    setNormalState('totalStaff', 'statTotalStaff', totalStaff, activeStaff + ' active', '#10b981');
+                    const staffPercent = Math.min((totalStaff / 50) * 100, 100);
+                    document.getElementById('staffProgress').style.width = staffPercent + '%';
+                    document.getElementById('staffProgress').style.background = 'linear-gradient(90deg, #242553 0%, #f97316 100%)';
+                    document.getElementById('staffProgress').style.opacity = '1';
+                }
+
+            } catch (error) {
+                console.error('Staff stats error:', error);
+            }
+        }
+
+        async function fetchFeedbackStats() {
+            try {
+                const client = getSupabaseClient();
+                if (!client || !client.from) return;
+
+                const { data: feedbackData, error: feedbackError } = await client.from('Feedback').select('*');
+                if (feedbackError) {
+                    console.error('Error fetching feedback data:', feedbackError);
+                    return;
+                }
+
+                const totalFeedback = feedbackData ? feedbackData.length : 0;
+                const pendingFeedback = feedbackData ? feedbackData.filter(f => {
+                    const status = (f.status || '').toString().toLowerCase();
+                    return status === 'pending' || status === 'unread' || status === 'new';
+                }).length : 0;
+
+                dashboardStats.totalFeedback = totalFeedback;
+                dashboardStats.pendingFeedback = pendingFeedback;
+
+                if (totalFeedback === 0) {
+                    setEmptyState('totalFeedback', 'statFeedback', '0', 'No feedback yet');
+                    document.getElementById('feedbackProgress').style.width = '0%';
+                    document.getElementById('feedbackResponseRate').textContent = '0% Response Rate';
+                    document.getElementById('feedbackResponseRate').style.color = 'var(--text-muted)';
+                } else {
+                    animateNumber('totalFeedback', totalFeedback);
+                    const trendText = pendingFeedback > 0 ? '+' + pendingFeedback + ' pending' : 'All reviewed';
+                    const trendColor = pendingFeedback > 0 ? '#f59e0b' : '#10b981';
+                    setNormalState('totalFeedback', 'statFeedback', totalFeedback, trendText, trendColor);
+
+                    const responseRate = ((totalFeedback - pendingFeedback) / totalFeedback) * 100;
+                    document.getElementById('feedbackProgress').style.width = responseRate + '%';
+                    document.getElementById('feedbackProgress').style.background = 'linear-gradient(90deg, #242553 0%, #8b5cf6 100%)';
+                    document.getElementById('feedbackProgress').style.opacity = '1';
+                    document.getElementById('feedbackResponseRate').textContent = Math.round(responseRate) + '% Response Rate';
+                    document.getElementById('feedbackResponseRate').style.color = 'var(--text-secondary)';
+                }
+
+            } catch (error) {
+                console.error('Feedback stats error:', error);
+            }
+        }
+
+        function animateNumber(elementId, targetValue) {
+            const element = document.getElementById(elementId);
+            const startValue = parseInt(element.textContent) || 0;
+            const duration = 800;
+            const startTime = performance.now();
+
+            function update(currentTime) {
+                const elapsed = currentTime - startTime;
+                const progress = Math.min(elapsed / duration, 1);
+                const easeOut = 1 - Math.pow(1 - progress, 3);
+                const current = Math.round(startValue + (targetValue - startValue) * easeOut);
+
+                element.textContent = current;
+                if (progress < 1) requestAnimationFrame(update);
+            }
+
+            requestAnimationFrame(update);
+        }
+
+        function updateStats() {
+            const totalBuses = allBusData.length;
+            const activeBuses = allBusData.filter(b => b.status === 'active').length;
+
+            dashboardStats.totalBuses = totalBuses;
+            dashboardStats.activeBuses = activeBuses;
+
+            if (totalBuses === 0) {
+                updateStatsWithEmptyState();
+                return;
+            }
+
+            animateNumber('totalBuses', totalBuses);
+            setNormalState('totalBuses', 'statTotalBuses', totalBuses, totalBuses + ' in fleet', '#10b981');
+            const totalProgress = Math.min((totalBuses / 30) * 100, 100);
+            document.getElementById('totalBusesProgress').style.width = totalProgress + '%';
+
+            updatePaginationText();
+        }
+
+        function updateStatsWithEmptyState() {
+            setEmptyState('totalBuses', 'statTotalBuses', '0', 'No buses available');
+            document.getElementById('totalBusesProgress').style.width = '0%';
+
+            setEmptyState('activeBuses', 'statActiveBuses', '0', '0% Active');
+            document.getElementById('activeBusesProgress').style.width = '0%';
+
+            if (dashboardStats.totalStaff === 0) {
+                setEmptyState('totalStaff', 'statTotalStaff', '0', 'No staff available');
+                document.getElementById('staffProgress').style.width = '0%';
+            }
+
+            if (dashboardStats.totalFeedback === 0) {
+                setEmptyState('totalFeedback', 'statFeedback', '0', 'No feedback yet');
+                document.getElementById('feedbackProgress').style.width = '0%';
+                document.getElementById('feedbackResponseRate').textContent = '0% Response Rate';
+                document.getElementById('feedbackResponseRate').style.color = 'var(--text-muted)';
+            }
+
+            const tbody = document.getElementById('recentActivityTable');
+            tbody.innerHTML = `
+        <tr class="empty-state">
+            <td colspan="7">
+                <div class="no-data-state">
+                    <i class="fas fa-bus"></i>
+                    <div class="no-data-title">No buses available</div>
+                    <div class="no-data-subtitle">There are currently no buses to display in the fleet</div>
+                </div>
+            </td>
+        </tr>
+    `;
+
+            updatePaginationText();
+        }
+
+        // ==========================================
+        // TABLE FUNCTIONS
+        // ==========================================
+
+        let allBusData = [];
+        let filteredBusData = [];
+        let currentPage = 1;
+        const itemsPerPage = 5;
+        let currentFilter = 'all';
+
+        function renderTable() {
+            const tbody = document.getElementById('recentActivityTable');
+
+            if (filteredBusData.length === 0) {
+                tbody.innerHTML = `
+            <tr class="empty-state">
+                <td colspan="7">
+                    <div class="no-data-state">
+                        <i class="fas fa-bus"></i>
+                        <div class="no-data-title">No buses available</div>
+                        <div class="no-data-subtitle">There are currently no buses to display in the fleet</div>
+                    </div>
+                </td>
+            </tr>
+        `;
+                updatePaginationText();
+                return;
+            }
+
+            const startIndex = (currentPage - 1) * itemsPerPage;
+            const endIndex = startIndex + itemsPerPage;
+            const pageData = filteredBusData.slice(startIndex, endIndex);
+
+            tbody.innerHTML = pageData.map(bus => {
+                const nameParts = bus.driver.split(' ');
+                const driverInitials = nameParts.length > 1
+                    ? (nameParts[0][0] + nameParts[nameParts.length - 1][0]).toUpperCase()
+                    : bus.driver.substring(0, 2).toUpperCase();
+                const capacityDisplay = bus.maxium_capacity
+                    ? `${bus.capacity || 0} + ${bus.standing || 0} standing`
+                    : `${bus.capacity || 0} seats`;
+                const scheduleDisplay = bus.departure && bus.arrival
+                    ? `${formatTime(bus.departure)} - ${formatTime(bus.arrival)}`
+                    : 'Not scheduled';
+
+                // Add GPS indicator to bus ID cell
+                let gpsIndicator = '';
+                if (bus.gpsStatus === 'live') {
+                    gpsIndicator = '<span class="gps-status-indicator live" style="margin-left: 6px;"><i class="fas fa-bolt"></i></span>';
+                } else if (bus.gpsStatus === 'recent') {
+                    gpsIndicator = '<span class="gps-status-indicator last-seen" style="margin-left: 6px;"><i class="fas fa-history"></i></span>';
+                } else if (bus.gpsStatus === 'inactive') {
+                    gpsIndicator = '<span class="gps-status-indicator inactive" style="margin-left: 6px;"><i class="fas fa-moon"></i></span>';
+                }
+
+                return `
+            <tr>
+                <td>
+                    <div class="bus-id-cell">
+                        <div class="bus-icon"><i class="fas fa-bus"></i></div>
+                        <span>${bus.bus_id}</span>
+                        ${gpsIndicator}
+                    </div>
+                </td>
+                <td>
+                    <div class="driver-cell">
+                        <div class="driver-avatar" style="background: linear-gradient(135deg, #242553 0%, #3b82f6 100%); display: flex; align-items: center; justify-content: center; color: white; font-size: 10px; font-weight: 600;">
+                            ${driverInitials}
+                        </div>
+                        <span>${bus.driver}</span>
+                    </div>
+                </td>
+                <td>
+                    <div class="route-cell">
+                        <i class="fas fa-route"></i>
+                        <span>${bus.route}</span>
+                    </div>
+                </td>
+                <td>
+                    <div class="capacity-cell">
+                        <i class="fas fa-users" style="color: #64748b; margin-right: 4px;"></i>
+                        <span>${capacityDisplay}</span>
+                    </div>
+                </td>
+                <td>
+                    <div class="fare-cell">
+                        <span style="font-weight: 600; color: #059669;">₱${bus.minimum_fare || '0'}</span>
+                    </div>
+                </td>
+                <td>
+                    <div class="schedule-cell" style="font-size: 0.75rem; color: #64748b;">
+                        <i class="fas fa-clock" style="margin-right: 4px; color: #3b82f6;"></i>
+                        ${scheduleDisplay}
+                    </div>
+                </td>
+                <td>${getStatusBadge(bus.status)}</td>
+            </tr>
+        `;
+            }).join('');
+
+            updatePagination();
+        }
+
+        function formatTime(timeString) {
+            if (!timeString) return '--:--';
+            const [hours, minutes] = timeString.split(':');
+            const hour = parseInt(hours);
+            const ampm = hour >= 12 ? 'PM' : 'AM';
+            const displayHour = hour % 12 || 12;
+            return `${displayHour}:${minutes} ${ampm}`;
+        }
+
+        function getStatusBadge(status) {
+            const statusConfig = {
+                active: { icon: 'fa-circle', class: 'active', text: 'Active' },
+                maintenance: { icon: 'fa-wrench', class: 'maintenance', text: 'Maintenance' },
+                idle: { icon: 'fa-pause', class: 'idle', text: 'Idle' }
+            };
+
+            const config = statusConfig[status] || statusConfig.idle;
+            return `<span class="status-badge ${config.class}"><i class="fas ${config.icon}" style="font-size: 6px;"></i> ${config.text}</span>`;
+        }
+
+        function applyFilter() {
+            if (currentFilter === 'all') {
+                filteredBusData = [...allBusData];
+            } else {
+                filteredBusData = allBusData.filter(bus => bus.status === currentFilter);
+            }
+
+            const searchTerm = document.getElementById('searchBuses').value.toLowerCase();
+            if (searchTerm) {
+                filteredBusData = filteredBusData.filter(bus =>
+                    bus.bus_id.toLowerCase().includes(searchTerm) ||
+                    bus.driver.toLowerCase().includes(searchTerm) ||
+                    bus.route.toLowerCase().includes(searchTerm)
+                );
+            }
+
+            currentPage = 1;
+            renderTable();
+        }
+
+        function updatePagination() {
+            const totalPages = Math.ceil(filteredBusData.length / itemsPerPage) || 1;
+
+            document.getElementById('pageNumbers').textContent = currentPage + ' of ' + totalPages;
+
+            if (filteredBusData.length === 0) {
+                document.getElementById('showingText').textContent = '0 buses available';
+            } else {
+                const startItem = (currentPage - 1) * itemsPerPage + 1;
+                const endItem = Math.min(currentPage * itemsPerPage, filteredBusData.length);
+                document.getElementById('showingText').textContent = `Showing ${startItem}-${endItem} of ${filteredBusData.length} buses`;
+            }
+
+            document.getElementById('prevPage').disabled = currentPage === 1 || filteredBusData.length === 0;
+            document.getElementById('nextPage').disabled = currentPage >= totalPages || filteredBusData.length === 0;
+            document.getElementById('prevPage').style.opacity = (currentPage === 1 || filteredBusData.length === 0) ? '0.5' : '1';
+            document.getElementById('nextPage').style.opacity = (currentPage >= totalPages || filteredBusData.length === 0) ? '0.5' : '1';
+        }
+
+        function updatePaginationText() {
+            updatePagination();
+        }
+
+        function highlightBusInTable(busId) {
+            document.querySelectorAll('#recentActivityTable tr').forEach(row => {
+                row.style.background = '';
+                row.style.boxShadow = '';
+            });
+
+            const rows = document.querySelectorAll('#recentActivityTable tr');
+            rows.forEach(row => {
+                const rowBusId = row.querySelector('.bus-id-cell span')?.textContent;
+                if (rowBusId === busId) {
+                    row.style.background = 'rgba(59, 130, 246, 0.1)';
+                    row.style.boxShadow = '0 0 0 2px #3b82f6';
+                    row.scrollIntoView({ behavior: 'smooth', block: 'center' });
+
+                    setTimeout(() => {
+                        row.style.background = '';
+                        row.style.boxShadow = '';
+                    }, 3000);
+                }
+            });
+        }
+
+        // ==========================================
+        // EVENT LISTENERS SETUP
+        // ==========================================
+
+        function setupFilters() {
+            const filterBtns = document.querySelectorAll('.filter-btn');
+            filterBtns.forEach(btn => {
+                btn.addEventListener('click', () => {
+                    filterBtns.forEach(b => b.classList.remove('active'));
+                    btn.classList.add('active');
+                    currentFilter = btn.dataset.filter;
+                    applyFilter();
+                });
+            });
+        }
+
+        function setupSearch() {
+            document.getElementById('searchBuses').addEventListener('input', () => {
+                applyFilter();
+            });
+        }
+
+        function setupPagination() {
+            const prevBtn = document.getElementById('prevPage');
+            const nextBtn = document.getElementById('nextPage');
+
+            prevBtn.addEventListener('click', () => {
+                if (currentPage > 1) {
+                    currentPage--;
+                    renderTable();
+                }
+            });
+
+            nextBtn.addEventListener('click', () => {
+                const totalPages = Math.ceil(filteredBusData.length / itemsPerPage) || 1;
+                if (currentPage < totalPages) {
+                    currentPage++;
+                    renderTable();
+                }
+            });
+        }
+
+        // ==========================================
+        // TOAST NOTIFICATION
+        // ==========================================
+
+        function showToast(message, type = 'success') {
+            let toast = document.getElementById('childToast');
+            if (!toast) {
+                toast = document.createElement('div');
+                toast.id = 'childToast';
+                toast.style.cssText = `
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            padding: 1rem 1.5rem;
+            background: ${type === 'error' ? '#ef4444' : '#10b981'};
+            color: white;
+            border-radius: 0.5rem;
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+            z-index: 9999;
+            opacity: 0;
+            transform: translateY(20px);
+            transition: all 0.3s ease;
+            font-family: 'Inter', sans-serif;
+            font-size: 0.875rem;
+            font-weight: 500;
+        `;
+                document.body.appendChild(toast);
+            }
+
+            toast.textContent = message;
+            toast.style.background = type === 'error' ? '#ef4444' : '#10b981';
+            toast.style.opacity = '1';
+            toast.style.transform = 'translateY(0)';
+
+            setTimeout(() => {
+                toast.style.opacity = '0';
+                toast.style.transform = 'translateY(20px)';
+            }, 3000);
+        }
+
+        // ==========================================
+        // DOM READY & INITIALIZATION
+        // ==========================================
+
+        document.addEventListener('DOMContentLoaded', async function () {
+            console.log('Dashboard initializing with GPS integration...');
+
+            // Initialize map first
+            initMap();
+
+            // Initialize empty state
+            updateStatsWithEmptyState();
+
+            const user = checkLocalAuth();
+            if (!user) {
+                console.error('Not authenticated - showing error state');
+                showAuthError();
+                return;
+            }
+
+            // Wait for Supabase
+            const supabaseReady = await waitForSupabase();
+            if (!supabaseReady) {
+                console.error('Supabase not available - data will not load');
+                showAuthError();
+                return;
+            }
+
+            console.log('Dashboard ready - loading data with GPS tracking...');
+
+            // Start real-time updates (includes GPS subscription)
+            startRealTimeUpdates();
+
+            // Setup GPS real-time subscription
+            subscribeToGpsUpdates();
+
+            await loadAllStats();
+
+            // Setup UI
+            setupFilters();
+            setupSearch();
+            setupPagination();
+
+            // Animate stats
+            const statNumbers = document.querySelectorAll('.stat-content h3');
+            statNumbers.forEach((stat, index) => {
+                stat.classList.add('stat-number-animate');
+                stat.style.animationDelay = (index * 0.1) + 's';
+            });
+
+            // Refresh button
+            document.getElementById('refreshTable').addEventListener('click', async function () {
+                const icon = this.querySelector('i');
+                icon.classList.add('fa-spin');
+                await fetchAndUpdateBuses();
+                await loadAllStats();
+                setTimeout(() => icon.classList.remove('fa-spin'), 500);
+            });
+
+            // Expand map button
+            document.getElementById('expandMap').addEventListener('click', () => {
+                window.parent.location.href = 'dashboard.html#live-tracking';
+            });
+        });
+
+        // Cleanup on unload
+        window.addEventListener('beforeunload', () => {
+            if (updateInterval) clearInterval(updateInterval);
+            if (gpsRealtimeChannel) {
+                const client = getSupabaseClient();
+                if (client) client.removeChannel(gpsRealtimeChannel);
+            }
+        });
+
+        // ==========================================
+        // CHILD PAGE ROLE INTEGRATION
+        // ==========================================
+
+        let currentRole = null;
+        let canModify = false;
+        let isReadOnly = false;
+
+        window.addEventListener('message', (event) => {
+            if (event.data.type === 'roleInfo') {
+                currentRole = event.data.role;
+                canModify = event.data.canModify;
+                isReadOnly = event.data.isReadOnly;
+
+                console.log('Role info received:', currentRole, 'Can modify:', canModify, 'Read only:', isReadOnly);
+
+                applyRoleBasedUI();
+            }
+        });
+
+        window.addEventListener('DOMContentLoaded', () => {
+            window.parent.postMessage({
+                type: 'requestRoleInfo',
+                page: getPageName()
+            }, '*');
+
+            const urlParams = new URLSearchParams(window.location.search);
+            if (urlParams.get('readonly') === 'true') {
+                isReadOnly = true;
+                applyRoleBasedUI();
+            }
+            if (urlParams.get('canmodify') === 'false') {
+                canModify = false;
+                applyRoleBasedUI();
+            }
+            const roleParam = urlParams.get('role');
+            if (roleParam) {
+                currentRole = roleParam;
+            }
+        });
+
+        function getPageName() {
+            const path = window.location.pathname;
+            const filename = path.split('/').pop().replace('child_', '').replace('.html', '');
+
+            const mapping = {
+                'dashboard': 'dashboard',
+                'tracking': 'live-tracking',
+                'analytics': 'analytics',
+                'feedback': 'feedback',
+                'bus_information': 'bus-info',
+                'bus_schedule': 'schedule',
+                'load': 'load',
+                'account_management': 'accounts',
+                'finance': 'finance'
+            };
+
+            return mapping[filename] || filename;
+        }
+
+        function applyRoleBasedUI() {
+            console.log('Applying UI for role:', currentRole, 'canModify:', canModify, 'isReadOnly:', isReadOnly);
+
+            const addButtons = document.querySelectorAll('.btn-add, #addAccountBtnHeader, #addPassengerBtn, .add-btn, .btn-primary');
+            addButtons.forEach(btn => {
+                if (btn.textContent.toLowerCase().includes('add') ||
+                    btn.textContent.toLowerCase().includes('create') ||
+                    btn.textContent.toLowerCase().includes('new')) {
+                    btn.style.display = canModify ? 'inline-flex' : 'none';
+                }
+            });
+
+            const editButtons = document.querySelectorAll('.btn-edit, .edit-btn, .btn-icon.edit');
+            editButtons.forEach(btn => {
+                if (isReadOnly || !canModify) {
+                    btn.disabled = true;
+                    btn.style.opacity = '0.5';
+                    btn.style.cursor = 'not-allowed';
+                    btn.title = 'View only - editing not permitted';
+                    btn.onclick = (e) => {
+                        e.preventDefault();
+                        e.stopPropagation();
+                        showToast('You do not have permission to edit', 'error');
+                        return false;
+                    };
+                }
+            });
+
+            if (isReadOnly || !canModify) {
+                const deleteButtons = document.querySelectorAll('.btn-delete, .delete-btn, .btn-icon.delete, .btn-danger');
+                deleteButtons.forEach(btn => {
+                    if (btn.textContent.toLowerCase().includes('delete') ||
+                        btn.classList.contains('delete') ||
+                        btn.getAttribute('onclick')?.includes('delete')) {
+                        btn.style.display = 'none';
+                    }
+                });
+            }
+
+            if (isReadOnly) {
+                const forms = document.querySelectorAll('form');
+                forms.forEach(form => {
+                    if (form.closest('.modal') && !form.closest('.modal').querySelector('.btn-primary')) {
+                        return;
+                    }
+
+                    const inputs = form.querySelectorAll('input, select, textarea');
+                    inputs.forEach(input => {
+                        if (input.type !== 'hidden') {
+                            input.disabled = true;
+                            input.style.backgroundColor = '#f1f5f9';
+                        }
+                    });
+
+                    const submitBtns = form.querySelectorAll('button[type="submit"], .btn-primary');
+                    submitBtns.forEach(btn => {
+                        btn.disabled = true;
+                        btn.style.opacity = '0.5';
+                        btn.style.cursor = 'not-allowed';
+                    });
+                });
+            }
+        }
+
+        (function notifyParent() {
+            const filename = window.location.pathname.split('/').pop();
+            const pageMap = {
+                'child_dashboard.html': 'dashboard',
+                'child_tracking.html': 'live-tracking',
+                'child_analytics.html': 'analytics',
+                'child_feedback.html': 'feedback',
+                'child_bus_information.html': 'bus-info',
+                'child_bus_schedule.html': 'schedule',
+                'child_load.html': 'load',
+                'child_top_up_reference.html': 'top-up-reference',
+                'child_account_management.html': 'accounts',
+                'child_finance.html': 'finance',
+                'child_settings.html': 'settings',
+                'child_developer_logs.html': 'developer-logs'
+            };
+
+            const pageName = pageMap[filename];
+            if (pageName && window.parent !== window) {
+                window.parent.postMessage({
+                    type: 'pageLoaded',
+                    page: pageName
+                }, '*');
+            }
+        })();
+    </script>
+</body>
+
+</html>

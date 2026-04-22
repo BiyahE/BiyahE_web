@@ -1,0 +1,2017 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>BIYAHE - Customer Feedback</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+
+    <style>
+        :root {
+            --primary: #242553;
+            --primary-light: #3b3d7a;
+            --primary-lighter: #e8e8f0;
+            --accent: #6366f1;
+            --accent-soft: rgba(99, 102, 241, 0.08);
+            --bg-page: #fafafa;
+            --bg-card: #ffffff;
+            --bg-hover: #f8f9fc;
+            --text-primary: #1e293b;
+            --text-secondary: #64748b;
+            --text-muted: #94a3b8;
+            --border: #e2e8f0;
+            --border-light: #f1f5f9;
+            --success: #10b981;
+            --success-soft: rgba(16, 185, 129, 0.08);
+            --warning: #f59e0b;
+            --warning-soft: rgba(245, 158, 11, 0.08);
+            --star: #fbbf24;
+            --shadow-xs: 0 1px 2px rgba(0, 0, 0, 0.02);
+            --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.04);
+            --shadow-md: 0 4px 12px rgba(0, 0, 0, 0.05);
+            --shadow-lg: 0 8px 24px rgba(0, 0, 0, 0.06);
+            --radius-sm: 8px;
+            --radius-md: 12px;
+            --radius-lg: 16px;
+            --radius-xl: 20px;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        html,
+        body {
+            height: 100%;
+            overflow: hidden;
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+            background: linear-gradient(180deg, #f8fafc 0%, #f1f5f9 100%);
+            color: var(--text-primary);
+            -webkit-font-smoothing: antialiased;
+        }
+
+        .feedback-container {
+            width: 100%;
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+            padding: 1.5rem;
+        }
+
+        .loading-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(8px);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            z-index: 1000;
+            gap: 1rem;
+        }
+
+        .loading-overlay.hidden {
+            display: none;
+        }
+
+        .loading-spinner {
+            width: 36px;
+            height: 36px;
+            border: 2.5px solid var(--border-light);
+            border-top-color: var(--primary);
+            border-radius: 50%;
+            animation: spin 0.8s linear infinite;
+        }
+
+        @keyframes spin {
+            to {
+                transform: rotate(360deg);
+            }
+        }
+
+        .card {
+            background: var(--bg-card);
+            border-radius: var(--radius-lg);
+            border: 1px solid var(--border-light);
+            box-shadow: var(--shadow-md);
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+            flex: 1;
+            transition: box-shadow 0.3s ease;
+            min-height: 0;
+        }
+
+        .card:hover {
+            box-shadow: var(--shadow-lg);
+        }
+
+        .card-header {
+            padding: 1.25rem 1.5rem;
+            border-bottom: 1px solid var(--border-light);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            flex-shrink: 0;
+            background: linear-gradient(135deg, var(--primary) 0%, var(--primary-light) 100%);
+        }
+
+        .card-header-left {
+            display: flex;
+            align-items: center;
+            gap: 0.875rem;
+        }
+
+        .header-icon {
+            width: 40px;
+            height: 40px;
+            background: rgba(255, 255, 255, 0.15);
+            border-radius: var(--radius-md);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 1rem;
+            backdrop-filter: blur(4px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+
+        .card-title {
+            font-size: 1.125rem;
+            font-weight: 600;
+            color: white;
+            margin-bottom: 0.125rem;
+            letter-spacing: -0.01em;
+        }
+
+        .card-subtitle {
+            font-size: 0.8125rem;
+            color: rgba(255, 255, 255, 0.7);
+            font-weight: 400;
+        }
+
+        .btn-refresh {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 0.5rem 1rem;
+            background: rgba(255, 255, 255, 0.1);
+            color: white;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            border-radius: var(--radius-md);
+            font-size: 0.8125rem;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            backdrop-filter: blur(4px);
+        }
+
+        .btn-refresh:hover {
+            background: rgba(255, 255, 255, 0.2);
+            transform: translateY(-1px);
+        }
+
+        .card-body {
+            padding: 1.5rem;
+            flex: 1;
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+            min-height: 0;
+        }
+
+        .stats-bar {
+            display: flex;
+            gap: 0.75rem;
+            margin-bottom: 1.25rem;
+            flex-shrink: 0;
+            flex-wrap: wrap;
+        }
+
+        .stat-pill {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 0.625rem 1rem;
+            background: white;
+            border: 1px solid var(--border);
+            border-radius: var(--radius-xl);
+            font-size: 0.8125rem;
+            color: var(--text-secondary);
+            font-weight: 500;
+            transition: all 0.2s ease;
+            box-shadow: var(--shadow-xs);
+        }
+
+        .stat-pill:hover {
+            border-color: var(--primary-lighter);
+            transform: translateY(-1px);
+            box-shadow: var(--shadow-sm);
+        }
+
+        .stat-pill i {
+            font-size: 0.875rem;
+        }
+
+        .stat-pill.total i {
+            color: var(--primary);
+        }
+
+        .stat-pill.pending i {
+            color: var(--warning);
+        }
+
+        .stat-pill.replied i {
+            color: var(--success);
+        }
+
+        .stat-pill.rating i {
+            color: var(--star);
+        }
+
+        .stat-pill span {
+            font-weight: 600;
+            color: var(--text-primary);
+            margin-left: 0.25rem;
+        }
+
+        .search-filter-bar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1.25rem;
+            gap: 1rem;
+            flex-shrink: 0;
+        }
+
+        .search-box {
+            position: relative;
+            display: flex;
+            align-items: center;
+            flex: 1;
+            max-width: 400px;
+        }
+
+        .search-box i {
+            position: absolute;
+            left: 1rem;
+            color: var(--text-muted);
+            font-size: 0.875rem;
+        }
+
+        .search-box input {
+            width: 100%;
+            padding: 0.75rem 1rem 0.75rem 2.5rem;
+            border: 1px solid var(--border);
+            border-radius: var(--radius-xl);
+            font-size: 0.875rem;
+            font-family: inherit;
+            background: white;
+            color: var(--text-primary);
+            transition: all 0.2s ease;
+            box-shadow: var(--shadow-xs);
+        }
+
+        .search-box input:focus {
+            outline: none;
+            border-color: var(--primary);
+            box-shadow: 0 0 0 3px var(--accent-soft);
+        }
+
+        .search-box input::placeholder {
+            color: var(--text-muted);
+        }
+
+        .feedback-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(340px, 1fr));
+            grid-auto-rows: min-content;
+            gap: 1rem;
+            overflow-y: auto;
+            flex: 1;
+            -webkit-overflow-scrolling: touch;
+            padding-right: 0.5rem;
+            align-content: start;
+        }
+
+        .feedback-grid::-webkit-scrollbar {
+            width: 6px;
+        }
+
+        .feedback-grid::-webkit-scrollbar-track {
+            background: transparent;
+        }
+
+        .feedback-grid::-webkit-scrollbar-thumb {
+            background: var(--border);
+            border-radius: 3px;
+        }
+
+        .feedback-grid::-webkit-scrollbar-thumb:hover {
+            background: var(--text-muted);
+        }
+
+        .feedback-card {
+            background: white;
+            border: 1px solid var(--border-light);
+            border-radius: var(--radius-md);
+            padding: 1.25rem;
+            transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+            position: relative;
+            overflow: hidden;
+            height: fit-content;
+            min-height: 180px;
+            max-height: 280px;
+        }
+
+        .feedback-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 3px;
+            background: transparent;
+            transition: background 0.3s ease;
+        }
+
+        .feedback-card:hover {
+            transform: translateY(-2px);
+            box-shadow: var(--shadow-md);
+            border-color: var(--border);
+        }
+
+        .feedback-card:hover::before {
+            background: linear-gradient(90deg, var(--primary) 0%, var(--accent) 100%);
+        }
+
+        .feedback-card.pending::before {
+            background: var(--warning);
+        }
+
+        .feedback-card.replied::before {
+            background: var(--success);
+        }
+
+        .feedback-header {
+            display: flex;
+            align-items: flex-start;
+            justify-content: space-between;
+            gap: 0.875rem;
+        }
+
+        .feedback-user {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+        }
+
+        .feedback-avatar {
+            width: 42px;
+            height: 42px;
+            border-radius: 50%;
+            object-fit: cover;
+            border: 2px solid var(--border-light);
+            flex-shrink: 0;
+            background: linear-gradient(135deg, var(--primary) 0%, var(--accent) 100%);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 0.875rem;
+            font-weight: 600;
+            box-shadow: var(--shadow-sm);
+        }
+
+        .feedback-user-info {
+            display: flex;
+            flex-direction: column;
+            gap: 0.125rem;
+        }
+
+        .feedback-name-wrapper {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .feedback-name {
+            font-weight: 600;
+            font-size: 0.9375rem;
+            color: var(--text-primary);
+            letter-spacing: -0.01em;
+        }
+
+        .feedback-time {
+            font-size: 0.75rem;
+            color: var(--text-muted);
+            font-weight: 500;
+        }
+
+        .feedback-rating {
+            display: flex;
+            gap: 0.125rem;
+            color: var(--star);
+            font-size: 0.75rem;
+            background: rgba(251, 191, 36, 0.1);
+            padding: 0.25rem 0.5rem;
+            border-radius: var(--radius-sm);
+        }
+
+        .feedback-body {
+            flex: 1;
+            min-height: 0;
+            overflow: hidden;
+        }
+
+        .feedback-message {
+            font-size: 0.875rem;
+            color: var(--text-secondary);
+            line-height: 1.6;
+            display: -webkit-box;
+            -webkit-line-clamp: 3;
+            line-clamp: 3;
+            -webkit-box-orient: vertical;
+            overflow: hidden;
+        }
+
+        .feedback-footer {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding-top: 0.875rem;
+            border-top: 1px solid var(--border-light);
+            margin-top: auto;
+        }
+
+        .feedback-status {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.375rem;
+            padding: 0.375rem 0.75rem;
+            border-radius: var(--radius-sm);
+            font-size: 0.75rem;
+            font-weight: 600;
+            text-transform: capitalize;
+        }
+
+        .feedback-status.pending {
+            background: var(--warning-soft);
+            color: var(--warning);
+        }
+
+        .feedback-status.replied {
+            background: var(--success-soft);
+            color: var(--success);
+        }
+
+        .feedback-actions {
+            display: flex;
+            gap: 0.375rem;
+        }
+
+        .btn-icon {
+            width: 32px;
+            height: 32px;
+            border: none;
+            background: transparent;
+            color: var(--text-muted);
+            border-radius: var(--radius-sm);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            font-size: 0.875rem;
+        }
+
+        .btn-icon:hover {
+            background: var(--bg-hover);
+            color: var(--primary);
+            transform: scale(1.05);
+        }
+
+        .btn-icon.reply:hover {
+            background: var(--accent-soft);
+            color: var(--accent);
+        }
+
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(15, 23, 42, 0.6);
+            backdrop-filter: blur(4px);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 1000;
+            opacity: 0;
+            visibility: hidden;
+            transition: all 0.3s ease;
+            padding: 1rem;
+        }
+
+        .modal-overlay.active {
+            opacity: 1;
+            visibility: visible;
+        }
+
+        .modal {
+            background: var(--bg-card);
+            border-radius: var(--radius-lg);
+            width: 100%;
+            max-width: 520px;
+            max-height: 85vh;
+            overflow: hidden;
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.15);
+            transform: scale(0.95) translateY(10px);
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            border: 1px solid var(--border);
+        }
+
+        .modal-overlay.active .modal {
+            transform: scale(1) translateY(0);
+        }
+
+        .modal-header {
+            padding: 1.25rem 1.5rem;
+            border-bottom: 1px solid var(--border-light);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            background: linear-gradient(135deg, var(--primary) 0%, var(--primary-light) 100%);
+        }
+
+        .modal-title {
+            font-size: 1.0625rem;
+            font-weight: 600;
+            color: white;
+            letter-spacing: -0.01em;
+        }
+
+        .modal-close {
+            width: 32px;
+            height: 32px;
+            border: none;
+            background: rgba(255, 255, 255, 0.1);
+            color: white;
+            border-radius: var(--radius-md);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            backdrop-filter: blur(4px);
+        }
+
+        .modal-close:hover {
+            background: rgba(255, 255, 255, 0.2);
+            transform: rotate(90deg);
+        }
+
+        .modal-body {
+            padding: 1.5rem;
+            overflow-y: auto;
+            max-height: 55vh;
+        }
+
+        .modal-footer {
+            padding: 1rem 1.5rem;
+            border-top: 1px solid var(--border-light);
+            display: flex;
+            justify-content: flex-end;
+            gap: 0.75rem;
+            background: var(--bg-hover);
+        }
+
+        .btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 0.625rem 1.25rem;
+            border-radius: var(--radius-md);
+            font-weight: 500;
+            font-size: 0.875rem;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            border: none;
+            font-family: inherit;
+            text-decoration: none;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, var(--primary) 0%, var(--primary-light) 100%);
+            color: white;
+            box-shadow: var(--shadow-sm);
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-1px);
+            box-shadow: var(--shadow-md);
+            filter: brightness(1.05);
+        }
+
+        .btn-secondary {
+            background: white;
+            color: var(--text-secondary);
+            border: 1px solid var(--border);
+        }
+
+        .btn-secondary:hover {
+            background: var(--bg-hover);
+            color: var(--text-primary);
+            border-color: var(--primary-lighter);
+        }
+
+        .form-group {
+            margin-bottom: 1.25rem;
+        }
+
+        .form-group:last-child {
+            margin-bottom: 0;
+        }
+
+        .form-label {
+            display: block;
+            font-size: 0.8125rem;
+            font-weight: 600;
+            color: var(--text-primary);
+            margin-bottom: 0.5rem;
+        }
+
+        .form-input {
+            width: 100%;
+            padding: 0.75rem 1rem;
+            border: 1px solid var(--border);
+            border-radius: var(--radius-md);
+            font-size: 0.875rem;
+            font-family: inherit;
+            transition: all 0.2s ease;
+            background: white;
+            color: var(--text-primary);
+        }
+
+        .form-input:focus {
+            outline: none;
+            border-color: var(--primary);
+            box-shadow: 0 0 0 3px var(--accent-soft);
+        }
+
+        textarea.form-input {
+            resize: vertical;
+            min-height: 100px;
+        }
+
+        .original-message {
+            background: var(--bg-hover);
+            padding: 1rem;
+            border-radius: var(--radius-md);
+            color: var(--text-secondary);
+            font-size: 0.875rem;
+            line-height: 1.6;
+            border: 1px solid var(--border-light);
+        }
+
+        .reply-user-info {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            padding: 0.875rem 1rem;
+            background: var(--accent-soft);
+            border-radius: var(--radius-md);
+            border: 1px solid rgba(99, 102, 241, 0.15);
+        }
+
+        .reply-user-avatar {
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, var(--primary) 0%, var(--accent) 100%);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 0.8125rem;
+            font-weight: 600;
+        }
+
+        .reply-user-details {
+            display: flex;
+            flex-direction: column;
+            gap: 0.125rem;
+        }
+
+        .reply-user-name {
+            font-weight: 600;
+            color: var(--text-primary);
+            font-size: 0.875rem;
+        }
+
+        .reply-user-email {
+            font-size: 0.75rem;
+            color: var(--text-muted);
+        }
+
+        .empty-state {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 4rem 2rem;
+            color: var(--text-muted);
+            text-align: center;
+            grid-column: 1 / -1;
+        }
+
+        .empty-state-icon {
+            width: 80px;
+            height: 80px;
+            background: var(--bg-hover);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-bottom: 1.25rem;
+        }
+
+        .empty-state-icon i {
+            font-size: 2rem;
+            color: var(--text-muted);
+            opacity: 0.6;
+        }
+
+        .empty-state h4 {
+            font-size: 1.0625rem;
+            color: var(--text-primary);
+            margin-bottom: 0.5rem;
+            font-weight: 600;
+        }
+
+        .empty-state p {
+            font-size: 0.875rem;
+            color: var(--text-secondary);
+        }
+
+        .error-state {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 4rem 2rem;
+            color: #ef4444;
+            text-align: center;
+            grid-column: 1 / -1;
+        }
+
+        .error-state-icon {
+            width: 80px;
+            height: 80px;
+            background: rgba(239, 68, 68, 0.08);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-bottom: 1.25rem;
+        }
+
+        .error-state-icon i {
+            font-size: 2rem;
+            color: #ef4444;
+        }
+
+        .role-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.25rem;
+            padding: 0.25rem 0.625rem;
+            border-radius: var(--radius-sm);
+            font-size: 0.6875rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.03em;
+            background: var(--accent-soft);
+            color: var(--accent);
+            border: 1px solid rgba(99, 102, 241, 0.15);
+        }
+
+        .role-badge.admin {
+            background: rgba(239, 68, 68, 0.08);
+            color: #dc2626;
+            border-color: rgba(239, 68, 68, 0.15);
+        }
+
+        .role-badge.staff {
+            background: rgba(16, 185, 129, 0.08);
+            color: #059669;
+            border-color: rgba(16, 185, 129, 0.15);
+        }
+
+        .role-badge.driver {
+            background: rgba(245, 158, 11, 0.08);
+            color: #d97706;
+            border-color: rgba(245, 158, 11, 0.15);
+        }
+
+        .role-badge.hidden {
+            display: none !important;
+        }
+
+        .realtime-status {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.375rem;
+            padding: 0.375rem 0.75rem;
+            background: var(--success-soft);
+            color: var(--success);
+            border-radius: var(--radius-sm);
+            font-size: 0.75rem;
+            font-weight: 600;
+            margin-left: auto;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .realtime-status:hover {
+            background: var(--success);
+            color: white;
+        }
+
+        .realtime-status i {
+            font-size: 0.5rem;
+            animation: pulse 2s infinite;
+        }
+
+        .realtime-status.disconnected {
+            background: var(--warning-soft);
+            color: var(--warning);
+        }
+
+        .realtime-status.disconnected i {
+            animation: none;
+        }
+
+        .realtime-status.connecting {
+            background: var(--warning-soft);
+            color: var(--warning);
+        }
+
+        .realtime-status.connecting i {
+            animation: pulse 1s infinite;
+        }
+
+        .realtime-status.error {
+            background: rgba(239, 68, 68, 0.1);
+            color: #ef4444;
+        }
+
+        @keyframes pulse {
+
+            0%,
+            100% {
+                opacity: 1;
+            }
+
+            50% {
+                opacity: 0.5;
+            }
+        }
+
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(12px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .feedback-card {
+            animation: fadeInUp 0.4s cubic-bezier(0.4, 0, 0.2, 1) backwards;
+        }
+
+        .feedback-card:nth-child(1) {
+            animation-delay: 0ms;
+        }
+
+        .feedback-card:nth-child(2) {
+            animation-delay: 50ms;
+        }
+
+        .feedback-card:nth-child(3) {
+            animation-delay: 100ms;
+        }
+
+        .feedback-card:nth-child(4) {
+            animation-delay: 150ms;
+        }
+
+        .feedback-card:nth-child(5) {
+            animation-delay: 200ms;
+        }
+
+        .feedback-card:nth-child(6) {
+            animation-delay: 250ms;
+        }
+
+        @media (max-width: 768px) {
+            .feedback-container {
+                padding: 0.75rem;
+            }
+
+            .card-header {
+                padding: 1rem;
+            }
+
+            .card-body {
+                padding: 1rem;
+            }
+
+            .stats-bar {
+                gap: 0.5rem;
+            }
+
+            .stat-pill {
+                padding: 0.5rem 0.75rem;
+                font-size: 0.75rem;
+            }
+
+            .search-box {
+                max-width: 100%;
+            }
+
+            .feedback-grid {
+                grid-template-columns: 1fr;
+                gap: 0.875rem;
+            }
+
+            .modal {
+                max-width: 100%;
+                margin: 0.5rem;
+            }
+        }
+
+        .toast {
+            padding: 1rem 1.5rem;
+            background: var(--text-primary);
+            color: white;
+            border-radius: var(--radius-md);
+            box-shadow: var(--shadow-lg);
+            font-size: 0.875rem;
+            font-weight: 500;
+            display: flex;
+            align-items: center;
+            gap: 0.625rem;
+            animation: slideIn 0.3s ease;
+        }
+
+        @keyframes slideIn {
+            from {
+                opacity: 0;
+                transform: translateX(100%);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateX(0);
+            }
+        }
+
+        .toast.success {
+            background: var(--success);
+        }
+
+        .toast.error {
+            background: #ef4444;
+        }
+
+        .toast.info {
+            background: var(--primary);
+        }
+
+        .toast i {
+            font-size: 1rem;
+        }
+
+        @keyframes highlightNew {
+            0% {
+                background: var(--accent-soft);
+            }
+
+            100% {
+                background: white;
+            }
+        }
+
+        .feedback-card.new-item {
+            animation: highlightNew 2s ease-out, fadeInUp 0.4s cubic-bezier(0.4, 0, 0.2, 1) backwards;
+        }
+    </style>
+    <base target="_blank">
+</head>
+
+<body>
+    <div class="loading-overlay" id="loadingOverlay">
+        <div class="loading-spinner"></div>
+        <p style="color: var(--text-secondary); font-size: 0.875rem;">Loading feedback...</p>
+    </div>
+
+    <div class="feedback-container">
+        <div class="card">
+            <div class="card-header">
+                <div class="card-header-left">
+                    <div class="header-icon">
+                        <i class="fas fa-comments"></i>
+                    </div>
+                    <div>
+                        <h3 class="card-title">Customer Feedback</h3>
+                        <p class="card-subtitle">View and respond to customer messages</p>
+                    </div>
+                </div>
+                <div style="display: flex; align-items: center; gap: 0.75rem;">
+                    <div class="realtime-status" id="realtimeStatus" onclick="reconnectRealtime()">
+                        <i class="fas fa-circle"></i>
+                        <span id="realtimeStatusText">Connecting...</span>
+                    </div>
+                    <button class="btn-refresh" onclick="refreshFeedback()">
+                        <i class="fas fa-sync-alt"></i>
+                        Refresh
+                    </button>
+                </div>
+            </div>
+            <div class="card-body">
+                <div class="stats-bar">
+                    <div class="stat-pill total">
+                        <i class="fas fa-inbox"></i>
+                        Total <span id="totalCount">0</span>
+                    </div>
+                    <div class="stat-pill pending">
+                        <i class="fas fa-clock"></i>
+                        Pending <span id="pendingCount">0</span>
+                    </div>
+                    <div class="stat-pill replied">
+                        <i class="fas fa-check-circle"></i>
+                        Replied <span id="repliedCount">0</span>
+                    </div>
+                    <div class="stat-pill rating">
+                        <i class="fas fa-star"></i>
+                        Avg <span id="avgRating">0.0</span>
+                    </div>
+                </div>
+
+                <div class="search-filter-bar">
+                    <div class="search-box">
+                        <i class="fas fa-search"></i>
+                        <input type="text" id="feedbackSearch" placeholder="Search by name, email, or message...">
+                    </div>
+                </div>
+                <div class="feedback-grid" id="feedbackGrid"></div>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal-overlay" id="feedbackModal">
+        <div class="modal">
+            <div class="modal-header">
+                <h3 class="modal-title">Reply to Feedback</h3>
+                <button class="modal-close" onclick="closeModal('feedbackModal')">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <div class="modal-body">
+                <input type="hidden" id="feedbackReplyId">
+                <div class="form-group">
+                    <label class="form-label">From</label>
+                    <div class="reply-user-info" id="replyUserInfo"></div>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Original Message</label>
+                    <div class="original-message" id="originalFeedback"></div>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Your Reply</label>
+                    <textarea class="form-input" id="feedbackReplyText" rows="4"
+                        placeholder="Type your response..."></textarea>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-secondary" onclick="closeModal('feedbackModal')">Cancel</button>
+                <button class="btn btn-primary" onclick="saveFeedbackReply()">
+                    <i class="fas fa-paper-plane"></i>
+                    Send Reply
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal-overlay" id="viewModal">
+        <div class="modal">
+            <div class="modal-header">
+                <h3 class="modal-title">Feedback Details</h3>
+                <button class="modal-close" onclick="closeModal('viewModal')">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <div class="modal-body" id="viewModalBody"></div>
+            <div class="modal-footer">
+                <button class="btn btn-secondary" onclick="closeModal('viewModal')">Close</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Toast Container - FIXED: Added this missing element -->
+    <div id="toastContainer"
+        style="position: fixed; bottom: 1.5rem; right: 1.5rem; z-index: 9999; display: flex; flex-direction: column; gap: 0.5rem;">
+    </div>
+
+    <!-- Add this BEFORE any other scripts -->
+    <script src="js/logger.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="js/auth.js"></script>
+
+    <script>
+        let allFeedbackData = [];
+        let currentUserRole = 'staff';
+        let realtimeChannel = null;
+        let isRealtimeConnected = false;
+        let reconnectAttempts = 0;
+        const MAX_RECONNECT_ATTEMPTS = 5;
+        let debugMode = false;
+        let isReconnecting = false; // NEW: Prevent race conditions
+
+        // ==========================================
+        // ROLE CHECK HELPERS - ADDED FOR ADMIN REPLY HIDING
+        // ==========================================
+
+        // Helper function to check if current user is admin
+        function isAdminRole() {
+            // Also read from localStorage so it works before postMessage fires
+            const storedUser = localStorage.getItem('currentUser');
+            const storedRole = storedUser ? JSON.parse(storedUser).role : null;
+            const role = currentRole || currentUserRole || storedRole || 'staff';
+            return role === 'admin';
+        }
+
+        // Helper function to check if user can reply to feedback
+        function canReplyToFeedback() {
+            // Admin cannot reply, all other roles can
+            return !isAdminRole();
+        }
+
+        function getSupabaseClient() {
+            return window.supabaseClient || window.supabase || null;
+        }
+
+        // Debug logging function
+        function debugLog(message, type = 'info') {
+            const timestamp = new Date().toLocaleTimeString();
+            const fullMessage = `[${timestamp}] ${message}`;
+            console.log(`[${type.toUpperCase()}] ${fullMessage}`);
+
+            if (debugMode) {
+                const panel = document.getElementById('debugPanel');
+                if (panel) {
+                    const line = document.createElement('div');
+                    line.className = `debug-line ${type}`;
+                    line.textContent = fullMessage;
+                    panel.appendChild(line);
+                    panel.scrollTop = panel.scrollHeight;
+                }
+            }
+        }
+
+        function toggleDebug() {
+            debugMode = !debugMode;
+            const panel = document.getElementById('debugPanel');
+            if (panel) {
+                panel.classList.toggle('show', debugMode);
+            }
+            debugLog('Debug mode ' + (debugMode ? 'enabled' : 'disabled'), 'info');
+        }
+
+        document.addEventListener('DOMContentLoaded', async function () {
+            document.getElementById('feedbackSearch').addEventListener('input', function (e) {
+                const searchTerm = e.target.value.toLowerCase();
+                renderFeedback(searchTerm);
+            });
+
+            await waitForSupabase();
+            await loadFeedbackFromDatabase();
+
+            // Setup realtime subscription after initial load
+            setupRealtimeSubscription();
+
+            // NEW: Handle visibility change to reconnect when user returns to tab
+            document.addEventListener('visibilitychange', handleVisibilityChange);
+        });
+
+        // NEW: Handle tab visibility changes
+        function handleVisibilityChange() {
+            if (document.visibilityState === 'visible' && !isRealtimeConnected && !isReconnecting) {
+                debugLog('Tab became visible, reconnecting realtime...', 'info');
+                reconnectAttempts = 0;
+                setupRealtimeSubscription();
+            }
+        }
+
+        async function waitForSupabase() {
+            let attempts = 0;
+            updateRealtimeStatus('connecting');
+            while (!getSupabaseClient() && attempts < 50) {
+                await new Promise(resolve => setTimeout(resolve, 100));
+                attempts++;
+            }
+            if (!getSupabaseClient()) {
+                debugLog('Supabase not initialized after waiting', 'error');
+                updateRealtimeStatus('disconnected');
+                showError('Failed to connect to database. Please refresh the page.');
+            } else {
+                debugLog('Supabase client initialized successfully', 'success');
+            }
+        }
+
+        // FIXED: Setup Supabase Realtime subscription with proper callback handling
+        function setupRealtimeSubscription() {
+            const client = getSupabaseClient();
+            if (!client) {
+                debugLog('Cannot setup realtime: Supabase client not available', 'error');
+                updateRealtimeStatus('disconnected');
+                return;
+            }
+
+            // Prevent multiple simultaneous connection attempts
+            if (isReconnecting) {
+                debugLog('Reconnection already in progress, skipping...', 'info');
+                return;
+            }
+
+            // If already connected, don't recreate
+            if (isRealtimeConnected && realtimeChannel) {
+                debugLog('Already connected, skipping setup', 'info');
+                return;
+            }
+
+            isReconnecting = true;
+
+            // Remove existing channel only if it exists
+            if (realtimeChannel) {
+                debugLog('Removing existing channel before creating new one', 'info');
+                try {
+                    client.removeChannel(realtimeChannel);
+                } catch (e) {
+                    debugLog('Error removing channel: ' + e.message, 'error');
+                }
+                realtimeChannel = null;
+            }
+
+            try {
+                debugLog('Creating realtime channel for Feedback table...', 'info');
+
+                // Create a unique channel name to avoid conflicts
+                const channelName = 'feedback-changes-' + Date.now();
+                debugLog(`Channel name: ${channelName}`, 'info');
+
+                // FIXED: Create channel first, then attach listeners separately
+                realtimeChannel = client.channel(channelName);
+
+                // FIXED: Attach postgres_changes listener with proper callback
+                realtimeChannel.on(
+                    'postgres_changes',
+                    {
+                        event: '*',
+                        schema: 'public',
+                        table: 'Feedback'
+                    },
+                    function (payload) {  // Use regular function instead of arrow function
+                        debugLog(`Realtime event received: ${payload.eventType}`, 'success');
+                        debugLog(`Payload: ${JSON.stringify(payload)}`, 'info');
+                        handleRealtimeChange(payload);
+                    }
+                );
+
+                // FIXED: Subscribe with proper callback handling
+                realtimeChannel.subscribe(function (status, err) {
+                    debugLog(`Subscription status: ${status}`, status === 'SUBSCRIBED' ? 'success' : 'info');
+
+                    if (err) {
+                        debugLog(`Subscription error: ${JSON.stringify(err)}`, 'error');
+                    }
+
+                    if (status === 'SUBSCRIBED') {
+                        isRealtimeConnected = true;
+                        reconnectAttempts = 0;
+                        isReconnecting = false;
+                        updateRealtimeStatus('connected');
+                        debugLog('Successfully subscribed to Feedback changes', 'success');
+                    } else if (status === 'CLOSED' || status === 'CHANNEL_ERROR') {
+                        isRealtimeConnected = false;
+                        updateRealtimeStatus('disconnected');
+                        debugLog(`Channel closed or error: ${status}`, 'error');
+
+                        // Auto-reconnect with exponential backoff
+                        if (reconnectAttempts < MAX_RECONNECT_ATTEMPTS && !isReconnecting) {
+                            reconnectAttempts++;
+                            const delay = Math.min(1000 * Math.pow(2, reconnectAttempts), 30000);
+                            debugLog(`Reconnecting in ${delay / 1000}s (attempt ${reconnectAttempts}/${MAX_RECONNECT_ATTEMPTS})`, 'info');
+                            showToast(`Realtime disconnected. Reconnecting in ${delay / 1000}s...`, 'error');
+                            setTimeout(function () {
+                                isReconnecting = false;
+                                setupRealtimeSubscription();
+                            }, delay);
+                        } else if (reconnectAttempts >= MAX_RECONNECT_ATTEMPTS) {
+                            isReconnecting = false;
+                            showToast('Realtime connection failed. Click status to retry.', 'error');
+                        }
+                    } else if (status === 'TIMED_OUT') {
+                        isRealtimeConnected = false;
+                        updateRealtimeStatus('disconnected');
+                        debugLog('Connection timed out', 'error');
+
+                        // Attempt reconnection on timeout
+                        if (!isReconnecting && reconnectAttempts < MAX_RECONNECT_ATTEMPTS) {
+                            reconnectAttempts++;
+                            const delay = 5000;
+                            debugLog(`Reconnecting after timeout in ${delay / 1000}s...`, 'info');
+                            setTimeout(function () {
+                                isReconnecting = false;
+                                setupRealtimeSubscription();
+                            }, delay);
+                        }
+                    }
+                });
+
+            } catch (error) {
+                debugLog(`Error setting up realtime subscription: ${error.message}`, 'error');
+                updateRealtimeStatus('error');
+                isReconnecting = false;
+            }
+        }
+
+        // Manual reconnect function
+        function reconnectRealtime() {
+            if (!isRealtimeConnected && !isReconnecting) {
+                reconnectAttempts = 0;
+                debugLog('Manual reconnection triggered', 'info');
+                showToast('Reconnecting to realtime...', 'info');
+                setupRealtimeSubscription();
+            }
+        }
+
+        // Handle realtime changes
+        function handleRealtimeChange(payload) {
+            const { eventType, new: newRecord, old: oldRecord } = payload;
+            const searchTerm = document.getElementById('feedbackSearch').value.toLowerCase();
+
+            debugLog(`Handling ${eventType} event for record ID: ${newRecord?.id || oldRecord?.id}`, 'info');
+
+            switch (eventType) {
+                case 'INSERT':
+                    const newFeedback = transformFeedbackData(newRecord);
+                    if (!allFeedbackData.find(f => f.id === newFeedback.id)) {
+                        allFeedbackData.unshift(newFeedback);
+                        showToast(`New feedback from ${newFeedback.name}!`, 'info');
+                        renderFeedback(searchTerm, newFeedback.id);
+                        updateStats();
+                        debugLog(`Added new feedback: ${newFeedback.name}`, 'success');
+                    }
+                    break;
+
+                case 'UPDATE':
+                    const index = allFeedbackData.findIndex(f => f.id === oldRecord.id);
+                    if (index !== -1) {
+                        const oldStatus = allFeedbackData[index].status;
+                        allFeedbackData[index] = transformFeedbackData(newRecord);
+                        renderFeedback(searchTerm);
+                        updateStats();
+
+                        // Toast is handled by saveFeedbackReply() directly — no duplicate needed here
+
+                        // If currently viewing this feedback in modal, update it
+                        const viewModal = document.getElementById('viewModal');
+                        if (viewModal.classList.contains('active')) {
+                            const currentViewId = parseInt(document.getElementById('feedbackReplyId').value) || null;
+                            if (currentViewId === oldRecord.id) {
+                                viewFeedback(oldRecord.id);
+                            }
+                        }
+                        debugLog(`Updated feedback ID: ${oldRecord.id}`, 'success');
+                    }
+                    break;
+
+                case 'DELETE':
+                    const deletedItem = allFeedbackData.find(f => f.id === oldRecord.id);
+                    allFeedbackData = allFeedbackData.filter(f => f.id !== oldRecord.id);
+                    renderFeedback(searchTerm);
+                    updateStats();
+                    if (deletedItem) {
+                        showToast(`Feedback from ${deletedItem.name} was deleted`, 'info');
+                    }
+                    debugLog(`Deleted feedback ID: ${oldRecord.id}`, 'info');
+                    break;
+            }
+        }
+
+        // Transform database record to local format
+        function transformFeedbackData(item) {
+            return {
+                id: item.id,
+                name: item.name || 'Anonymous',
+                email: item.email || '',
+                message: item.message || item.description || '',
+                rating: item.rate || item.rating || 0,
+                status: (item.status || 'pending').toLowerCase(),
+                reply: item.reply || null,
+                replied_by: item.replied_by || null,
+                role: item.role || 'Passenger',
+                created_at: item.created_at,
+                updated_at: item.updated_at
+            };
+        }
+
+        // Update realtime status indicator
+        function updateRealtimeStatus(status) {
+            const statusEl = document.getElementById('realtimeStatus');
+            const statusText = document.getElementById('realtimeStatusText');
+
+            statusEl.classList.remove('connected', 'disconnected', 'connecting', 'error');
+
+            switch (status) {
+                case 'connected':
+                    statusEl.classList.add('connected');
+                    statusEl.style.background = 'var(--success-soft)';
+                    statusEl.style.color = 'var(--success)';
+                    statusText.textContent = 'Live';
+                    break;
+                case 'disconnected':
+                    statusEl.classList.add('disconnected');
+                    statusEl.style.background = 'var(--warning-soft)';
+                    statusEl.style.color = 'var(--warning)';
+                    statusText.textContent = 'Offline - Click to retry';
+                    break;
+                case 'connecting':
+                    statusEl.classList.add('connecting');
+                    statusEl.style.background = 'var(--warning-soft)';
+                    statusEl.style.color = 'var(--warning)';
+                    statusText.textContent = 'Connecting...';
+                    break;
+                case 'error':
+                    statusEl.classList.add('error');
+                    statusText.textContent = 'Error';
+                    break;
+                default:
+                    statusText.textContent = 'Live';
+            }
+        }
+
+        async function loadFeedbackFromDatabase() {
+            const loadingOverlay = document.getElementById('loadingOverlay');
+            loadingOverlay.classList.remove('hidden');
+
+            try {
+                const client = getSupabaseClient();
+                if (!client) throw new Error('Supabase client not available');
+
+                debugLog('Loading feedback from database...', 'info');
+                const { data, error } = await client
+                    .from('Feedback')
+                    .select('*')
+                    .order('created_at', { ascending: false });
+
+                if (error) throw error;
+
+                allFeedbackData = (data || []).map(transformFeedbackData);
+                renderFeedback();
+                updateStats();
+                debugLog(`Loaded ${allFeedbackData.length} feedback items`, 'success');
+            } catch (error) {
+                debugLog(`Failed to load feedback: ${error.message}`, 'error');
+                console.error('Failed to load feedback:', error);
+                showError('Failed to load feedback. Please try again.');
+            } finally {
+                loadingOverlay.classList.add('hidden');
+            }
+        }
+
+        async function refreshFeedback() {
+            const btn = document.querySelector('.btn-refresh i');
+            btn.classList.add('fa-spin');
+
+            await loadFeedbackFromDatabase();
+
+            if (!isRealtimeConnected && !isReconnecting) {
+                reconnectAttempts = 0;
+                setupRealtimeSubscription();
+            }
+
+            setTimeout(() => btn.classList.remove('fa-spin'), 500);
+        }
+
+        function updateStats() {
+            const total = allFeedbackData.length;
+            const pending = allFeedbackData.filter(f => f.status === 'pending').length;
+            const replied = allFeedbackData.filter(f => f.status === 'replied').length;
+            const avgRating = total > 0 ? (allFeedbackData.reduce((sum, f) => sum + (f.rating || 0), 0) / total).toFixed(1) : '0.0';
+
+            document.getElementById('totalCount').textContent = total;
+            document.getElementById('pendingCount').textContent = pending;
+            document.getElementById('repliedCount').textContent = replied;
+            document.getElementById('avgRating').textContent = avgRating;
+        }
+
+        function canViewRole() {
+            const allowedRoles = ['admin', 'staff_finance', 'staff_operator'];
+            return allowedRoles.includes(currentUserRole);
+        }
+
+        function renderFeedback(searchTerm = '', highlightId = null) {
+            const grid = document.getElementById('feedbackGrid');
+            grid.innerHTML = '';
+
+            const filtered = allFeedbackData.filter(item =>
+                item.name.toLowerCase().includes(searchTerm) ||
+                item.message.toLowerCase().includes(searchTerm) ||
+                item.email.toLowerCase().includes(searchTerm)
+            );
+
+            if (filtered.length === 0) {
+                grid.innerHTML = `
+                    <div class="empty-state">
+                        <div class="empty-state-icon"><i class="fas fa-inbox"></i></div>
+                        <h4>No feedback found</h4>
+                        <p>${searchTerm ? 'No matches for your search.' : 'No customer feedback yet.'}</p>
+                    </div>
+                `;
+                return;
+            }
+
+            const showRole = canViewRole();
+            // Check if user can reply (admin cannot reply)
+            const userCanReply = canReplyToFeedback();
+
+            filtered.forEach((item, index) => {
+                const stars = Array(5).fill(0).map((_, i) =>
+                    `<i class="${i < item.rating ? 'fas' : 'far'} fa-star"></i>`
+                ).join('');
+
+                const initials = item.name.split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2);
+                const roleBadgeHtml = showRole && item.role ?
+                    `<span class="role-badge ${item.role.toLowerCase()}">${escapeHtml(item.role)}</span>` : '';
+
+                const card = document.createElement('div');
+                card.className = `feedback-card ${item.status} ${item.id === highlightId ? 'new-item' : ''}`;
+                card.style.animationDelay = `${index * 50}ms`;
+
+                // UPDATED: Only show reply button if status is pending AND user can reply (not admin)
+                const replyButtonHtml = (item.status === 'pending' && userCanReply) ? `
+                    <button class="btn-icon reply" onclick="openReplyModal(${item.id})" title="Reply">
+                        <i class="fas fa-reply"></i>
+                    </button>
+                ` : '';
+
+                card.innerHTML = `
+                    <div class="feedback-header">
+                        <div class="feedback-user">
+                            <div class="feedback-avatar">${initials}</div>
+                            <div class="feedback-user-info">
+                                <div class="feedback-name-wrapper">
+                                    <span class="feedback-name">${escapeHtml(item.name)}</span>
+                                    ${roleBadgeHtml}
+                                </div>
+                                <span class="feedback-time">${formatDate(item.created_at)}</span>
+                            </div>
+                        </div>
+                        <div class="feedback-rating">${stars}</div>
+                    </div>
+                    <div class="feedback-body">
+                        <p class="feedback-message">${escapeHtml(item.message)}</p>
+                    </div>
+                    <div class="feedback-footer">
+                        <span class="feedback-status ${item.status}">
+                            <i class="fas ${item.status === 'replied' ? 'fa-check-circle' : 'fa-clock'}"></i>
+                            ${item.status === 'replied' ? 'Replied' : 'Pending'}
+                        </span>
+                        <div class="feedback-actions">
+                            ${replyButtonHtml}
+                            <button class="btn-icon" onclick="viewFeedback(${item.id})" title="View">
+                                <i class="fas fa-eye"></i>
+                            </button>
+                        </div>
+                    </div>
+                `;
+                grid.appendChild(card);
+            });
+        }
+
+        function openReplyModal(id) {
+            const item = allFeedbackData.find(f => f.id === id);
+            if (!item) return;
+
+            document.getElementById('feedbackReplyId').value = id;
+            const initials = item.name.split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2);
+
+            document.getElementById('replyUserInfo').innerHTML = `
+                <div class="reply-user-avatar">${initials}</div>
+                <div class="reply-user-details">
+                    <span class="reply-user-name">${escapeHtml(item.name)}</span>
+                    <span class="reply-user-email">${escapeHtml(item.email)}</span>
+                </div>
+            `;
+
+            document.getElementById('originalFeedback').textContent = item.message;
+            document.getElementById('feedbackReplyText').value = '';
+            document.getElementById('feedbackModal').classList.add('active');
+        }
+
+        async function saveFeedbackReply() {
+            const id = parseInt(document.getElementById('feedbackReplyId').value);
+            const replyText = document.getElementById('feedbackReplyText').value.trim();
+
+            if (!replyText) {
+                showToast('Please enter a reply message', 'error');
+                return;
+            }
+
+            const client = getSupabaseClient();
+            if (!client) {
+                showToast('Database connection not available', 'error');
+                return;
+            }
+
+            try {
+                debugLog(`Saving reply for feedback ID: ${id}`, 'info');
+                const currentUser = localStorage.getItem('currentUser');
+                const replierName = currentUser ? JSON.parse(currentUser).fullname : 'Staff';
+
+                const { error } = await client
+                    .from('Feedback')
+                    .update({
+                        reply: replyText,
+                        replied_by: replierName,
+                        status: 'replied',
+                        updated_at: new Date().toISOString()
+                    })
+                    .eq('id', id);
+
+                if (error) {
+                    showToast('Failed to save reply: ' + error.message, 'error');
+                    debugLog(`Save reply error: ${error.message}`, 'error');
+                    return;
+                }
+
+                // Note: The realtime subscription will handle updating the UI
+                const item = allFeedbackData.find(f => f.id === id);
+                if (item) {
+                    item.reply = replyText;
+                    item.status = 'replied';
+                }
+
+                renderFeedback(document.getElementById('feedbackSearch').value.toLowerCase());
+                updateStats();
+                closeModal('feedbackModal');
+                showToast('Reply sent successfully', 'success');
+                debugLog(`Reply saved for feedback ID: ${id}`, 'success');
+            } catch (error) {
+                showToast('An error occurred while saving the reply', 'error');
+                debugLog(`Exception saving reply: ${error.message}`, 'error');
+            }
+        }
+
+        function viewFeedback(id) {
+            const item = allFeedbackData.find(f => f.id === id);
+            if (!item) return;
+
+            const stars = Array(5).fill(0).map((_, i) =>
+                `<i class="${i < item.rating ? 'fas' : 'far'} fa-star" style="color: var(--star);"></i>`
+            ).join('');
+
+            const showRole = canViewRole();
+            const roleInfoHtml = showRole && item.role ?
+                `<div style="margin-bottom: 0.75rem;"><strong style="color: var(--text-primary);">Role:</strong> <span class="role-badge ${item.role.toLowerCase()}">${escapeHtml(item.role)}</span></div>` : '';
+
+            const initials = item.name.split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2);
+
+            document.getElementById('viewModalBody').innerHTML = `
+                <div style="margin-bottom: 1.25rem;">
+                    <div style="display: flex; align-items: center; gap: 0.875rem; margin-bottom: 1rem;">
+                        <div class="feedback-avatar" style="width: 48px; height: 48px; font-size: 1rem;">${initials}</div>
+                        <div>
+                            <div style="font-weight: 600; color: var(--text-primary); font-size: 1rem; margin-bottom: 0.125rem;">${escapeHtml(item.name)}</div>
+                            <div style="font-size: 0.8125rem; color: var(--text-muted);">${escapeHtml(item.email)}</div>
+                        </div>
+                    </div>
+                    ${roleInfoHtml}
+                    <div style="display: flex; align-items: center; gap: 1rem; font-size: 0.8125rem; color: var(--text-secondary);">
+                        <span><i class="far fa-calendar" style="margin-right: 0.375rem;"></i>${formatDate(item.created_at)}</span>
+                        <span style="display: flex; align-items: center; gap: 0.25rem;">${stars}</span>
+                    </div>
+                </div>
+                <div style="margin-bottom: 1.25rem;">
+                    <label class="form-label">Message</label>
+                    <div class="original-message" style="background: white; border: 1px solid var(--border);">${escapeHtml(item.message)}</div>
+                </div>
+                ${item.reply ? `
+                <div>
+                    <label class="form-label">Reply</label>
+                    <div class="original-message" style="background: var(--success-soft); border-color: rgba(16, 185, 129, 0.2); color: var(--text-primary);">${escapeHtml(item.reply)}</div>
+                    <small style="color: var(--text-muted); display: block; margin-top: 0.5rem; font-size: 0.75rem; display: flex; align-items: center; gap: 0.5rem;">
+                        <span>
+                            <i class="fas fa-check-circle" style="color: var(--success); margin-right: 0.25rem;"></i>
+                            Replied on ${formatDate(item.updated_at)}
+                        </span>
+                        ${item.replied_by ? `
+                        <span style="display: inline-flex; align-items: center; gap: 0.25rem; padding: 0.2rem 0.5rem; background: var(--accent-soft); color: var(--accent); border-radius: 4px; font-weight: 600;">
+                            <i class="fas fa-user" style="font-size: 0.625rem;"></i>
+                            ${escapeHtml(item.replied_by)}
+                        </span>` : ''}
+                    </small>
+                </div>
+            ` : '<p style="color: var(--text-muted); font-size: 0.875rem; font-style: italic;"><i class="fas fa-info-circle" style="margin-right: 0.375rem;"></i>No reply yet</p>'}
+                        `;
+
+            document.getElementById('viewModal').classList.add('active');
+        }
+
+        function closeModal(modalId) {
+            document.getElementById(modalId).classList.remove('active');
+        }
+
+        function showError(message) {
+            document.getElementById('feedbackGrid').innerHTML = `
+                <div class="error-state">
+                    <div class="error-state-icon"><i class="fas fa-exclamation-triangle"></i></div>
+                    <h4 style="margin-bottom: 0.5rem; color: var(--text-primary);">Error</h4>
+                    <p style="margin-bottom: 1rem;">${message}</p>
+                    <button class="btn btn-primary" onclick="refreshFeedback()"><i class="fas fa-redo"></i> Try Again</button>
+                </div>
+            `;
+        }
+
+        // FIXED: showToast function now checks for container existence
+        function showToast(message, type = 'success') {
+            const container = document.getElementById('toastContainer');
+
+            // Safety check - if container doesn't exist, log to console instead of crashing
+            if (!container) {
+                console.log(`[${type.toUpperCase()}] ${message}`);
+                return;
+            }
+
+            const toast = document.createElement('div');
+            toast.className = `toast ${type}`;
+            toast.innerHTML = `<i class="fas ${type === 'success' ? 'fa-check-circle' : type === 'error' ? 'fa-exclamation-circle' : 'fa-info-circle'}"></i>${message}`;
+            container.appendChild(toast);
+
+            // Auto-remove after 3 seconds
+            setTimeout(() => {
+                toast.style.opacity = '0';
+                toast.style.transform = 'translateX(100%)';
+                toast.style.transition = 'all 0.3s ease';
+                setTimeout(() => {
+                    if (toast.parentNode) {
+                        toast.remove();
+                    }
+                }, 300);
+            }, 3000);
+        }
+
+        function formatDate(dateString) {
+            if (!dateString) return 'Unknown date';
+            const date = new Date(dateString);
+            const now = new Date();
+            const diffMs = now - date;
+            const diffMins = Math.floor(diffMs / 60000);
+            const diffHours = Math.floor(diffMs / 3600000);
+            const diffDays = Math.floor(diffMs / 86400000);
+
+            if (diffMins < 1) return 'Just now';
+            if (diffMins < 60) return `${diffMins}m ago`;
+            if (diffHours < 24) return `${diffHours}h ago`;
+            if (diffDays < 7) return `${diffDays}d ago`;
+
+            return date.toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' });
+        }
+
+        function escapeHtml(text) {
+            if (!text) return '';
+            const div = document.createElement('div');
+            div.textContent = text;
+            return div.innerHTML;
+        }
+
+        document.getElementById('feedbackModal').addEventListener('click', function (e) {
+            if (e.target === this) closeModal('feedbackModal');
+        });
+
+        document.getElementById('viewModal').addEventListener('click', function (e) {
+            if (e.target === this) closeModal('viewModal');
+        });
+
+        document.addEventListener('keydown', function (e) {
+            if (e.key === 'Escape') {
+                closeModal('feedbackModal');
+                closeModal('viewModal');
+            }
+        });
+
+        // Cleanup on page unload
+        window.addEventListener('beforeunload', () => {
+            if (realtimeChannel) {
+                const client = getSupabaseClient();
+                if (client) {
+                    try {
+                        client.removeChannel(realtimeChannel);
+                    } catch (e) {
+                        console.log('Error removing channel on unload:', e);
+                    }
+                }
+            }
+        });
+
+        // Role integration
+        let currentRole = null;
+        let canModify = false;
+        let isReadOnly = false;
+
+        window.addEventListener('message', (event) => {
+            if (event.data.type === 'roleInfo') {
+                currentRole = event.data.role;
+                canModify = event.data.canModify;
+                isReadOnly = event.data.isReadOnly;
+                currentUserRole = currentRole || 'staff';
+
+                // Re-render feedback when role is received to update button visibility
+                renderFeedback(document.getElementById('feedbackSearch').value.toLowerCase());
+            }
+        });
+
+        window.addEventListener('DOMContentLoaded', () => {
+            // Seed role immediately from localStorage before postMessage fires
+            const storedUser = localStorage.getItem('currentUser');
+            if (storedUser) {
+                try {
+                    const parsed = JSON.parse(storedUser);
+                    if (parsed.role) {
+                        currentRole = parsed.role;
+                        currentUserRole = parsed.role;
+                    }
+                } catch (e) { }
+            }
+
+            window.parent.postMessage({ type: 'requestRoleInfo', page: getPageName() }, '*');
+            const urlParams = new URLSearchParams(window.location.search);
+            if (urlParams.get('readonly') === 'true') isReadOnly = true;
+            if (urlParams.get('canmodify') === 'false') canModify = false;
+            const roleParam = urlParams.get('role');
+            if (roleParam) {
+                currentRole = roleParam;
+                currentUserRole = roleParam;
+            }
+        });
+
+        function getPageName() {
+            const path = window.location.pathname;
+            const filename = path.split('/').pop().replace('child_', '').replace('.html', '');
+            const mapping = {
+                'dashboard': 'dashboard',
+                'tracking': 'live-tracking',
+                'analytics': 'analytics',
+                'feedback': 'feedback',
+                'bus_information': 'bus-info',
+                'bus_schedule': 'schedule',
+                'load': 'load',
+                'account_management': 'accounts',
+                'finance': 'finance'
+            };
+            return mapping[filename] || filename;
+        }
+
+        function applyRoleBasedUI() {
+            const addButtons = document.querySelectorAll('.btn-add, #addAccountBtnHeader, #addPassengerBtn, .add-btn, .btn-primary');
+            addButtons.forEach(btn => {
+                if (btn.textContent.toLowerCase().includes('add') ||
+                    btn.textContent.toLowerCase().includes('create') ||
+                    btn.textContent.toLowerCase().includes('new')) {
+                    btn.style.display = canModify ? 'inline-flex' : 'none';
+                }
+            });
+
+            const editButtons = document.querySelectorAll('.btn-edit, .edit-btn, .btn-icon.edit');
+            editButtons.forEach(btn => {
+                if (isReadOnly || !canModify) {
+                    btn.disabled = true;
+                    btn.style.opacity = '0.5';
+                    btn.style.cursor = 'not-allowed';
+                    btn.title = 'View only - editing not permitted';
+                    btn.onclick = (e) => {
+                        e.preventDefault();
+                        e.stopPropagation();
+                        showToast('You do not have permission to edit', 'error');
+                        return false;
+                    };
+                }
+            });
+
+            if (isReadOnly || !canModify) {
+                const deleteButtons = document.querySelectorAll('.btn-delete, .delete-btn, .btn-icon.delete, .btn-danger');
+                deleteButtons.forEach(btn => {
+                    if (btn.textContent.toLowerCase().includes('delete') ||
+                        btn.classList.contains('delete') ||
+                        btn.getAttribute('onclick')?.includes('delete')) {
+                        btn.style.display = 'none';
+                    }
+                });
+            }
+
+            if (isReadOnly) {
+                const forms = document.querySelectorAll('form');
+                forms.forEach(form => {
+                    if (form.closest('.modal') && !form.closest('.modal').querySelector('.btn-primary')) return;
+                    const inputs = form.querySelectorAll('input, select, textarea');
+                    inputs.forEach(input => {
+                        if (input.type !== 'hidden') {
+                            input.disabled = true;
+                            input.style.backgroundColor = '#f1f5f9';
+                        }
+                    });
+                    const submitBtns = form.querySelectorAll('button[type="submit"], .btn-primary');
+                    submitBtns.forEach(btn => {
+                        btn.disabled = true;
+                        btn.style.opacity = '0.5';
+                        btn.style.cursor = 'not-allowed';
+                    });
+                });
+                showReadOnlyBanner();
+            }
+        }
+
+        function showReadOnlyBanner() {
+            if (document.getElementById('readOnlyBanner')) return;
+            const banner = document.createElement('div');
+            banner.id = 'readOnlyBanner';
+            banner.style.cssText = `
+                position: fixed;
+                top: 0;
+                left: 0;
+                right: 0;
+                background: linear-gradient(90deg, var(--primary) 0%, var(--primary-light) 100%);
+                color: white;
+                padding: 0.5rem;
+                text-align: center;
+                font-size: 0.8125rem;
+                font-weight: 500;
+                z-index: 9999;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                gap: 0.5rem;
+            `;
+            banner.innerHTML = `<i class="fas fa-eye"></i>Read-only mode - You can view but not modify data`;
+            document.body.appendChild(banner);
+            document.body.style.paddingTop = '36px';
+        }
+        (function notifyParent() {
+            const filename = window.location.pathname.split('/').pop();
+            const pageMap = {
+                'child_dashboard.html': 'dashboard',
+                'child_tracking.html': 'live-tracking',
+                'child_analytics.html': 'analytics',
+                'child_feedback.html': 'feedback',
+                'child_bus_information.html': 'bus-info',
+                'child_bus_schedule.html': 'schedule',
+                'child_load.html': 'load',
+                'child_top_up_reference.html': 'top-up-reference',
+                'child_account_management.html': 'accounts',
+                'child_finance.html': 'finance',
+                'child_settings.html': 'settings',
+                'child_developer_logs.html': 'developer-logs'
+            };
+
+            const pageName = pageMap[filename];
+            if (pageName && window.parent !== window) {
+                window.parent.postMessage({
+                    type: 'pageLoaded',
+                    page: pageName
+                }, '*');
+            }
+        })();
+    </script>
+</body>
+
+</html>

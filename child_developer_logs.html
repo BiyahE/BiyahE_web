@@ -1,0 +1,946 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Developer Logs - BIYAHE</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background: #f8fafc;
+            height: 100vh;
+            overflow: hidden;
+        }
+
+        .container {
+            padding: 1.5rem;
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 1.5rem;
+            padding-bottom: 1rem;
+            border-bottom: 2px solid #e2e8f0;
+        }
+
+        .header-left {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+
+        .header-icon {
+            width: 48px;
+            height: 48px;
+            background: linear-gradient(135deg, #242553 0%, #1a1a3e 100%);
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #fde68a;
+            font-size: 1.25rem;
+        }
+
+        .header-text h1 {
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: #0f172a;
+        }
+
+        .header-text p {
+            font-size: 0.875rem;
+            color: #64748b;
+        }
+
+        .header-actions {
+            display: flex;
+            gap: 0.75rem;
+        }
+
+        .btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 0.625rem 1rem;
+            border-radius: 0.5rem;
+            font-weight: 600;
+            font-size: 0.875rem;
+            cursor: pointer;
+            transition: all 0.2s;
+            border: none;
+            font-family: inherit;
+        }
+
+        .btn-primary {
+            background: #242553;
+            color: white;
+        }
+
+        .btn-primary:hover {
+            background: #1a1a3e;
+            transform: translateY(-1px);
+        }
+
+        .btn-secondary {
+            background: #f1f5f9;
+            color: #0f172a;
+            border: 1px solid #e2e8f0;
+        }
+
+        .btn-secondary:hover {
+            background: #e2e8f0;
+        }
+
+        .btn-danger {
+            background: #ef4444;
+            color: white;
+        }
+
+        .btn-danger:hover {
+            background: #dc2626;
+        }
+
+        .logs-container {
+            flex: 1;
+            background: white;
+            border-radius: 1rem;
+            border: 1px solid #e2e8f0;
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .logs-toolbar {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 1rem 1.25rem;
+            background: #f8fafc;
+            border-bottom: 1px solid #e2e8f0;
+            gap: 1rem;
+            flex-wrap: wrap;
+        }
+
+        .filter-group {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+        }
+
+        .filter-label {
+            font-size: 0.875rem;
+            font-weight: 600;
+            color: #64748b;
+        }
+
+        .filter-select {
+            padding: 0.5rem 0.75rem;
+            border: 1px solid #e2e8f0;
+            border-radius: 0.5rem;
+            font-size: 0.875rem;
+            background: white;
+            cursor: pointer;
+        }
+
+        .search-box {
+            position: relative;
+        }
+
+        .search-box input {
+            padding: 0.5rem 0.75rem 0.5rem 2.25rem;
+            border: 1px solid #e2e8f0;
+            border-radius: 0.5rem;
+            font-size: 0.875rem;
+            width: 250px;
+        }
+
+        .search-box i {
+            position: absolute;
+            left: 0.75rem;
+            top: 50%;
+            transform: translateY(-50%);
+            color: #94a3b8;
+        }
+
+        .logs-content {
+            flex: 1;
+            overflow-y: auto;
+            padding: 1rem;
+            font-family: 'Consolas', 'Monaco', 'Courier New', monospace;
+            font-size: 0.8125rem;
+            line-height: 1.6;
+        }
+
+        .log-entry {
+            display: flex;
+            align-items: flex-start;
+            gap: 0.75rem;
+            padding: 0.625rem 0.75rem;
+            border-radius: 0.375rem;
+            margin-bottom: 0.25rem;
+            transition: all 0.15s;
+            animation: fadeIn 0.2s ease;
+            border-left: 3px solid transparent;
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateX(-10px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateX(0);
+            }
+        }
+
+        .log-entry:hover {
+            background: #f1f5f9;
+            border-left-color: #cbd5e1;
+        }
+
+        .log-entry.new {
+            background: #eff6ff;
+            border-left-color: #3b82f6;
+        }
+
+        .log-timestamp {
+            color: #64748b;
+            flex-shrink: 0;
+            min-width: 140px;
+            font-size: 0.75rem;
+        }
+
+        .log-level {
+            padding: 0.125rem 0.5rem;
+            border-radius: 0.25rem;
+            font-size: 0.6875rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            flex-shrink: 0;
+            min-width: 55px;
+            text-align: center;
+        }
+
+        .log-level.error {
+            background: #fee2e2;
+            color: #dc2626;
+        }
+
+        .log-level.warn {
+            background: #fef3c7;
+            color: #d97706;
+        }
+
+        .log-level.info {
+            background: #dbeafe;
+            color: #2563eb;
+        }
+
+        .log-level.debug {
+            background: #f3f4f6;
+            color: #6b7280;
+        }
+
+        .log-level.success {
+            background: #d1fae5;
+            color: #059669;
+        }
+
+        .log-message {
+            color: #0f172a;
+            word-break: break-word;
+            flex: 1;
+            white-space: pre-wrap;
+            max-height: 100px;
+            overflow-y: auto;
+        }
+
+        .log-source {
+            color: #94a3b8;
+            font-size: 0.75rem;
+            flex-shrink: 0;
+            background: #f1f5f9;
+            padding: 0.125rem 0.5rem;
+            border-radius: 0.25rem;
+        }
+
+        .stats-bar {
+            display: flex;
+            gap: 1.5rem;
+            padding: 0.75rem 1.25rem;
+            background: white;
+            border-top: 1px solid #e2e8f0;
+        }
+
+        .stat-item {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            font-size: 0.8125rem;
+        }
+
+        .stat-value {
+            font-weight: 700;
+            color: #242553;
+        }
+
+        .stat-label {
+            color: #64748b;
+        }
+
+        .empty-state {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 100%;
+            color: #94a3b8;
+            gap: 1rem;
+        }
+
+        .empty-state i {
+            font-size: 3rem;
+            opacity: 0.5;
+        }
+
+        /* Scrollbar */
+        .logs-content::-webkit-scrollbar {
+            width: 8px;
+        }
+
+        .logs-content::-webkit-scrollbar-track {
+            background: transparent;
+        }
+
+        .logs-content::-webkit-scrollbar-thumb {
+            background: #cbd5e1;
+            border-radius: 4px;
+        }
+
+        .logs-content::-webkit-scrollbar-thumb:hover {
+            background: #94a3b8;
+        }
+
+        .permission-denied {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 100vh;
+            text-align: center;
+            padding: 2rem;
+        }
+
+        .permission-denied i {
+            font-size: 4rem;
+            color: #ef4444;
+            margin-bottom: 1rem;
+        }
+
+        .permission-denied h2 {
+            font-size: 1.5rem;
+            color: #0f172a;
+            margin-bottom: 0.5rem;
+        }
+
+        .permission-denied p {
+            color: #64748b;
+        }
+
+        .auto-scroll {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            font-size: 0.875rem;
+            color: #64748b;
+        }
+
+        .auto-scroll input[type="checkbox"] {
+            cursor: pointer;
+        }
+
+        .capture-status {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 0.375rem 0.75rem;
+            background: #dcfce7;
+            border: 1px solid #86efac;
+            border-radius: 0.375rem;
+            font-size: 0.875rem;
+            color: #166534;
+            font-weight: 500;
+        }
+
+        .capture-status.inactive {
+            background: #fee2e2;
+            border-color: #fca5a5;
+            color: #991b1b;
+        }
+
+        .capture-status i {
+            font-size: 0.625rem;
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse {
+
+            0%,
+            100% {
+                opacity: 1;
+            }
+
+            50% {
+                opacity: 0.5;
+            }
+        }
+
+        .live-indicator {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.25rem;
+            padding: 0.125rem 0.5rem;
+            background: #fee2e2;
+            color: #dc2626;
+            border-radius: 0.25rem;
+            font-size: 0.75rem;
+            font-weight: 600;
+            margin-left: 0.5rem;
+        }
+
+        .live-indicator.active {
+            background: #dcfce7;
+            color: #166534;
+        }
+
+        .live-indicator::before {
+            content: '';
+            width: 6px;
+            height: 6px;
+            border-radius: 50%;
+            background: currentColor;
+            animation: blink 1s infinite;
+        }
+
+        @keyframes blink {
+
+            0%,
+            100% {
+                opacity: 1;
+            }
+
+            50% {
+                opacity: 0;
+            }
+        }
+
+        .toast {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            background: #242553;
+            color: white;
+            padding: 0.75rem 1.25rem;
+            border-radius: 0.5rem;
+            font-size: 0.875rem;
+            z-index: 9999;
+            animation: slideIn 0.3s ease;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+        }
+
+        @keyframes slideIn {
+            from {
+                transform: translateX(100%);
+                opacity: 0;
+            }
+
+            to {
+                transform: translateX(0);
+                opacity: 1;
+            }
+        }
+
+        .log-details {
+            margin-top: 0.5rem;
+            padding: 0.5rem;
+            background: #f8fafc;
+            border-radius: 0.25rem;
+            font-size: 0.75rem;
+            color: #475569;
+            display: none;
+        }
+
+        .log-entry:hover .log-details {
+            display: block;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container" id="logsContainer">
+        <!-- Content will be loaded by JavaScript -->
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="js/auth.js"></script>
+    <!-- Include the logger to receive logs -->
+    <script src="js/logger.js"></script>
+
+    <script>
+        // ============================================
+        // DEVELOPER LOGS DASHBOARD
+        // Receives logs from ALL site pages
+        // ============================================
+
+        let currentUser = null;
+        let allLogs = [];
+        let filteredLogs = [];
+        let autoScrollEnabled = true;
+        let currentFilter = { level: 'all', source: 'all', search: '' };
+        let newLogCount = 0;
+
+        async function init() {
+            // Check authentication
+            if (!window.Auth) {
+                setTimeout(init, 500);
+                return;
+            }
+
+            currentUser = window.Auth.getCurrentUser();
+
+            // SECURITY CHECK: Only allow developers
+            if (!currentUser || currentUser.role !== 'developer') {
+                showPermissionDenied();
+                return;
+            }
+
+            // Render page
+            renderPage();
+
+            // Load existing logs from localStorage
+            loadStoredLogs();
+
+            // Subscribe to real-time logs from other pages
+            if (window.BiyaheLogger) {
+                window.BiyaheLogger.onNewLog((log) => {
+                    if (log.type === 'CLEAR') {
+                        allLogs = [];
+                        renderLogs();
+                        return;
+                    }
+
+                    // Check if log already exists
+                    if (!allLogs.find(l => l.id === log.id)) {
+                        allLogs.unshift(log);
+                        newLogCount++;
+                        updateNewIndicator();
+
+                        if (shouldShowLog(log)) {
+                            prependLogEntry(log);
+                            updateStats();
+                        }
+                    }
+                });
+            }
+
+            // Initial render
+            renderLogs();
+            updateStats();
+        }
+
+        function shouldShowLog(log) {
+            if (currentFilter.level !== 'all' && log.level !== currentFilter.level) return false;
+            if (currentFilter.source !== 'all' && log.source !== currentFilter.source) return false;
+            if (currentFilter.search) {
+                const searchLower = currentFilter.search.toLowerCase();
+                const messageMatch = log.message && log.message.toLowerCase().includes(searchLower);
+                const sourceMatch = log.source && log.source.toLowerCase().includes(searchLower);
+                if (!messageMatch && !sourceMatch) return false;
+            }
+            return true;
+        }
+
+        function showPermissionDenied() {
+            document.getElementById('logsContainer').innerHTML = `
+                <div class="permission-denied">
+                    <i class="fas fa-lock"></i>
+                    <h2>Access Denied</h2>
+                    <p>You do not have permission to view developer logs.<br>Only developers can access this page.</p>
+                </div>
+            `;
+        }
+
+        function renderPage() {
+            const container = document.getElementById('logsContainer');
+
+            container.innerHTML = `
+                <div class="header">
+                    <div class="header-left">
+                        <div class="header-icon">
+                            <i class="fas fa-terminal"></i>
+                        </div>
+                        <div class="header-text">
+                            <h1>
+                                Developer Logs
+                                <span class="live-indicator active" id="liveIndicator">
+                                    LIVE
+                                </span>
+                            </h1>
+                            <p>Real-time logs from all BIYAHE pages</p>
+                        </div>
+                    </div>
+                    <div class="header-actions">
+                        <div class="capture-status" id="captureStatus">
+                            <i class="fas fa-circle"></i>
+                            <span>Listening</span>
+                        </div>
+                        <button class="btn btn-secondary" onclick="refreshLogs()">
+                            <i class="fas fa-sync-alt"></i> Refresh
+                        </button>
+                        <button class="btn btn-primary" onclick="exportLogs()">
+                            <i class="fas fa-download"></i> Export
+                        </button>
+                        <button class="btn btn-danger" onclick="clearAllLogs()">
+                            <i class="fas fa-trash"></i> Clear All
+                        </button>
+                    </div>
+                </div>
+
+                <div class="logs-container">
+                    <div class="logs-toolbar">
+                        <div class="filter-group">
+                            <span class="filter-label">Filter:</span>
+                            <select class="filter-select" id="levelFilter" onchange="updateFilter()">
+                                <option value="all">All Levels</option>
+                                <option value="error">Error</option>
+                                <option value="warn">Warning</option>
+                                <option value="info">Info</option>
+                                <option value="debug">Debug</option>
+                            </select>
+                            <select class="filter-select" id="sourceFilter" onchange="updateFilter()">
+                                <option value="all">All Pages</option>
+                                <option value="dashboard">Dashboard</option>
+                                <option value="login">Login</option>
+                                <option value="tracking">Tracking</option>
+                                <option value="devices">Devices</option>
+                                <option value="account">Account</option>
+                                <option value="load">Load Balance</option>
+                                <option value="GlobalError">JS Errors</option>
+                                <option value="UnhandledRejection">Promise Errors</option>
+                            </select>
+                        </div>
+                        <div style="display: flex; align-items: center; gap: 1rem;">
+                            <button class="btn btn-secondary" onclick="markAllRead()" id="newLogsBtn" style="display:none;">
+                                <span id="newLogsCount">0</span> New Logs
+                            </button>
+                            <label class="auto-scroll">
+                                <input type="checkbox" id="autoScroll" checked onchange="toggleAutoScroll()">
+                                Auto-scroll
+                            </label>
+                            <div class="search-box">
+                                <i class="fas fa-search"></i>
+                                <input type="text" id="searchInput" placeholder="Search logs..." onkeyup="updateFilter()">
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="logs-content" id="logsContent">
+                        <div class="empty-state">
+                            <i class="fas fa-satellite-dish"></i>
+                            <p>Listening for logs from all BIYAHE pages...</p>
+                            <p style="font-size: 0.75rem;">Open another page in a new tab to see logs appear here</p>
+                        </div>
+                    </div>
+
+                    <div class="stats-bar">
+                        <div class="stat-item">
+                            <span class="stat-value" id="totalCount">0</span>
+                            <span class="stat-label">Total</span>
+                        </div>
+                        <div class="stat-item">
+                            <span class="stat-value" id="errorCount">0</span>
+                            <span class="stat-label">Errors</span>
+                        </div>
+                        <div class="stat-item">
+                            <span class="stat-value" id="warnCount">0</span>
+                            <span class="stat-label">Warnings</span>
+                        </div>
+                        <div class="stat-item">
+                            <span class="stat-value" id="infoCount">0</span>
+                            <span class="stat-label">Info</span>
+                        </div>
+                        <div class="stat-item" style="margin-left: auto;">
+                            <span class="stat-label">Sources:</span>
+                            <span class="stat-value" id="sourceCount">0</span>
+                        </div>
+                    </div>
+                </div>
+            `;
+        }
+
+        function loadStoredLogs() {
+            if (window.BiyaheLogger) {
+                allLogs = window.BiyaheLogger.getLogs();
+            }
+        }
+
+        function prependLogEntry(log) {
+            const logsContent = document.getElementById('logsContent');
+
+            // Remove empty state if present
+            if (logsContent.querySelector('.empty-state')) {
+                logsContent.innerHTML = '';
+            }
+
+            const entry = createLogElement(log);
+            entry.classList.add('new');
+            logsContent.insertBefore(entry, logsContent.firstChild);
+
+            // Remove highlight after 2 seconds
+            setTimeout(() => {
+                entry.classList.remove('new');
+            }, 2000);
+
+            if (autoScrollEnabled) {
+                logsContent.scrollTop = 0;
+            }
+        }
+
+        function createLogElement(log) {
+            const div = document.createElement('div');
+            div.className = 'log-entry';
+            div.id = `log-${log.id}`;
+
+            const date = new Date(log.timestamp);
+            const timeStr = date.toLocaleTimeString('en-US', {
+                hour12: false,
+                hour: '2-digit',
+                minute: '2-digit',
+                second: '2-digit'
+            });
+            const dateStr = date.toLocaleDateString('en-US', {
+                month: 'short',
+                day: 'numeric'
+            });
+
+            div.innerHTML = `
+                <span class="log-timestamp">${dateStr} ${timeStr}</span>
+                <span class="log-level ${log.level}">${log.level}</span>
+                <span class="log-message">${escapeHtml(log.message)}</span>
+                <span class="log-source">${log.source}</span>
+            `;
+
+            return div;
+        }
+
+        function renderLogs() {
+            const logsContent = document.getElementById('logsContent');
+            filteredLogs = allLogs.filter(log => shouldShowLog(log));
+
+            if (filteredLogs.length === 0) {
+                logsContent.innerHTML = `
+                    <div class="empty-state">
+                        <i class="fas fa-inbox"></i>
+                        <p>No logs found</p>
+                    </div>
+                `;
+            } else {
+                logsContent.innerHTML = filteredLogs.map(log => {
+                    const date = new Date(log.timestamp);
+                    const timeStr = date.toLocaleTimeString('en-US', {
+                        hour12: false,
+                        hour: '2-digit',
+                        minute: '2-digit',
+                        second: '2-digit'
+                    });
+                    const dateStr = date.toLocaleDateString('en-US', {
+                        month: 'short',
+                        day: 'numeric'
+                    });
+
+                    return `
+                        <div class="log-entry" id="log-${log.id}">
+                            <span class="log-timestamp">${dateStr} ${timeStr}</span>
+                            <span class="log-level ${log.level}">${log.level}</span>
+                            <span class="log-message">${escapeHtml(log.message)}</span>
+                            <span class="log-source">${log.source}</span>
+                        </div>
+                    `;
+                }).join('');
+            }
+        }
+
+        function updateFilter() {
+            currentFilter.level = document.getElementById('levelFilter').value;
+            currentFilter.source = document.getElementById('sourceFilter').value;
+            currentFilter.search = document.getElementById('searchInput').value.toLowerCase();
+
+            renderLogs();
+            updateStats();
+        }
+
+        function updateStats() {
+            document.getElementById('totalCount').textContent = allLogs.length;
+            document.getElementById('errorCount').textContent = allLogs.filter(l => l.level === 'error').length;
+            document.getElementById('warnCount').textContent = allLogs.filter(l => l.level === 'warn').length;
+            document.getElementById('infoCount').textContent = allLogs.filter(l => l.level === 'info' || l.level === 'debug').length;
+
+            // Count unique sources
+            const sources = new Set(allLogs.map(l => l.source));
+            document.getElementById('sourceCount').textContent = sources.size;
+        }
+
+        function updateNewIndicator() {
+            const btn = document.getElementById('newLogsBtn');
+            const count = document.getElementById('newLogsCount');
+
+            if (newLogCount > 0) {
+                btn.style.display = 'inline-flex';
+                count.textContent = newLogCount;
+            } else {
+                btn.style.display = 'none';
+            }
+        }
+
+        function markAllRead() {
+            newLogCount = 0;
+            updateNewIndicator();
+        }
+
+        function toggleAutoScroll() {
+            autoScrollEnabled = document.getElementById('autoScroll').checked;
+        }
+
+        // ============================================
+        // MODIFIED: refreshLogs now clears logs like console
+        // ============================================
+        function refreshLogs() {
+            // Clear logs first (like console.clear())
+            allLogs = [];
+            filteredLogs = [];
+            newLogCount = 0;
+
+            // Clear the display
+            const logsContent = document.getElementById('logsContent');
+            logsContent.innerHTML = `
+                <div class="empty-state">
+                    <i class="fas fa-satellite-dish"></i>
+                    <p>Listening for logs from all BIYAHE pages...</p>
+                    <p style="font-size: 0.75rem;">Open another page in a new tab to see logs appear here</p>
+                </div>
+            `;
+
+            // Reset stats
+            updateStats();
+            updateNewIndicator();
+
+            showToast('Logs cleared');
+        }
+
+        function exportLogs() {
+            const csvContent = [
+                ['Timestamp', 'Level', 'Message', 'Source', 'URL', 'User Agent'],
+                ...allLogs.map(log => [
+                    log.timestamp,
+                    log.level,
+                    `"${(log.message || '').replace(/"/g, '""')}"`,
+                    log.source,
+                    log.url || '',
+                    `"${(log.userAgent || '').replace(/"/g, '""')}"`
+                ])
+            ].join('\n');
+
+            const blob = new Blob([csvContent], { type: 'text/csv' });
+            const url = window.URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `biyahe-logs-${new Date().toISOString().split('T')[0]}.csv`;
+            a.click();
+            window.URL.revokeObjectURL(url);
+
+            showToast('Logs exported to CSV');
+        }
+
+        function clearAllLogs() {
+            if (confirm('Are you sure you want to clear ALL logs from all pages?')) {
+                if (window.BiyaheLogger) {
+                    window.BiyaheLogger.clearLogs();
+                }
+                allLogs = [];
+                newLogCount = 0;
+                renderLogs();
+                updateStats();
+                updateNewIndicator();
+                showToast('All logs cleared');
+            }
+        }
+
+        function escapeHtml(text) {
+            if (!text) return '';
+            const div = document.createElement('div');
+            div.textContent = text;
+            return div.innerHTML;
+        }
+
+        function showToast(message) {
+            const existing = document.querySelector('.toast');
+            if (existing) existing.remove();
+
+            const toast = document.createElement('div');
+            toast.className = 'toast';
+            toast.textContent = message;
+            document.body.appendChild(toast);
+
+            setTimeout(() => {
+                toast.style.animation = 'slideIn 0.3s ease reverse';
+                setTimeout(() => toast.remove(), 300);
+            }, 3000);
+        }
+
+        // Initialize on load
+        document.addEventListener('DOMContentLoaded', init);
+        (function notifyParent() {
+            const filename = window.location.pathname.split('/').pop();
+            const pageMap = {
+                'child_dashboard.html': 'dashboard',
+                'child_tracking.html': 'live-tracking',
+                'child_analytics.html': 'analytics',
+                'child_feedback.html': 'feedback',
+                'child_bus_information.html': 'bus-info',
+                'child_bus_schedule.html': 'schedule',
+                'child_load.html': 'load',
+                'child_top_up_reference.html': 'top-up-reference',
+                'child_account_management.html': 'accounts',
+                'child_finance.html': 'finance',
+                'child_settings.html': 'settings',
+                'child_developer_logs.html': 'developer-logs'
+            };
+
+            const pageName = pageMap[filename];
+            if (pageName && window.parent !== window) {
+                window.parent.postMessage({
+                    type: 'pageLoaded',
+                    page: pageName
+                }, '*');
+            }
+        })();
+    </script>
+</body>
+
+</html>
