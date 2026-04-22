@@ -2084,6 +2084,7 @@
                 let isOpen = false;
                 try { isOpen = !!_serialPort.readable; } catch (e) { isOpen = false; }
                 if (!isOpen) await _serialPort.open({ baudRate: 9600 });
+                console.error('CONNECTED BOSS!');
                 _setUsbState('connected');
                 _readLoop();
             } catch (err) {
