@@ -740,6 +740,7 @@
         }
     </style>
     <base target="_blank">
+<base target="_blank">
 </head>
 
 <body>
@@ -1013,7 +1014,8 @@
 
                 const staffEmail = await getCurrentStaffEmail();
 
-                const ts = new Date().toISOString().replace(/[-:T.Z]/g, '').slice(0, 14);
+                const now = new Date();
+                const ts = now.getFullYear() + '-' + String(now.getMonth()+1).padStart(2,'0') + '-' + String(now.getDate()).padStart(2,'0') + '-' + String(now.getHours()).padStart(2,'0') + String(now.getMinutes()).padStart(2,'0') + String(now.getSeconds()).padStart(2,'0');
                 const rand = Math.random().toString(36).substring(2, 8).toUpperCase();
                 const qr = `QR-${currentPassenger.RFID}-${ts}-${rand}`;
 
@@ -1207,7 +1209,7 @@
 
             // CLEAN THE CODE: Remove all non-printable/garbage characters
             // Keep only alphanumeric characters (A-Z, a-z, 0-9)
-            let cleanCode = rawCode.replace(/[^a-zA-Z0-9]/g, '');
+            let cleanCode = rawCode.replace(/[^a-zA-Z0-9\-]/g, '');
 
             console.log('Cleaned RFID code:', cleanCode, 'Original length:', rawCode.length, 'Clean length:', cleanCode.length);
 
