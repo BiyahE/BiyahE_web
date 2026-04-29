@@ -3004,7 +3004,13 @@
 
             // Expand map button
             document.getElementById('expandMap').addEventListener('click', () => {
-                window.parent.location.href = 'dashboard.html#live-tracking';
+                // Use parent postMessage to tell dashboard.html to switch pages
+                if (window.parent !== window) {
+                    window.parent.postMessage({ type: 'navigateToPage', page: 'live-tracking' }, '*');
+                } else {
+                    // Fallback if not in iframe
+                    window.location.href = 'dashboard.html#live-tracking';
+                }
             });
         });
 
